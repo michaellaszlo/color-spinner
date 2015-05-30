@@ -6,6 +6,12 @@ body {
   position: fixed;
   left: 300px;
   top: 200px;
+  border: 1px dotted #ccc;
+}
+
+#controls canvas {
+  position: absolute;
+  border: 1px solid #ddd;
 }
 
 input {

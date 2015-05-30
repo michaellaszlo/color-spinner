@@ -26,8 +26,16 @@ BigColorPicker.load = function () {
     blue: M.make('input', { id: 'blue', into: controls }),
     green: M.make('input', { id: 'green', into: controls })
   };
+  g.ring = {
+    red: M.make('canvas', { id: 'redRing', into: controls }),
+    blue: M.make('canvas', { id: 'blueRing', into: controls }),
+    green: M.make('canvas', { id: 'greenRing', into: controls })
+  };
   [g.input.red, g.input.blue, g.input.green].forEach(function (input) {
     input.oninput = g.makeInputHandler(input);
+  });
+  [g.ring.red, g.ring.blue, g.ring.green].forEach(function (canvas) {
+    canvas.width = canvas.height = 100;
   });
 };
 
