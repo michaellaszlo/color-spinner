@@ -9,10 +9,12 @@ body {
 }
 
 input {
-  font-size: 36px;
+  font-size: 24px;
   width: 100px;
   padding: 2px 8px;
   margin-right: 10px;
-  background: #eee;
-  border: 1px dotted #ccc;
+  color: #222;
+  border: 0;
+  border-bottom: 1px solid #222;
+  outline: 0;
 }
