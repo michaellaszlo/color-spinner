@@ -31,11 +31,15 @@ BigColorPicker.load = function () {
     blue: M.make('canvas', { id: 'blueRing', into: controls }),
     green: M.make('canvas', { id: 'greenRing', into: controls })
   };
-  [g.input.red, g.input.blue, g.input.green].forEach(function (input) {
+  ['red', 'blue', 'green'].forEach(function (color) {
+    var input = g.input[color];
     input.oninput = g.makeInputHandler(input);
-  });
-  [g.ring.red, g.ring.blue, g.ring.green].forEach(function (canvas) {
+    var canvas = g.ring[color];
     canvas.width = canvas.height = 100;
+    canvas.style.left = canvas.offsetLeft + canvas.offsetWidth/2 -
+        input.offsetWidth/2 + 'px';
+    canvas.style.top = canvas.offsetTop + canvas.offsetTop/2 -
+        input.offsetTop/2 + 'px';
   });
 };
 
