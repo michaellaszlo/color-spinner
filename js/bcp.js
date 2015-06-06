@@ -61,8 +61,9 @@ BigColorPicker.load = function () {
       }
       parts[ix+1] = hex;
       context.strokeStyle = parts.join('');
-      context.arc(x, y, 85,
-          -Math.PI/2 + i*increment, -Math.PI/2 + (i+1)*increment);
+      var startAngle = -Math.PI/2 + i*increment,
+          endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
+      context.arc(x, y, 85, startAngle, endAngle);
       context.stroke();
     }
   });
