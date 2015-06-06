@@ -16,3 +16,14 @@ M.make = function (tag, options) {
   }
   return element;
 };
+
+M.getOffset = function (element, ancestor) {
+  var left = 0,
+      top = 0;
+  while (element != ancestor) {
+    left += element.offsetLeft;
+    top += element.offsetTop;
+    element = element.parentNode;
+  }
+  return { left: left, top: top };
+};
