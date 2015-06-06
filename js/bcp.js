@@ -2,17 +2,17 @@ var BigColorPicker = {
   scale: 2
 };
 
-BigColorPicker.makeInputHandler = function (input) {
+BigColorPicker.makeInputHandler = function (component) {
   var pattern = /^[0-9]{0,3}$/i;
   return function () {
-    var value = input.previousValue;
+    var value = component.previousValue;
     if (value === undefined) {
-      value = input.previousValue = '';
+      value = component.previousValue = '';
     }
-    if (!pattern.test(input.value) || input.value > 255) {
-      input.value = input.previousValue;
+    if (!pattern.test(component.value) || component.value > 255) {
+      component.value = component.previousValue;
     } else {
-      input.previousValue = input.value;
+      component.previousValue = component.value;
     }
   };
 };
@@ -20,38 +20,32 @@ BigColorPicker.makeInputHandler = function (input) {
 BigColorPicker.load = function () {
   var g = BigColorPicker;
   M.make('div', { id: 'wrapper', into: document.body });
-  g.input = {
-    container: M.make('div', { id: 'controls', into: wrapper }),
-    red: M.make('input', { id: 'red', into: controls }),
-    blue: M.make('input', { id: 'blue', into: controls }),
-    green: M.make('input', { id: 'green', into: controls })
-  };
-  g.ring = {
-    red: M.make('canvas', { id: 'redRing', into: controls }),
-    blue: M.make('canvas', { id: 'blueRing', into: controls }),
-    green: M.make('canvas', { id: 'greenRing', into: controls })
-  };
+  var container = M.make('div', { id: 'controls', into: wrapper });
+  g.component = {};
+  g.ring = {};
   ['red', 'blue', 'green'].forEach(function (color, ix, array) {
-    // Position the input box.
-    var input = g.input[color];
-    input.oninput = g.makeInputHandler(input);
+    // Position the component box.
+    var component = g.component[color] = M.make('div',
+        { className: 'component', id: 'red', into: container });
+    component.oncomponent = g.makeInputHandler(component);
     if (ix != array.length-1) {
-      input.style.marginRight = 150 + 'px';
+      component.style.marginRight = 175 + 'px';
     }
     // Position the canvas.
-    var canvas = g.ring[color];
-    canvas.width = canvas.height = 240;
-    canvas.style.left = input.offsetLeft + input.offsetWidth/2 -
-        canvas.offsetWidth/2 + 'px';
-    canvas.style.top = input.offsetTop + input.offsetHeight/2 -
-        canvas.offsetHeight/2 + 'px';
+    var ringCanvas = g.ring[color] = M.make('canvas',
+        { id: color+'Ring', into: container });
+    ringCanvas.width = ringCanvas.height = 240;
+    ringCanvas.style.left = component.offsetLeft + component.offsetWidth/2 -
+        ringCanvas.offsetWidth/2 + 'px';
+    ringCanvas.style.top = component.offsetTop + component.offsetHeight/2 -
+        ringCanvas.offsetHeight/2 + 'px';
     // Draw the ring.
-    var context = canvas.getContext('2d'),
-        x = canvas.width/2,
-        y = canvas.height/2,
+    var context = ringCanvas.getContext('2d'),
+        x = ringCanvas.width/2,
+        y = ringCanvas.height/2,
         numSegments = 256,
         increment = Math.PI*2/numSegments;
-    context.lineWidth = 30;
+    context.lineWidth = 65;
     for (var i = 0; i < numSegments; ++i) {
       context.beginPath();
       var parts = ['#', '00', '00', '00'];

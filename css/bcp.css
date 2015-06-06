@@ -13,11 +13,13 @@ body {
   z-index: -100;
 }
 
-#controls input {
+#controls .component {
+  display: inline-block;
+  width: 60px;
+  height: 40px;
   z-index: 100;
   font-size: 32px;
   text-align: center;
-  width: 100px;
   padding: 2px 8px;
   color: #222;
   border: 1px solid #eee;
