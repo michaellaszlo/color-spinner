@@ -16,6 +16,7 @@ BigColorPicker.makeMouseHandler = function (mouseWhat, color) {
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
     if (mouseWhat == 'over' || mouseWhat == 'move') {
+      // Show cursor position.
       context.fillStyle = '#ff8';
       context.strokeStyle = '#888';
       context.lineWidth = 1.5;
@@ -26,6 +27,12 @@ BigColorPicker.makeMouseHandler = function (mouseWhat, color) {
       context.clearRect(0, 0, touch.width, touch.height);
       context.fill();
       context.stroke();
+      // Calculate angle.
+      var x0 = ring.width/2,
+          y0 = ring.height/2,
+          dx = x - x0,
+          dy = y - y0;
+      console.log(dx, dy);
     }
     if (mouseWhat == 'out') {
       context.clearRect(0, 0, touch.width, touch.height);
