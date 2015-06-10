@@ -38,15 +38,13 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
       }
       var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256,
           angleFrom = 3*Math.PI/2 + value*Math.PI/128,
-          angleTo = angleFrom + Math.PI/128,
-          rgb = [0, 0, 0];
-      rgb[cluster.index] = value;
-      var rgbString = 'rgb(' + rgb.join(', ') + ')';
+          angleTo = angleFrom + Math.PI/128;
       display.innerHTML = value;
       // Fill ring with color.
       holeContext = cluster.hole.getContext('2d');
       holeContext.clearRect(0, 0, canvasSize, canvasSize);
-      holeContext.fillStyle = rgbString;
+      holeContext.beginPath();
+      holeContext.fillStyle = cluster.colorStrings[value];
       holeContext.arc(x0, y0, 52, 0, 2*Math.PI);
       holeContext.fill();
       // Draw sector under cursor.
@@ -75,6 +73,13 @@ ColorSpinner.load = function () {
   container.style.height = canvasSize + 'px';
   g.colors.forEach(function (color, ix, array) {
     var cluster = g[color] = { index: ix };
+    // Precompute color strings.
+    var colorStrings = cluster.colorStrings = [],
+        rgb = [0, 0, 0];
+    for (var i = 0; i < 256; ++i) {
+      rgb[ix] = i;
+      colorStrings.push('rgb(' + rgb.join(', ') + ')');
+    }
     // Position the ring canvas.
     var ringCanvas = cluster.ring = M.make('canvas',
         { id: color+'Ring', into: container }),
