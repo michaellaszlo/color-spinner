@@ -1,23 +1,28 @@
 var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
-  layout: { canvas: { size: 240 } }
+  layout: {
+    canvas: { size: 240, gap: 10 },
+    display: { color: '#fff', width: 100, height: 32 },
+    sector: { color: '#fff' }
+  }
 };
 
 ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
   return function (event) {
     var g = ColorSpinner,
         cluster = g[color],
-        component = cluster.component,
+        display = cluster.display,
         ring = cluster.ring,
         touch = cluster.touch,
         offset = cluster.offset,
+        canvasSize = g.layout.canvas.size,
         context = touch.getContext('2d'),
         event = event || window.event,
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
     if (mouseWhat == 'over' || mouseWhat == 'move') {
       // Show cursor position.
-      context.clearRect(0, 0, touch.width, touch.height);
+      context.clearRect(0, 0, canvasSize, canvasSize);
       // Calculate angle.
       var x0 = ring.width/2,
           y0 = ring.height/2,
@@ -37,16 +42,22 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
           rgb = [0, 0, 0];
       rgb[cluster.index] = value;
       var rgbString = 'rgb(' + rgb.join(', ') + ')';
-      component.innerHTML = value;
+      display.innerHTML = value;
+      // Fill ring with color.
+      holeContext = cluster.hole.getContext('2d');
+      holeContext.clearRect(0, 0, canvasSize, canvasSize);
+      holeContext.fillStyle = rgbString;
+      holeContext.arc(x0, y0, 52, 0, 2*Math.PI);
+      holeContext.fill();
       // Draw sector under cursor.
-      context.strokeStyle = '#888';
+      context.strokeStyle = g.layout.sector.color;
       context.lineWidth = radius;
       context.beginPath();
       context.arc(x0, y0, radius/2, angleFrom, angleTo);
       context.stroke();
     }
     if (mouseWhat == 'out') {
-      context.clearRect(0, 0, touch.width, touch.height);
+      context.clearRect(0, 0, canvasSize, canvasSize);
     }
   };
 };
@@ -54,23 +65,24 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
 ColorSpinner.load = function () {
   var g = ColorSpinner;
   M.make('div', { id: 'wrapper', into: document.body });
-  var container = M.make('div', { id: 'controls', into: wrapper });
+  var container = M.make('div', { id: 'controls', into: wrapper }),
+      canvasSize = g.layout.canvas.size,
+      canvasGap = g.layout.canvas.gap,
+      displayWidth = g.layout.display.width,
+      displayHeight = g.layout.display.height;
+  container.style.width = g.colors.length*(canvasSize + canvasGap) -
+      canvasGap + 'px';
+  container.style.height = canvasSize + 'px';
   g.colors.forEach(function (color, ix, array) {
     var cluster = g[color] = { index: ix };
-    // Position the component box.
-    var component = cluster.component = M.make('div',
-        { className: 'component', id: 'red', into: container, innerHTML: '0' });
-    if (ix != array.length-1) {
-      component.style.marginRight = 175 + 'px';
-    }
     // Position the ring canvas.
     var ringCanvas = cluster.ring = M.make('canvas',
-        { id: color+'Ring', into: container });
+        { id: color+'Ring', into: container }),
+        styleLeft = ix*(canvasSize + canvasGap) + 'px',
+        styleTop = '0';
     ringCanvas.width = ringCanvas.height = g.layout.canvas.size;
-    ringCanvas.style.left = component.offsetLeft + component.offsetWidth/2 -
-        ringCanvas.offsetWidth/2 + 'px';
-    ringCanvas.style.top = component.offsetTop + component.offsetHeight/2 -
-        ringCanvas.offsetHeight/2 + 'px';
+    ringCanvas.style.left = styleLeft;
+    ringCanvas.style.top = styleTop;
     // Calculate the offset of the canvas with respect to the page.
     var offset = cluster.offset = M.getOffset(ringCanvas, document.body);
     // Draw the ring.
@@ -104,11 +116,27 @@ ColorSpinner.load = function () {
     context.arc(x, y, 120, 0, 2*Math.PI);
     context.stroke();
     // Position the touch canvas.
+    var holeCanvas = cluster.hole = M.make('canvas',
+        { id: color+'Hole', into: container });
+    holeCanvas.width = holeCanvas.height = g.layout.canvas.size;
+    holeCanvas.style.left = styleLeft;
+    holeCanvas.style.top = styleTop;
+    // Position the display box.
+    var display = cluster.display = M.make('div',
+          { className: 'display', id: 'red', into: container,
+            innerHTML: '0' });
+    display.style.width = displayWidth + 'px';
+    display.style.height = displayHeight + 'px';
+    display.style.left = ringCanvas.offsetLeft +
+        (canvasSize - displayWidth)/2 + 'px';
+    display.style.top = (canvasSize - displayHeight)/2 + 'px';
+    display.style.color = g.layout.display.color;
+    // Position the touch canvas.
     var touchCanvas = cluster.touch = M.make('canvas',
         { id: color+'Touch', into: container });
     touchCanvas.width = touchCanvas.height = g.layout.canvas.size;
-    touchCanvas.style.left = ringCanvas.style.left;
-    touchCanvas.style.top = ringCanvas.style.top;
+    touchCanvas.style.left = styleLeft;
+    touchCanvas.style.top = styleTop;
     touchCanvas.onmouseover = g.makeMouseHandler('over', color);
     touchCanvas.onmousemove = g.makeMouseHandler('move', color);
     touchCanvas.onmouseout = g.makeMouseHandler('out', color);

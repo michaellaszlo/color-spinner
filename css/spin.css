@@ -9,21 +9,18 @@ body {
 
 #controls {
   position: fixed;
-  left: 100px;
-  top: 200px;
+  left: 50px;
+  top: 50px;
 }
 
 #controls canvas {
   position: absolute;
 }
 
-#controls .component {
+#controls .display {
+  position: absolute;
   display: inline-block;
-  width: 60px;
-  height: 40px;
   font-size: 32px;
   text-align: center;
-  padding: 2px 8px;
-  color: #888;
   outline: 0;
 }
