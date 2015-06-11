@@ -7,54 +7,62 @@ var ColorSpinner = {
   }
 };
 
+ColorSpinner.setValue = function (color, value) {
+  var g = ColorSpinner,
+      cluster = g[color],
+      ring = cluster.ring,
+      x0 = ring.width/2,
+      y0 = ring.height/2,
+      radius = ring.width/2,
+      touch = cluster.touch,
+      context = touch.getContext('2d'),
+      display = cluster.display,
+      canvasSize = g.layout.canvas.size,
+      angleFrom = 3*Math.PI/2 + value*Math.PI/128,
+      angleTo = angleFrom + Math.PI/128;
+  display.innerHTML = value;
+  // Fill ring with color.
+  holeContext = cluster.hole.getContext('2d');
+  holeContext.fillStyle = cluster.colorStrings[value];
+  holeContext.clearRect(0, 0, canvasSize, canvasSize);
+  holeContext.beginPath();
+  holeContext.arc(x0, y0, 52, 0, 2*Math.PI);
+  holeContext.fill();
+  // Draw sector under cursor.
+  context.strokeStyle = g.layout.sector.color;
+  context.lineWidth = radius;
+  context.clearRect(0, 0, canvasSize, canvasSize);
+  context.beginPath();
+  context.arc(x0, y0, radius/2, angleFrom, angleTo);
+  context.stroke();
+};
+
 ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
   return function (event) {
     var g = ColorSpinner,
-        cluster = g[color],
-        display = cluster.display,
-        ring = cluster.ring,
-        touch = cluster.touch,
-        offset = cluster.offset,
-        canvasSize = g.layout.canvas.size,
-        context = touch.getContext('2d'),
         event = event || window.event,
+        cluster = g[color],
+        ring = cluster.ring,
+        offset = cluster.offset,
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
     if (mouseWhat == 'over' || mouseWhat == 'move') {
-      // Show cursor position.
-      context.clearRect(0, 0, canvasSize, canvasSize);
       // Calculate angle.
       var x0 = ring.width/2,
           y0 = ring.height/2,
           dx = x - x0,
           dy = y - y0,
           dd = Math.sqrt(dx*dx + dy*dy),
-          radius = ring.width/2,
-          xOut = x0 + radius/dd*dx,
-          yOut = y0 + radius/dd*dy,
           angle = Math.acos(dx/dd);
       if (dy > 0) {
         angle = 2*Math.PI - angle;
       }
-      var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256,
-          angleFrom = 3*Math.PI/2 + value*Math.PI/128,
-          angleTo = angleFrom + Math.PI/128;
-      display.innerHTML = value;
-      // Fill ring with color.
-      holeContext = cluster.hole.getContext('2d');
-      holeContext.clearRect(0, 0, canvasSize, canvasSize);
-      holeContext.beginPath();
-      holeContext.fillStyle = cluster.colorStrings[value];
-      holeContext.arc(x0, y0, 52, 0, 2*Math.PI);
-      holeContext.fill();
-      // Draw sector under cursor.
-      context.strokeStyle = g.layout.sector.color;
-      context.lineWidth = radius;
-      context.beginPath();
-      context.arc(x0, y0, radius/2, angleFrom, angleTo);
-      context.stroke();
+      var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256;
+      g.setValue(color, value);
     }
     if (mouseWhat == 'out') {
+      var context = cluster.touch.getContext('2d'),
+          canvasSize = g.layout.canvas.size;
       context.clearRect(0, 0, canvasSize, canvasSize);
     }
   };
@@ -146,6 +154,7 @@ ColorSpinner.load = function () {
     touchCanvas.onmousemove = g.makeMouseHandler('move', color);
     touchCanvas.onmouseout = g.makeMouseHandler('out', color);
     touchCanvas.onmousedown = g.makeMouseHandler('down', color);
+    g.setValue(color, 0);
   });
 };
 
