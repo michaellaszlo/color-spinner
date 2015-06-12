@@ -1,5 +1,6 @@
 var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
+  mix: {},
   layout: {
     canvas: { size: 240, gap: 10 },
     ring: { width: 70, smoother: 2 },
@@ -40,6 +41,17 @@ ColorSpinner.setValue = function (color, value) {
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
   context.stroke();
+  // Paint mixed color.
+  g.mix.rgb[cluster.index] = value;
+  var colorString = 'rgb(' + g.mix.rgb.join(', ') + ')',
+      mixCanvas = g.mix.canvas,
+      mixContext = mixCanvas.getContext('2d');
+  mixContext.clearRect(0, 0, mixCanvas.width, mixCanvas.height);
+  mixContext.fillStyle = colorString;
+  mixContext.beginPath();
+  mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
+      holeRadius, 0, 2*Math.PI);
+  mixContext.fill();
 };
 
 ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
@@ -76,7 +88,7 @@ ColorSpinner.load = function () {
   var g = ColorSpinner,
       layout = g.layout;
   M.make('div', { id: 'wrapper', into: document.body });
-  var container = M.make('div', { id: 'controls', into: wrapper }),
+  var container = M.make('div', { id: 'discs', into: wrapper }),
       canvasSize = layout.canvas.size,
       canvasGap = layout.canvas.gap,
       displayWidth = layout.display.width,
@@ -91,8 +103,17 @@ ColorSpinner.load = function () {
       overlap = layout.hole.overlap,
       holeRadius = half - ringWidth - smoother;
   layout.hole.radius = holeRadius;
-  console.log(holeRadius);
-  // Prepare graphics for each color.
+  // Initialize the mixed color value.
+  g.mix.rgb = [0, 0, 0];
+  // Make a canvas for the mixed color.
+  var mixCanvas = g.mix.canvas = M.make('canvas',
+      { id: 'mix', into: wrapper });
+  mixCanvas.width = 4*holeRadius;
+  mixCanvas.height = 4*holeRadius;
+  mixCanvas.style.left = container.offsetLeft + 3*holeRadius + 'px';
+  mixCanvas.style.top = container.offsetTop + container.offsetHeight +
+      holeRadius + 'px';
+  // Make graphics for each color.
   g.colors.forEach(function (color, ix, array) {
     var cluster = g[color] = { index: ix };
     // Precompute color strings.

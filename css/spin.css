@@ -7,20 +7,25 @@ body {
   font-family: sans-serif;
 }
 
-#controls {
+#discs {
   position: fixed;
   left: 50px;
   top: 50px;
 }
 
-#controls canvas {
+#discs canvas {
   position: absolute;
 }
 
-#controls .display {
+#discs .display {
   position: absolute;
   display: inline-block;
   font-size: 32px;
   text-align: center;
   outline: 0;
 }
+
+#mix {
+  position: fixed;
+}
+
