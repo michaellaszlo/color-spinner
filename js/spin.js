@@ -35,20 +35,10 @@ ColorSpinner.setValue = function (color, value) {
   holeContext.fill();
   // Draw sector under cursor.
   context.strokeStyle = g.layout.sector.color;
-  context.lineWidth = ringWidth;
+  context.lineWidth = ringWidth*3/4;
   context.clearRect(0, 0, canvasSize, canvasSize);
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
-  /*
-  context.moveTo(x0 + Math.cos(angleFrom)*holeRadius,
-                 y0 + Math.sin(angleFrom)*holeRadius);
-  context.lineTo(x0 + Math.cos(angleFrom)*(holeRadius+ringWidth),
-                 y0 + Math.sin(angleFrom)*(holeRadius+ringWidth));
-  context.moveTo(x0 + Math.cos(angleTo)*holeRadius,
-                 y0 + Math.sin(angleTo)*holeRadius);
-  context.lineTo(x0 + Math.cos(angleTo)*(holeRadius+ringWidth),
-                 y0 + Math.sin(angleTo)*(holeRadius+ringWidth));
-  */
   context.stroke();
 };
 
