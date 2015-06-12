@@ -31,14 +31,24 @@ ColorSpinner.setValue = function (color, value) {
   holeContext.fillStyle = cluster.colorStrings[value];
   holeContext.clearRect(0, 0, canvasSize, canvasSize);
   holeContext.beginPath();
-  holeContext.arc(x0, y0, holeRadius + overlap, 0, 2*Math.PI);
+  holeContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
   holeContext.fill();
   // Draw sector under cursor.
   context.strokeStyle = g.layout.sector.color;
-  context.lineWidth = holeRadius + ringWidth;
+  context.lineWidth = ringWidth;
   context.clearRect(0, 0, canvasSize, canvasSize);
   context.beginPath();
-  context.arc(x0, y0, context.lineWidth/2, angleFrom, angleTo);
+  context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
+  /*
+  context.moveTo(x0 + Math.cos(angleFrom)*holeRadius,
+                 y0 + Math.sin(angleFrom)*holeRadius);
+  context.lineTo(x0 + Math.cos(angleFrom)*(holeRadius+ringWidth),
+                 y0 + Math.sin(angleFrom)*(holeRadius+ringWidth));
+  context.moveTo(x0 + Math.cos(angleTo)*holeRadius,
+                 y0 + Math.sin(angleTo)*holeRadius);
+  context.lineTo(x0 + Math.cos(angleTo)*(holeRadius+ringWidth),
+                 y0 + Math.sin(angleTo)*(holeRadius+ringWidth));
+  */
   context.stroke();
 };
 
@@ -88,6 +98,7 @@ ColorSpinner.load = function () {
   var half = canvasSize/2,
       ringWidth = layout.ring.width,
       smoother = layout.ring.smoother,
+      overlap = layout.hole.overlap,
       holeRadius = half - ringWidth - smoother;
   layout.hole.radius = holeRadius;
   console.log(holeRadius);
@@ -117,8 +128,10 @@ ColorSpinner.load = function () {
         y0 = ringCanvas.height/2;
         numSegments = 256,
         increment = Math.PI*2/numSegments;
-    // Add half the smoother's width on each side of the ring.
-    context.lineWidth = ringWidth + smoother;
+    // Add the inside overlap and half the outside smoothing width.
+    var renderWidth = overlap + ringWidth + smoother/2,
+        renderCenter = holeRadius - overlap + renderWidth/2;
+    context.lineWidth = renderWidth;
     for (var i = 0; i < numSegments; ++i) {
       context.beginPath();
       var parts = ['#', '00', '00', '00'];
@@ -130,15 +143,12 @@ ColorSpinner.load = function () {
       context.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
-      context.arc(x0, y0, holeRadius + ringWidth/2, startAngle, endAngle);
+      context.arc(x0, y0, renderCenter, startAngle, endAngle);
       context.stroke();
     }
-    // Smooth the inner and outer edges of the ring.
+    // Smooth the outer edge of the ring.
     context.strokeStyle = '#fff';
     context.lineWidth = smoother;
-    context.beginPath();
-    context.arc(x0, y0, holeRadius - smoother/2, 0, 2*Math.PI);
-    context.stroke();
     context.beginPath();
     context.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
     context.stroke();
