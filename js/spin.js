@@ -48,22 +48,26 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
         event = event || window.event,
         cluster = g[color],
         ring = cluster.ring,
+        radius = g.layout.hole.radius + g.layout.ring.width,
         offset = cluster.offset,
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
     if (mouseWhat == 'over' || mouseWhat == 'move') {
-      // Calculate angle.
+      // Calculate distance of cursor from center.
       var x0 = ring.width/2,
           y0 = ring.height/2,
           dx = x - x0,
           dy = y - y0,
-          dd = Math.sqrt(dx*dx + dy*dy),
-          angle = Math.acos(dx/dd);
-      if (dy > 0) {
-        angle = 2*Math.PI - angle;
+          dd = Math.sqrt(dx*dx + dy*dy);
+      if (dd <= radius) {
+        // Calculate angle and 256 value.
+        var angle = Math.acos(dx/dd);
+        if (dy > 0) {
+          angle = 2*Math.PI - angle;
+        }
+        var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256;
+        g.setValue(color, value);
       }
-      var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256;
-      g.setValue(color, value);
     }
   };
 };
