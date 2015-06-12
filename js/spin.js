@@ -65,11 +65,6 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
       var value = 255 - (Math.floor(angle/2/Math.PI * 256) + 192) % 256;
       g.setValue(color, value);
     }
-    if (mouseWhat == 'out') {
-      var context = cluster.touch.getContext('2d'),
-          canvasSize = g.layout.canvas.size;
-      context.clearRect(0, 0, canvasSize, canvasSize);
-    }
   };
 };
 
