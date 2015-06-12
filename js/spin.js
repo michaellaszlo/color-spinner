@@ -2,6 +2,8 @@ var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
   layout: {
     canvas: { size: 240, gap: 10 },
+    ring: { width: 70, smoother: 2 },
+    hole: { overlap: 2 },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
   }
@@ -11,9 +13,12 @@ ColorSpinner.setValue = function (color, value) {
   var g = ColorSpinner,
       cluster = g[color],
       ring = cluster.ring,
-      x0 = ring.width/2,
-      y0 = ring.height/2,
-      radius = ring.width/2,
+      layout = g.layout,
+      x0 = layout.canvas.size/2,
+      y0 = layout.canvas.size/2,
+      holeRadius = layout.hole.radius,
+      overlap = layout.hole.overlap,
+      ringWidth = layout.ring.width,
       touch = cluster.touch,
       context = touch.getContext('2d'),
       display = cluster.display,
@@ -26,14 +31,14 @@ ColorSpinner.setValue = function (color, value) {
   holeContext.fillStyle = cluster.colorStrings[value];
   holeContext.clearRect(0, 0, canvasSize, canvasSize);
   holeContext.beginPath();
-  holeContext.arc(x0, y0, 52, 0, 2*Math.PI);
+  holeContext.arc(x0, y0, holeRadius + overlap, 0, 2*Math.PI);
   holeContext.fill();
   // Draw sector under cursor.
   context.strokeStyle = g.layout.sector.color;
-  context.lineWidth = radius;
+  context.lineWidth = holeRadius + ringWidth;
   context.clearRect(0, 0, canvasSize, canvasSize);
   context.beginPath();
-  context.arc(x0, y0, radius/2, angleFrom, angleTo);
+  context.arc(x0, y0, context.lineWidth/2, angleFrom, angleTo);
   context.stroke();
 };
 
@@ -69,16 +74,25 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
 };
 
 ColorSpinner.load = function () {
-  var g = ColorSpinner;
+  var g = ColorSpinner,
+      layout = g.layout;
   M.make('div', { id: 'wrapper', into: document.body });
   var container = M.make('div', { id: 'controls', into: wrapper }),
-      canvasSize = g.layout.canvas.size,
-      canvasGap = g.layout.canvas.gap,
-      displayWidth = g.layout.display.width,
-      displayHeight = g.layout.display.height;
+      canvasSize = layout.canvas.size,
+      canvasGap = layout.canvas.gap,
+      displayWidth = layout.display.width,
+      displayHeight = layout.display.height;
   container.style.width = g.colors.length*(canvasSize + canvasGap) -
       canvasGap + 'px';
   container.style.height = canvasSize + 'px';
+  // Compute ring dimensions.
+  var half = canvasSize/2,
+      ringWidth = layout.ring.width,
+      smoother = layout.ring.smoother,
+      holeRadius = half - ringWidth - smoother;
+  layout.hole.radius = holeRadius;
+  console.log(holeRadius);
+  // Prepare graphics for each color.
   g.colors.forEach(function (color, ix, array) {
     var cluster = g[color] = { index: ix };
     // Precompute color strings.
@@ -93,18 +107,19 @@ ColorSpinner.load = function () {
         { id: color+'Ring', into: container }),
         styleLeft = ix*(canvasSize + canvasGap) + 'px',
         styleTop = '0';
-    ringCanvas.width = ringCanvas.height = g.layout.canvas.size;
+    ringCanvas.width = ringCanvas.height = layout.canvas.size;
     ringCanvas.style.left = styleLeft;
     ringCanvas.style.top = styleTop;
     // Calculate the offset of the canvas with respect to the page.
     var offset = cluster.offset = M.getOffset(ringCanvas, document.body);
     // Draw the ring.
     var context = ringCanvas.getContext('2d'),
-        x = ringCanvas.width/2;
-        y = ringCanvas.height/2;
+        x0 = ringCanvas.width/2;
+        y0 = ringCanvas.height/2;
         numSegments = 256,
         increment = Math.PI*2/numSegments;
-    context.lineWidth = 70;
+    // Add half the smoother's width on each side of the ring.
+    context.lineWidth = ringWidth + smoother;
     for (var i = 0; i < numSegments; ++i) {
       context.beginPath();
       var parts = ['#', '00', '00', '00'];
@@ -116,22 +131,22 @@ ColorSpinner.load = function () {
       context.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
-      context.arc(x, y, 85, startAngle, endAngle);
+      context.arc(x0, y0, holeRadius + ringWidth/2, startAngle, endAngle);
       context.stroke();
     }
     // Smooth the inner and outer edges of the ring.
     context.strokeStyle = '#fff';
-    context.lineWidth = 2;
+    context.lineWidth = smoother;
     context.beginPath();
-    context.arc(x, y, 50, 0, 2*Math.PI);
+    context.arc(x0, y0, holeRadius - smoother/2, 0, 2*Math.PI);
     context.stroke();
     context.beginPath();
-    context.arc(x, y, 120, 0, 2*Math.PI);
+    context.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
     context.stroke();
     // Position the touch canvas.
     var holeCanvas = cluster.hole = M.make('canvas',
         { id: color+'Hole', into: container });
-    holeCanvas.width = holeCanvas.height = g.layout.canvas.size;
+    holeCanvas.width = holeCanvas.height = layout.canvas.size;
     holeCanvas.style.left = styleLeft;
     holeCanvas.style.top = styleTop;
     // Position the display box.
@@ -143,11 +158,11 @@ ColorSpinner.load = function () {
     display.style.left = ringCanvas.offsetLeft +
         (canvasSize - displayWidth)/2 + 'px';
     display.style.top = (canvasSize - displayHeight)/2 + 'px';
-    display.style.color = g.layout.display.color;
+    display.style.color = layout.display.color;
     // Position the touch canvas.
     var touchCanvas = cluster.touch = M.make('canvas',
         { id: color+'Touch', into: container });
-    touchCanvas.width = touchCanvas.height = g.layout.canvas.size;
+    touchCanvas.width = touchCanvas.height = layout.canvas.size;
     touchCanvas.style.left = styleLeft;
     touchCanvas.style.top = styleTop;
     touchCanvas.onmouseover = g.makeMouseHandler('over', color);
