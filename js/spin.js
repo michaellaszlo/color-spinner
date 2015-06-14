@@ -6,7 +6,7 @@ var ColorSpinner = {
     hole: { overlap: 2 },
     smoother: 2,
     ring: { width: 60 },
-    notch: { width: 0 },
+    notch: { width: 2 },
     band: { width: 50 },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
@@ -64,24 +64,26 @@ ColorSpinner.setValue = function (color, value) {
       holeRadius, 0, 2*Math.PI);
   mixContext.fill();
   // Paint band.
-  var numSegments = 256,
-      increment = Math.PI*2/numSegments;
-      bandContext = cluster.band.getContext('2d'),
-      bandWidth = layout.band.width,
-      bandCenter = holeRadius + ringWidth + layout.notch.width + bandWidth/2;
-  bandContext.lineWidth = bandWidth;
-  var parts = ['#'];
-  for (var i = 0; i < g.colors.length; ++i) {
-    parts.push(g.toHex2(g.mix.rgb[i]));
-  }
-  for (var i = 0; i < numSegments; ++i) {
-    bandContext.beginPath();
-    parts[1+cluster.index] = g.toHex2(i);
-    bandContext.strokeStyle = parts.join('');
-    var startAngle = -Math.PI/2 + i*increment,
-        endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
-    bandContext.arc(x0, y0, bandCenter, startAngle, endAngle);
-    bandContext.stroke();
+  for (var ci = 0; ci < 3; ++ci) {
+    var numSegments = 256,
+        increment = Math.PI*2/numSegments,
+        bandContext = g[g.colors[ci]].band.getContext('2d'),
+        bandWidth = layout.band.width,
+        bandCenter = holeRadius + ringWidth + layout.notch.width + bandWidth/2;
+    bandContext.lineWidth = bandWidth;
+    var parts = ['#'];
+    for (var i = 0; i < g.colors.length; ++i) {
+      parts.push(g.toHex2(g.mix.rgb[i]));
+    }
+    for (var i = 0; i < numSegments; ++i) {
+      bandContext.beginPath();
+      parts[1+ci] = g.toHex2(i);
+      bandContext.strokeStyle = parts.join('');
+      var startAngle = -Math.PI/2 + i*increment,
+          endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
+      bandContext.arc(x0, y0, bandCenter, startAngle, endAngle);
+      bandContext.stroke();
+    }
   }
 };
 
@@ -236,6 +238,8 @@ ColorSpinner.load = function () {
     touchCanvas.onmousemove = g.makeMouseHandler('move', color);
     touchCanvas.onmouseout = g.makeMouseHandler('out', color);
     touchCanvas.onmousedown = g.makeMouseHandler('down', color);
+  });
+  g.colors.forEach(function (color, ix, array) {
     g.setValue(color, 0);
   });
 };
