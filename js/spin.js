@@ -2,14 +2,24 @@ var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
   mix: {},
   layout: {
-    canvas: { size: 240, gap: 10 },
-    ring: { width: 60, smoother: 2 },
-    notch: { width: 2 },
+    canvas: { size: 320, gap: 10 },
     hole: { overlap: 2 },
+    smoother: 2,
+    ring: { width: 60 },
+    notch: { width: 0 },
+    band: { width: 50 },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
   }
 };
+
+ColorSpinner.toHex2 = function (i) {
+  var hex = i.toString(16);
+  if (hex.length == 1) {
+    hex = '0'+hex;
+  }
+  return hex;
+}
 
 ColorSpinner.setValue = function (color, value) {
   var g = ColorSpinner,
@@ -53,6 +63,26 @@ ColorSpinner.setValue = function (color, value) {
   mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
       holeRadius, 0, 2*Math.PI);
   mixContext.fill();
+  // Paint band.
+  var numSegments = 256,
+      increment = Math.PI*2/numSegments;
+      bandContext = cluster.band.getContext('2d'),
+      bandWidth = layout.band.width,
+      bandCenter = holeRadius + ringWidth + layout.notch.width + bandWidth/2;
+  bandContext.lineWidth = bandWidth;
+  var parts = ['#'];
+  for (var i = 0; i < g.colors.length; ++i) {
+    parts.push(g.toHex2(g.mix.rgb[i]));
+  }
+  for (var i = 0; i < numSegments; ++i) {
+    bandContext.beginPath();
+    parts[1+cluster.index] = g.toHex2(i);
+    bandContext.strokeStyle = parts.join('');
+    var startAngle = -Math.PI/2 + i*increment,
+        endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
+    bandContext.arc(x0, y0, bandCenter, startAngle, endAngle);
+    bandContext.stroke();
+  }
 };
 
 ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
@@ -97,13 +127,14 @@ ColorSpinner.load = function () {
   container.style.width = g.colors.length*(canvasSize + canvasGap) -
       canvasGap + 'px';
   container.style.height = canvasSize + 'px';
-  // Compute ring dimensions.
+  // Calculate ring dimensions.
   var half = canvasSize/2,
       ringWidth = layout.ring.width,
       notchWidth = layout.notch.width,
-      smoother = layout.ring.smoother,
+      bandWidth = layout.band.width,
+      smoother = layout.smoother,
       overlap = layout.hole.overlap,
-      holeRadius = half - ringWidth - notchWidth,
+      holeRadius = half - ringWidth - notchWidth - bandWidth,
       x0 = layout.canvas.size/2,
       y0 = layout.canvas.size/2,
       numSegments = 256,
@@ -145,7 +176,12 @@ ColorSpinner.load = function () {
     notchCanvas.style.left = canvasLeft;
     notchCanvas.style.top = canvasTop;
     notchContext.lineWidth = notchWidth;
-    //notchContext.fillRect(0, 0, notchCanvas.width, notchCanvas.height);
+    // Prepare the band canvas.
+    var bandCanvas = cluster.band = M.make('canvas',
+        { id: color+'Band', into: container });
+    bandCanvas.width = bandCanvas.height = layout.canvas.size;
+    bandCanvas.style.left = canvasLeft;
+    bandCanvas.style.top = canvasTop;
     // Add the inside overlap and half the outside smoothing width.
     var renderWidth = overlap + ringWidth + smoother/2,
         renderCenter = holeRadius - overlap + renderWidth/2;
@@ -155,11 +191,7 @@ ColorSpinner.load = function () {
     for (var i = 0; i < numSegments; ++i) {
       context.beginPath();
       var parts = ['#', '00', '00', '00'];
-      var hex = i.toString(16);
-      if (hex.length == 1) {
-        hex = '0'+hex;
-      }
-      parts[ix+1] = hex;
+      parts[1+ix] = g.toHex2(i);
       context.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
