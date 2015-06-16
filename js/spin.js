@@ -63,8 +63,11 @@ ColorSpinner.setValue = function (color, value) {
   mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
       holeRadius, 0, 2*Math.PI);
   mixContext.fill();
-  // Paint band.
+  // Update the other two bands.
   for (var ci = 0; ci < 3; ++ci) {
+    if (ci == cluster.index) {
+      continue;
+    }
     var numSegments = 256,
         increment = Math.PI*2/numSegments,
         bandContext = g[g.colors[ci]].band.getContext('2d'),
