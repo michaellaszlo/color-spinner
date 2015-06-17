@@ -31,6 +31,8 @@ ColorSpinner.setValue = function (color, value) {
       holeRadius = layout.hole.radius,
       overlap = layout.hole.overlap,
       ringWidth = layout.ring.width,
+      notchWidth = layout.notch.width,
+      bandWidth = layout.band.width,
       touch = cluster.touch,
       context = touch.getContext('2d'),
       display = cluster.display,
@@ -39,18 +41,24 @@ ColorSpinner.setValue = function (color, value) {
       angleTo = angleFrom + Math.PI/128;
   display.innerHTML = value;
   // Fill ring with color.
-  holeContext = cluster.hole.getContext('2d');
-  holeContext.fillStyle = cluster.colorStrings[value];
+  var holeContext = cluster.hole.getContext('2d');
   holeContext.clearRect(0, 0, canvasSize, canvasSize);
+  holeContext.fillStyle = cluster.colorStrings[value];
   holeContext.beginPath();
   holeContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
   holeContext.fill();
   // Draw sector under cursor.
-  context.strokeStyle = g.layout.sector.color;
-  context.lineWidth = ringWidth*3/4;
   context.clearRect(0, 0, canvasSize, canvasSize);
+  context.strokeStyle = g.layout.sector.color;
+  var proportion = 2/3;
+  context.lineWidth = ringWidth*proportion;
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
+  context.stroke();
+  context.lineWidth = bandWidth*proportion;
+  context.beginPath();
+  context.arc(x0, y0, holeRadius + ringWidth + notchWidth + bandWidth/2,
+      angleFrom, angleTo);
   context.stroke();
   // Paint mixed color.
   g.mix.rgb[cluster.index] = value;
