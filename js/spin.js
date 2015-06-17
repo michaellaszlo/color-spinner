@@ -6,7 +6,7 @@ var ColorSpinner = {
     hole: { overlap: 2 },
     smoother: 2,
     ring: { width: 60 },
-    notch: { width: 2 },
+    notch: { width: 3 },
     band: { width: 50 },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
@@ -96,7 +96,9 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
         event = event || window.event,
         cluster = g[color],
         ring = cluster.ring,
-        radius = g.layout.hole.radius + g.layout.ring.width,
+        layout = g.layout,
+        radius = layout.hole.radius + layout.ring.width +
+            layout.notch.width + layout.band.width,
         offset = cluster.offset,
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
