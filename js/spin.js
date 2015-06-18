@@ -6,7 +6,7 @@ var ColorSpinner = {
     hole: { overlap: 2 },
     smoother: 2,
     ring: { width: 60 },
-    notch: { width: 3 },
+    notch: { width: -1.5 },
     band: { width: 50 },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
@@ -50,12 +50,11 @@ ColorSpinner.setValue = function (color, value) {
   // Draw sector under cursor.
   context.clearRect(0, 0, canvasSize, canvasSize);
   context.strokeStyle = g.layout.sector.color;
-  var proportion = 2/3;
-  context.lineWidth = ringWidth*proportion;
+  context.lineWidth = ringWidth*2/3;
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
   context.stroke();
-  context.lineWidth = bandWidth*proportion;
+  context.lineWidth = bandWidth*1/2;
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth + notchWidth + bandWidth/2,
       angleFrom, angleTo);
@@ -69,7 +68,7 @@ ColorSpinner.setValue = function (color, value) {
   mixContext.fillStyle = colorString;
   mixContext.beginPath();
   mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
-      holeRadius, 0, 2*Math.PI);
+      holeRadius + ringWidth, 0, 2*Math.PI);
   mixContext.fill();
   // Update the other two bands.
   for (var ci = 0; ci < 3; ++ci) {

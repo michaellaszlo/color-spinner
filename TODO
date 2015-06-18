@@ -1,0 +1,31 @@
+Goals:
+- precise selection of color
+- a new way to discover colors
+- palette management: compare choices and group related colors
+
+color rings
+- mousedown to change value
+- plus/minus buttons in the hole
++ 256 notches around the perimeter
+
+other mixing methods
++ show a mixing band around each basic ring
+  + update all bands
+  - overlap inside
+  - smooth outside
+  - show sector in band
+- click to fix one color and show grid of the two others
+- figure out what else would be useful
+  - HSV? HSL? other color models?
+  - complementary colors?
+
+mixed color
++ show the mixed color
+- make new ball
+- animate new ball
+
+palette management
+- rearrange colors
+- make groups
+- change shape
+
