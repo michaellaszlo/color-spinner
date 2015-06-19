@@ -176,6 +176,12 @@ ColorSpinner.load = function () {
     // Compute canvas layout.
     var canvasLeft = ix*(canvasSize + canvasGap) + 'px',
         canvasTop = '0';
+    // Prepare the band canvas.
+    var bandCanvas = cluster.band = M.make('canvas',
+        { id: color+'Band', into: container });
+    bandCanvas.width = bandCanvas.height = layout.canvas.size;
+    bandCanvas.style.left = canvasLeft;
+    bandCanvas.style.top = canvasTop;
     // Prepare the ring canvas.
     var ringCanvas = cluster.ring = M.make('canvas',
         { id: color+'Ring', into: container });
@@ -190,12 +196,6 @@ ColorSpinner.load = function () {
     notchCanvas.style.left = canvasLeft;
     notchCanvas.style.top = canvasTop;
     notchContext.lineWidth = notchWidth;
-    // Prepare the band canvas.
-    var bandCanvas = cluster.band = M.make('canvas',
-        { id: color+'Band', into: container });
-    bandCanvas.width = bandCanvas.height = layout.canvas.size;
-    bandCanvas.style.left = canvasLeft;
-    bandCanvas.style.top = canvasTop;
     // Add the inside overlap and half the outside smoothing width.
     var renderWidth = overlap + ringWidth + smoother/2,
         renderCenter = holeRadius - overlap + renderWidth/2;
@@ -211,14 +211,16 @@ ColorSpinner.load = function () {
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
       context.arc(x0, y0, renderCenter, startAngle, endAngle);
       context.stroke();
+      /*
       notchContext.strokeStyle = (i%2 == 0 ? '#777' : '#ddd');
       notchContext.beginPath();
       notchContext.arc(x0, y0, holeRadius+ringWidth, startAngle, endAngle);
       notchContext.stroke();
+      */
     }
     // Smooth the outer edge of the ring. The notches hide the smooth edge,
     // so this only matters when the notch layer is invisible.
-    context.strokeStyle = '#fff';
+    context.strokeStyle = 'rgb(255, 255, 255, 255)';
     context.lineWidth = smoother;
     context.beginPath();
     context.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
