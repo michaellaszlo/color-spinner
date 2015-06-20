@@ -2,12 +2,11 @@ var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
   mix: {},
   layout: {
-    canvas: { size: 320, gap: 10 },
+    canvas: { size: 280, gap: 10 },
     hole: { overlap: 2 },
-    smoother: 2,
-    ring: { width: 60 },
-    notch: { width: -1.5 },
-    band: { width: 50 },
+    smoother: 1,
+    ring: { width: 80 },
+	show: { ring: { solid: false, mix: true } },
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' }
   }
@@ -31,8 +30,6 @@ ColorSpinner.setValue = function (color, value) {
       holeRadius = layout.hole.radius,
       overlap = layout.hole.overlap,
       ringWidth = layout.ring.width,
-      notchWidth = layout.notch.width,
-      bandWidth = layout.band.width,
       touch = cluster.touch,
       context = touch.getContext('2d'),
       display = cluster.display,
@@ -54,11 +51,6 @@ ColorSpinner.setValue = function (color, value) {
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
   context.stroke();
-  context.lineWidth = bandWidth*1/2;
-  context.beginPath();
-  context.arc(x0, y0, holeRadius + ringWidth + notchWidth + bandWidth/2,
-      angleFrom, angleTo);
-  context.stroke();
   // Paint mixed color.
   g.mix.rgb[cluster.index] = value;
   var colorString = 'rgb(' + g.mix.rgb.join(', ') + ')',
@@ -70,29 +62,29 @@ ColorSpinner.setValue = function (color, value) {
   mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
       holeRadius + ringWidth, 0, 2*Math.PI);
   mixContext.fill();
-  // Update the other two bands.
+  // Update the other two rings.
   for (var ci = 0; ci < 3; ++ci) {
     if (ci == cluster.index) {
       continue;
     }
     var numSegments = 256,
         increment = Math.PI*2/numSegments,
-        bandContext = g[g.colors[ci]].band.getContext('2d'),
-        bandWidth = layout.band.width,
-        bandCenter = holeRadius + ringWidth + layout.notch.width + bandWidth/2;
-    bandContext.lineWidth = bandWidth;
+        ringContext = g[g.colors[ci]].ring.getContext('2d'),
+        ringWidth = layout.ring.width,
+        ringCenter = holeRadius + ringWidth/2;
+    ringContext.lineWidth = ringWidth;
     var parts = ['#'];
     for (var i = 0; i < g.colors.length; ++i) {
       parts.push(g.toHex2(g.mix.rgb[i]));
     }
     for (var i = 0; i < numSegments; ++i) {
-      bandContext.beginPath();
+      ringContext.beginPath();
       parts[1+ci] = g.toHex2(i);
-      bandContext.strokeStyle = parts.join('');
+      ringContext.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
-      bandContext.arc(x0, y0, bandCenter, startAngle, endAngle);
-      bandContext.stroke();
+      ringContext.arc(x0, y0, ringCenter, startAngle, endAngle);
+      ringContext.stroke();
     }
   }
 };
@@ -104,8 +96,7 @@ ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
         cluster = g[color],
         ring = cluster.ring,
         layout = g.layout,
-        radius = layout.hole.radius + layout.ring.width +
-            layout.notch.width + layout.band.width,
+        radius = layout.hole.radius + layout.ring.width,
         offset = cluster.offset,
         x = event.pageX - offset.left,
         y = event.pageY - offset.top;
@@ -144,11 +135,9 @@ ColorSpinner.load = function () {
   // Calculate ring dimensions.
   var half = canvasSize/2,
       ringWidth = layout.ring.width,
-      notchWidth = layout.notch.width,
-      bandWidth = layout.band.width,
       smoother = layout.smoother,
       overlap = layout.hole.overlap,
-      holeRadius = half - ringWidth - notchWidth - bandWidth,
+      holeRadius = half - ringWidth,
       x0 = layout.canvas.size/2,
       y0 = layout.canvas.size/2,
       numSegments = 256,
@@ -176,30 +165,17 @@ ColorSpinner.load = function () {
     // Compute canvas layout.
     var canvasLeft = ix*(canvasSize + canvasGap) + 'px',
         canvasTop = '0';
-    // Prepare the band canvas.
-    var bandCanvas = cluster.band = M.make('canvas',
-        { id: color+'Band', into: container });
-    bandCanvas.width = bandCanvas.height = layout.canvas.size;
-    bandCanvas.style.left = canvasLeft;
-    bandCanvas.style.top = canvasTop;
     // Prepare the ring canvas.
     var ringCanvas = cluster.ring = M.make('canvas',
         { id: color+'Ring', into: container });
     ringCanvas.width = ringCanvas.height = layout.canvas.size;
     ringCanvas.style.left = canvasLeft;
     ringCanvas.style.top = canvasTop;
-    // Prepare the notch canvas.
-    var notchCanvas = cluster.notch = M.make('canvas',
-        { id: color+'Notch', into: container }),
-        notchContext = notchCanvas.getContext('2d');
-    notchCanvas.width = notchCanvas.height = layout.canvas.size;
-    notchCanvas.style.left = canvasLeft;
-    notchCanvas.style.top = canvasTop;
-    notchContext.lineWidth = notchWidth;
     // Add the inside overlap and half the outside smoothing width.
     var renderWidth = overlap + ringWidth + smoother/2,
         renderCenter = holeRadius - overlap + renderWidth/2;
-    // Draw the ring and the notches.
+    // Draw the ring.
+	/*
     var context = ringCanvas.getContext('2d');
     context.lineWidth = renderWidth;
     for (var i = 0; i < numSegments; ++i) {
@@ -211,20 +187,14 @@ ColorSpinner.load = function () {
           endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
       context.arc(x0, y0, renderCenter, startAngle, endAngle);
       context.stroke();
-      /*
-      notchContext.strokeStyle = (i%2 == 0 ? '#777' : '#ddd');
-      notchContext.beginPath();
-      notchContext.arc(x0, y0, holeRadius+ringWidth, startAngle, endAngle);
-      notchContext.stroke();
-      */
     }
-    // Smooth the outer edge of the ring. The notches hide the smooth edge,
-    // so this only matters when the notch layer is invisible.
-    context.strokeStyle = 'rgb(255, 255, 255, 255)';
+    // Smooth the outer edge of the ring.
+    context.strokeStyle = '#fff';
     context.lineWidth = smoother;
     context.beginPath();
     context.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
     context.stroke();
+	*/
     // Position the touch canvas.
     var holeCanvas = cluster.hole = M.make('canvas',
         { id: color+'Hole', into: container });
