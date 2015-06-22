@@ -28,6 +28,7 @@ ColorSpinner.setValue = function (color, value) {
       x0 = layout.canvas.size/2,
       y0 = layout.canvas.size/2,
       holeRadius = layout.hole.radius,
+      smoother = layout.smoother,
       overlap = layout.hole.overlap,
       ringWidth = layout.ring.width,
       touch = cluster.touch,
@@ -51,7 +52,7 @@ ColorSpinner.setValue = function (color, value) {
   context.beginPath();
   context.arc(x0, y0, holeRadius + ringWidth/2, angleFrom, angleTo);
   context.stroke();
-  // Paint mixed color.
+  // Mix the colors into the final product.
   g.mix.rgb[cluster.index] = value;
   var colorString = 'rgb(' + g.mix.rgb.join(', ') + ')',
       mixCanvas = g.mix.canvas,
@@ -67,8 +68,8 @@ ColorSpinner.setValue = function (color, value) {
     if (ci == cluster.index) {
       continue;
     }
-    var numSegments = 256,
-        increment = Math.PI*2/numSegments,
+    var numSectors = 256,
+        increment = Math.PI*2/numSectors,
         ringContext = g[g.colors[ci]].ring.getContext('2d'),
         ringWidth = layout.ring.width,
         ringCenter = holeRadius + ringWidth/2;
@@ -77,15 +78,20 @@ ColorSpinner.setValue = function (color, value) {
     for (var i = 0; i < g.colors.length; ++i) {
       parts.push(g.toHex2(g.mix.rgb[i]));
     }
-    for (var i = 0; i < numSegments; ++i) {
+    for (var i = 0; i < numSectors; ++i) {
       ringContext.beginPath();
       parts[1+ci] = g.toHex2(i);
       ringContext.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
-          endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
+          endAngle = startAngle + (i == numSectors-1 ? 1 : 2) * increment;
       ringContext.arc(x0, y0, ringCenter, startAngle, endAngle);
       ringContext.stroke();
     }
+    ringContext.beginPath();
+    ringContext.strokeStyle = '#fff';
+    ringContext.lineWidth = smoother;
+    ringContext.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
+    ringContext.stroke();
   }
 };
 
@@ -140,8 +146,8 @@ ColorSpinner.load = function () {
       holeRadius = half - ringWidth,
       x0 = layout.canvas.size/2,
       y0 = layout.canvas.size/2,
-      numSegments = 256,
-      increment = Math.PI*2/numSegments;
+      numSectors = 256,
+      increment = Math.PI*2/numSectors;
   layout.hole.radius = holeRadius;
   // Initialize the mixed color value.
   g.mix.rgb = [0, 0, 0];
@@ -178,13 +184,13 @@ ColorSpinner.load = function () {
 	/*
     var context = ringCanvas.getContext('2d');
     context.lineWidth = renderWidth;
-    for (var i = 0; i < numSegments; ++i) {
+    for (var i = 0; i < numSectors; ++i) {
       context.beginPath();
       var parts = ['#', '00', '00', '00'];
       parts[1+ix] = g.toHex2(i);
       context.strokeStyle = parts.join('');
       var startAngle = -Math.PI/2 + i*increment,
-          endAngle = startAngle + (i == numSegments-1 ? 1 : 2) * increment;
+          endAngle = startAngle + (i == numSectors-1 ? 1 : 2) * increment;
       context.arc(x0, y0, renderCenter, startAngle, endAngle);
       context.stroke();
     }
