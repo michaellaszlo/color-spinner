@@ -2,14 +2,16 @@ var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
   mix: {},
   layout: {
-    canvas: { size: 280, gap: 10 },
+    canvas: { size: 256, gap: 10 },
     hole: { overlap: 2 },
     smoother: 1,
     ring: { width: 80 },
-	show: { ring: { solid: false, mix: true } },
     display: { color: '#fff', width: 100, height: 32 },
-    sector: { color: '#fff' }
-  }
+    sector: { color: '#fff' },
+    grid: { pixel: 1, left: 0, top: 40 },
+    mix: { top: 40 }
+  },
+	show: { ring: { solid: false, mix: true } }
 };
 
 ColorSpinner.toHex2 = function (i) {
@@ -60,7 +62,9 @@ ColorSpinner.setValue = function (color, value) {
   mixContext.clearRect(0, 0, mixCanvas.width, mixCanvas.height);
   mixContext.fillStyle = colorString;
   mixContext.beginPath();
-  mixContext.arc(mixCanvas.width/2, mixCanvas.height/2,
+  mixContext.arc(
+      layout.canvas.size + layout.canvas.gap + holeRadius + ringWidth,
+      layout.mix.top + holeRadius + ringWidth,
       holeRadius + ringWidth, 0, 2*Math.PI);
   mixContext.fill();
   // Update the other two rings.
@@ -93,6 +97,37 @@ ColorSpinner.setValue = function (color, value) {
     ringContext.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
     ringContext.stroke();
   }
+  // Draw the two-color grid onto the mixing canvas.
+  var scale = 3,
+      pixelSize = scale*layout.grid.pixel,
+      gridSize = numSectors * pixelSize,
+      gridTop = layout.grid.top,
+      gridLeft = layout.grid.left;
+      rgb = [0, 0, 0],
+      mix = { x: 1, y: 2 };
+  if (cluster.index == 1) {
+    mix = { x: 0, y: 2 };
+  } else if (cluster.index == 2) {
+    mix = { x: 0, y: 1 };
+  }
+  rgb[cluster.index] = value;
+  for (var i = 0; i < numSectors/scale; ++i) {
+    rgb[mix.x] = i*scale;
+    for (var j = 0; j < numSectors/scale; ++j) {
+      rgb[mix.y] = j*scale;
+      mixContext.fillStyle = 'rgb(' + rgb.join(', ') + ')';
+      mixContext.fillRect(gridLeft+i*pixelSize, gridTop+j*pixelSize,
+          pixelSize, pixelSize);
+    }
+  }
+  // Show where we are in the mixing canvas.
+  mixContext.fillStyle = '#000';
+  var x = g.mix.rgb[mix.x],
+      y = g.mix.rgb[mix.y],
+      i = Math.floor(x/scale),
+      j = Math.floor(y/scale);
+  mixContext.fillRect(gridLeft+i*pixelSize, gridTop+j*pixelSize,
+      pixelSize, pixelSize);
 };
 
 ColorSpinner.makeMouseHandler = function (mouseWhat, color) {
@@ -180,27 +215,6 @@ ColorSpinner.load = function () {
     // Add the inside overlap and half the outside smoothing width.
     var renderWidth = overlap + ringWidth + smoother/2,
         renderCenter = holeRadius - overlap + renderWidth/2;
-    // Draw the ring.
-	/*
-    var context = ringCanvas.getContext('2d');
-    context.lineWidth = renderWidth;
-    for (var i = 0; i < numSectors; ++i) {
-      context.beginPath();
-      var parts = ['#', '00', '00', '00'];
-      parts[1+ix] = g.toHex2(i);
-      context.strokeStyle = parts.join('');
-      var startAngle = -Math.PI/2 + i*increment,
-          endAngle = startAngle + (i == numSectors-1 ? 1 : 2) * increment;
-      context.arc(x0, y0, renderCenter, startAngle, endAngle);
-      context.stroke();
-    }
-    // Smooth the outer edge of the ring.
-    context.strokeStyle = '#fff';
-    context.lineWidth = smoother;
-    context.beginPath();
-    context.arc(x0, y0, holeRadius + ringWidth + smoother/2, 0, 2*Math.PI);
-    context.stroke();
-	*/
     // Position the touch canvas.
     var holeCanvas = cluster.hole = M.make('canvas',
         { id: color+'Hole', into: container });
