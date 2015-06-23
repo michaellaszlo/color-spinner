@@ -2,6 +2,10 @@ var ColorSpinner = {
   colors: ['red', 'blue', 'green'],
   mix: {},
   layout: {
+    initial: {
+      canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
+      mixer: { size: 240, gap: 10 }
+    },
     canvas: { size: 256, gap: 10 },
     hole: { overlap: 2 },
     smoother: 1,
@@ -246,6 +250,42 @@ ColorSpinner.load = function () {
   g.colors.forEach(function (color, ix, array) {
     g.setValue(color, 0);
   });
+
+  // Allocate drawing surface.
+  var canvasContainer = M.make('div', { into: document.body, id: 'canvases' }),
+      canvases = g.canvases = [];
+  canvasContainer.style.width = layout.initial.canvas.width + 'px';
+  canvasContainer.style.height = layout.initial.canvas.height + 'px';
+  for (var i = 0; i < 5; ++i) {
+    var canvas = M.make('canvas', { into: canvasContainer });
+    canvas.width = layout.initial.canvas.width;
+    canvas.height = layout.initial.canvas.height;
+    canvases.push(canvas);
+  }
+  g.mixers = {};
+  g.colors.forEach(function (color, ix, array) {
+    var width = layout.initial.mixer.size,
+        height = width,
+        left = (ix+1)*layout.initial.mixer.gap + ix*width,
+        top = layout.initial.mixer.gap,
+        mixer = g.makeWidget(left, top, width, height),
+        canvasNames = ['ring', 'hole', 'sector'];
+    mixer.canvas = {};
+    mixer.context = {};
+    canvasNames.forEach(function (canvasName, canvasIx) {
+      mixer.canvas[canvasName] = canvases[canvasIx];
+      mixer.context[canvasName] = canvases[canvasIx].getContext('2d');
+    });
+    mixer.context.ring.fillStyle = '#eee';
+    mixer.context.ring.fillRect(mixer.left, mixer.top, mixer.width,mixer.height);
+  });
+};
+
+ColorSpinner.makeWidget = function (left, top, width, height) {
+  var widget = {
+    left: left, top: top, width: width, height: height
+  };
+  return widget;
 };
 
 window.onload = ColorSpinner.load;

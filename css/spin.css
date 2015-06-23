@@ -29,3 +29,7 @@ body {
   position: fixed;
 }
 
+#canvases {
+  border: 2px solid #888;
+}
+
