@@ -31,5 +31,14 @@ body {
 
 #canvases {
   border: 2px solid #888;
+  position: relative;
+}
+
+#canvases .label {
+  position: absolute;
+  color: #fff;
+  display: inline;
+  font-size: 32px;
+  text-align: center;
 }
 
