@@ -5,7 +5,7 @@ var ColorSpinner = {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
     mixer: { coarse: 1, diameter: 240, gap: 10 },
     hole: { overlap: 2 },
-    smoother: 1,
+    smoother: 0.5,
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' },
     grid: { coarse: 3, cell: 1, left: 0, top: 40 }
@@ -107,7 +107,7 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     // Copy the current color value.
     var rgb = g.mix.rgb,
         currentValue = rgb[index];
-    // Paint the ring with other values, sampling coarsely throughout the range.
+    // Paint the ring with other values, sampling coarsely through the range.
     var context = mixer.context.ring,
         coarse = layout.mixer.coarse,
         radius = mixer.diameter/2,
@@ -125,6 +125,13 @@ ColorSpinner.makeMixerPaint = function (mixer) {
       context.arc(x0, y0, radius/2, angleFrom, angleTo);
       context.stroke();
     }
+    // Paint a white smoothing ring.
+    var smoother = layout.smoother;
+    context.lineWidth = smoother;
+    context.strokeStyle = '#fff';
+    context.beginPath()
+    context.arc(x0, y0, radius + smoother/2, 0, 2*Math.PI);
+    context.stroke();
     // Paint the hole.
     // Paint the sector.
     // Restore the color value.
