@@ -4,7 +4,7 @@ var ColorSpinner = {
   layout: {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
     mixer: { coarse: 1, diameter: 240, gap: 10 },
-    hole: { overlap: 2 },
+    hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
     display: { color: '#fff', width: 100, height: 32 },
     sector: { color: '#fff' },
@@ -50,6 +50,7 @@ ColorSpinner.load = function () {
         canvasNames = ['ring', 'hole', 'sector'];
     g.mixers.push(mixer);
     mixer.diameter = width;
+    mixer.color = color;
     mixer.index = ix;
     mixer.canvas = {};
     mixer.context = {};
@@ -70,7 +71,10 @@ ColorSpinner.load = function () {
     mixer.paint = g.makeMixerPaint(mixer);
   });
   g.colors.forEach(function (color, ix, array) {
-    g.mixer[color].setValue(0);
+    g.mixer[color].setValue(Math.floor(Math.random() * 256));
+  });
+  g.colors.forEach(function (color, ix, array) {
+    g.mixer[color].paint();
   });
 
   // Make the two-color mixing grid.
@@ -90,12 +94,6 @@ ColorSpinner.makeMixerSetValue = function (mixer) {
     g.mix.rgb[mixer.index] = value;
     // Display the mixer's own value.
     mixer.label.innerHTML = value + '<br />x' + g.toHex2(value);
-    // Paint the other two mixers.
-    for (var index = 0; index < 3; ++index) {
-      if (index != mixer.index) {
-        g.mixers[index].paint();
-      }
-    }
   };
 };
 
@@ -104,8 +102,8 @@ ColorSpinner.makeMixerPaint = function (mixer) {
       layout = g.layout,
       index = mixer.index;
   return function () {
-    // Copy the current color value.
-    var rgb = g.mix.rgb,
+    // Copy the current RGB tuple.
+    var rgb = g.mix.rgb.slice(),
         currentValue = rgb[index];
     // Paint the ring with other values, sampling coarsely through the range.
     var context = mixer.context.ring,
@@ -133,9 +131,18 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     context.arc(x0, y0, radius + smoother/2, 0, 2*Math.PI);
     context.stroke();
     // Paint the hole.
-    // Paint the sector.
-    // Restore the color value.
+    context = mixer.context.hole;
+    context.clearRect(mixer.left, mixer.top, mixer.width, mixer.height);
+    radius *= layout.hole.radius.proportion;
+    rgb = [0, 0, 0];
     rgb[index] = currentValue;
+    context.fillStyle = 'rgb(' + rgb.join(', ') + ')';
+    context.beginPath();
+    context.arc(x0, y0, radius, 0, 2*Math.PI);
+    context.lineWidth = 2;
+    context.strokeStyle = '#000';
+    context.fill();
+    // Paint the sector.
   };
 };
 
