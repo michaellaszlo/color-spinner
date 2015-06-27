@@ -7,7 +7,7 @@ var ColorSpinner = {
     hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
     display: { color: '#fff', width: 100, height: 32 },
-    sector: { color: '#fff' },
+    sector: { color: '#fff', band: { proportion: 0.75 } },
     grid: { coarse: 3, cell: 1, left: 0, top: 40 }
   },
 	show: { ring: { solid: false, mix: true } }
@@ -50,11 +50,9 @@ ColorSpinner.load = function () {
     }
     mixer.onmouseover = function () {
       mixer.onmousemove = mouseMove;
-      M.classAdd(mixer, 'hover');
     };
     mixer.onmouseout = function () {
       mixer.onmousemove = undefined;
-      M.classRemove(mixer, 'hover');
     };
     mixer.onmousedown = function () {
     };
@@ -125,7 +123,8 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     // Paint the ring with other values, sampling coarsely through the range.
     var context = mixer.context.ring,
         coarse = layout.mixer.coarse,
-        radius = mixer.diameter/2,
+        diameter = mixer.diameter,
+        radius = diameter/2,
         x0 = radius;
         y0 = radius,
         start = -Math.PI/2,
@@ -149,17 +148,29 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     context.stroke();
     // Paint the hole.
     context = mixer.context.hole;
-    context.clearRect(mixer.left, mixer.top, mixer.width, mixer.height);
-    radius *= layout.hole.radius.proportion;
+    context.clearRect(0, 0, diameter, diameter);
     rgb = [0, 0, 0];
     rgb[index] = currentValue;
     context.fillStyle = 'rgb(' + rgb.join(', ') + ')';
-    context.beginPath();
-    context.arc(x0, y0, radius, 0, 2*Math.PI);
     context.lineWidth = 2;
     context.strokeStyle = '#000';
+    context.beginPath();
+    var holeRadius = layout.hole.radius.proportion * radius;
+    context.arc(x0, y0, holeRadius, 0, 2*Math.PI);
     context.fill();
     // Paint the sector.
+    context = mixer.context.sector;
+    context.clearRect(0, 0, diameter, diameter);
+    var bandWidth = radius - holeRadius,
+        sectorLength = layout.sector.band.proportion * bandWidth;
+    context.lineWidth = sectorLength;
+    context.strokeStyle = '#fff';
+    context.beginPath();
+    var angleFrom = start + currentValue * Math.PI / 128,
+        angleTo = angleFrom + Math.PI / 128;
+    context.arc(x0, y0, radius - sectorLength/2, angleFrom, angleTo);
+    //context.arc(x0, y0, holeRadius + bandWidth/2, angleFrom, angleTo);
+    context.stroke();
   };
 };
 
