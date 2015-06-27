@@ -20,11 +20,18 @@ body {
   position: absolute;
   color: #fff;
   display: inline;
-  font-size: 32px;
+  font-size: 25px;
   text-align: center;
 }
 
 .mixer canvas {
+  position: absolute;
+}
+
+#mixGrid {
+  position: relative;
+}
+#mixGrid canvas {
   position: absolute;
 }
 
