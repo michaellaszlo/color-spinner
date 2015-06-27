@@ -26,47 +26,60 @@ ColorSpinner.load = function () {
       layout = g.layout;
 
   // Allocate the drawing area.
-  var canvasContainer = M.make('div', { into: document.body, id: 'canvases' }),
+  var drawingArea = M.make('div', { id: 'drawingArea', into: document.body }),
       canvases = g.canvases = [];
-  canvasContainer.style.width = layout.canvas.width + 'px';
-  canvasContainer.style.height = layout.canvas.height + 'px';
-  for (var i = 0; i < 5; ++i) {
-    var canvas = M.make('canvas', { into: canvasContainer });
-    canvas.width = layout.canvas.width;
-    canvas.height = layout.canvas.height;
-    canvas.context = canvas.getContext('2d');
-    canvases.push(canvas);
+  drawingArea.style.width = layout.canvas.width + 'px';
+  drawingArea.style.height = layout.canvas.height + 'px';
+
+  function makeMixer() {
+    var mixer = M.make('div', { className: 'mixer', into: drawingArea });
+    var canvases = mixer.canvases = [];
+    mixer.canvas = {};
+    mixer.context = {};
+    ['ring', 'hole', 'sector'].forEach(function (canvasName) {
+      var canvas = M.make('canvas', { into: mixer });
+      canvas.width = canvas.height = layout.mixer.diameter;
+      canvases.push(canvas);
+      mixer.canvas[canvasName] = canvas;
+      mixer.context[canvasName] = canvas.getContext('2d');
+    });
+    function mouseMove (event) {
+      var event = event || window.event;
+    }
+    mixer.onmouseover = function () {
+      mixer.onmousemove = mouseMove;
+    };
+    mixer.onmouseout = function () {
+      mixer.onmousemove = undefined;
+    };
+    mixer.onmousedown = function () {
+    };
+    return mixer;
   }
 
   // Make the three color discs.
   g.mixer = {};
   g.mixers = [];
   g.colors.forEach(function (color, ix, array) {
-    var width = layout.mixer.diameter,
-        height = width,
-        left = (ix+1)*layout.mixer.gap + ix*width,
-        top = layout.mixer.gap,
-        mixer = g.mixer[color] = g.makeWidget(left, top, width, height),
-        canvasNames = ['ring', 'hole', 'sector'];
+    var mixer = g.mixer[color] = makeMixer(),
+        diameter = layout.mixer.diameter,
+        width = diameter,
+        height = diameter;
     g.mixers.push(mixer);
-    mixer.diameter = width;
+    mixer.style.left = (ix+1)*layout.mixer.gap + ix*diameter + 'px';
+    mixer.style.top = layout.mixer.gap + 'px';
+    mixer.diameter = diameter;
     mixer.color = color;
     mixer.index = ix;
-    mixer.canvas = {};
-    mixer.context = {};
-    canvasNames.forEach(function (canvasName, canvasIx) {
-      mixer.canvas[canvasName] = canvases[canvasIx];
-      mixer.context[canvasName] = canvases[canvasIx].context;
-    });
     var label = mixer.label = M.make('div', { className: 'label',
-        into: canvasContainer });
+        into: mixer });
     label.innerHTML = '256<br />xFF';
     var labelWidth = label.offsetWidth,
         labelHeight = label.offsetHeight;
     label.style.width = labelWidth + 'px';
     label.style.height = labelHeight + 'px';
-    label.style.left = left + (width - labelWidth)/2 + 'px';
-    label.style.top = top + (height - labelHeight)/2 + 'px';
+    label.style.left = (width - labelWidth)/2 + 'px';
+    label.style.top = (height - labelHeight)/2 + 'px';
     mixer.setValue = g.makeMixerSetValue(mixer);
     mixer.paint = g.makeMixerPaint(mixer);
   });
@@ -84,7 +97,7 @@ ColorSpinner.load = function () {
       cell = layout.grid.cell,
       width = 256*cell,
       height = 256*cell,
-      mixGrid = g.mixGrid = g.makeWidget(left, top, width, height);
+      mixGrid = M.make('div', { into: drawingArea });
 
 };
 
@@ -93,7 +106,7 @@ ColorSpinner.makeMixerSetValue = function (mixer) {
   return function (value) {
     g.mix.rgb[mixer.index] = value;
     // Display the mixer's own value.
-    mixer.label.innerHTML = value + '<br />x' + g.toHex2(value);
+    mixer.label.innerHTML = value + '<br />' + g.toHex2(value);
   };
 };
 
@@ -109,8 +122,8 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     var context = mixer.context.ring,
         coarse = layout.mixer.coarse,
         radius = mixer.diameter/2,
-        x0 = mixer.left + radius,
-        y0 = mixer.top + radius,
+        x0 = radius;
+        y0 = radius,
         start = -Math.PI/2,
         increment = coarse * Math.PI / 128;
     context.lineWidth = radius;
@@ -144,13 +157,6 @@ ColorSpinner.makeMixerPaint = function (mixer) {
     context.fill();
     // Paint the sector.
   };
-};
-
-ColorSpinner.makeWidget = function (left, top, width, height) {
-  var widget = {
-    left: left, top: top, width: width, height: height
-  };
-  return widget;
 };
 
 window.onload = ColorSpinner.load;

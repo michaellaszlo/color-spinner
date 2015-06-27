@@ -7,20 +7,24 @@ body {
   font-family: sans-serif;
 }
 
-#canvases {
+#drawingArea {
   border: 2px solid #888;
   position: relative;
 }
 
-#canvases canvas {
+#drawingArea div {
   position: absolute;
 }
 
-#canvases .label {
+#drawingArea .label {
   position: absolute;
   color: #fff;
   display: inline;
   font-size: 32px;
   text-align: center;
+}
+
+.mixer canvas {
+  position: absolute;
 }
 
