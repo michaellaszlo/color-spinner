@@ -33,6 +33,8 @@ ColorSpinner.load = function () {
 
   function makeMixer() {
     var mixer = M.make('div', { className: 'mixer', into: drawingArea });
+    mixer.style.width = layout.mixer.diameter + 'px';
+    mixer.style.height = layout.mixer.diameter + 'px';
     var canvases = mixer.canvases = [];
     mixer.canvas = {};
     mixer.context = {};
@@ -48,9 +50,11 @@ ColorSpinner.load = function () {
     }
     mixer.onmouseover = function () {
       mixer.onmousemove = mouseMove;
+      M.classAdd(mixer, 'hover');
     };
     mixer.onmouseout = function () {
       mixer.onmousemove = undefined;
+      M.classRemove(mixer, 'hover');
     };
     mixer.onmousedown = function () {
     };

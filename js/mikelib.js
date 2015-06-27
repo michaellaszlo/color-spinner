@@ -27,3 +27,43 @@ M.getOffset = function (element, ancestor) {
   }
   return { left: left, top: top };
 };
+
+M.classContains = function (element, item) {
+  var className = element.className;
+  if (className === '' || className === null || className === undefined) {
+    return false;
+  }
+  var items = className.split(/\s+/);
+  for (var i = items.length-1; i >= 0; --i) {
+    if (items[i] === item) {
+      return true;
+    }
+  }
+  return false;
+};
+
+M.classAdd = function (element, item) {
+  if (M.classContains(element, item)) {
+    return;
+  }
+  var className = element.className;
+  if (className === '' || className === null || className === undefined) {
+    element.className = item;
+  } else {
+    element.className = className + ' ' + item;
+  }
+};
+
+M.classRemove = function (element, item) {
+  if (!M.classContains(element, item)) {
+    return;
+  }
+  var items = element.className.split(/\s+/),
+      newItems = [];
+  for (var i = items.length-1; i >= 0; --i) {
+    if (items[i] !== item) {
+      newItems.push(items[i]);
+    }
+  }
+  element.className = newItems.join(' ');
+};
