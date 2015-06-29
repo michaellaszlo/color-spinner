@@ -123,6 +123,7 @@ ColorSpinner.load = function () {
       mixer.onmousemove = undefined;
     };
     mixer.onmousedown = function () {
+      console.log('mouse down on disc '+mixer.index);
     };
     return mixer;
   }
