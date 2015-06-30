@@ -114,7 +114,7 @@ ColorSpinner.load = function () {
       mixer.context[canvasName] = canvas.getContext('2d');
     });
     function mouseMove (event) {
-      var event = event || window.event;
+      event = event || window.event;
     }
     mixer.onmouseover = function () {
       mixer.onmousemove = mouseMove;
@@ -122,8 +122,10 @@ ColorSpinner.load = function () {
     mixer.onmouseout = function () {
       mixer.onmousemove = undefined;
     };
-    mixer.onmousedown = function () {
-      console.log('mouse down on disc '+mixer.index);
+    mixer.onmousedown = function (event) {
+      var position = M.getMousePosition(event);
+      console.log('mouse down on ' + g.colors[mixer.index] + ' disc');
+      console.log(position.x - mixer.offset.left, position.y - mixer.offset.top);
     };
     return mixer;
   }
@@ -140,6 +142,7 @@ ColorSpinner.load = function () {
     mixer.style.left = layout.controls.width +
         ix * (layout.mixer.gap + diameter) + 'px';
     mixer.style.top = layout.mixer.gap + 'px';
+    mixer.offset = M.getOffset(mixer, document.body);
     mixer.diameter = diameter;
     mixer.color = color;
     mixer.index = ix;

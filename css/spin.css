@@ -8,8 +8,9 @@ body {
 }
 
 #drawingArea {
-  border: 2px solid #888;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 #drawingArea div {

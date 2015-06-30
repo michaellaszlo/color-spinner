@@ -28,6 +28,19 @@ M.getOffset = function (element, ancestor) {
   return { left: left, top: top };
 };
 
+M.getMousePosition = function (event) {
+  event = event || window.event;
+  if (event.pageX) {
+    return { x: event.pageX, y: event.pageY };
+  }
+  return {
+    x: event.clientX + document.body.scrollLeft +
+        document.documentElement.scrollLeft,
+    y: event.clientY + document.body.scrollTop +
+        document.documentElement.scrollTop
+  };
+}
+
 M.classContains = function (element, item) {
   var className = element.className;
   if (className === '' || className === null || className === undefined) {
