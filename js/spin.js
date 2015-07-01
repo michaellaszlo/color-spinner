@@ -104,9 +104,11 @@ ColorSpinner.load = function () {
   drawingArea.style.height = layout.canvas.height + 'px';
 
   function makeMixer() {
-    var mixer = M.make('div', { className: 'mixer', into: drawingArea });
-    mixer.style.width = layout.mixer.diameter + 'px';
-    mixer.style.height = layout.mixer.diameter + 'px';
+    var mixer = M.make('div', { className: 'mixer', into: drawingArea }),
+        diameter = layout.mixer.diameter,
+        center = { x: diameter/2, y: diameter/2 };
+    mixer.style.width = diameter + 'px';
+    mixer.style.height = diameter + 'px';
     mixer.context = {};
     ['ring', 'hole', 'sector'].forEach(function (canvasName) {
       var canvas = M.make('canvas', { into: mixer });
@@ -123,9 +125,11 @@ ColorSpinner.load = function () {
       mixer.onmousemove = undefined;
     };
     mixer.onmousedown = function (event) {
-      var position = M.getMousePosition(event);
+      var position = M.getMousePosition(event),
+          x = position.x - mixer.offset.left - center.x,
+          y = position.y - mixer.offset.top - center.y;
       console.log('mouse down on ' + g.colors[mixer.index] + ' disc');
-      console.log(position.x - mixer.offset.left, position.y - mixer.offset.top);
+      console.log(x, y);
     };
     return mixer;
   }
