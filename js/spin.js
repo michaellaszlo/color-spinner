@@ -132,7 +132,11 @@ ColorSpinner.load = function () {
           angle += 2*Math.PI;
         }
         var value = Math.floor(128 * angle / Math.PI);
-        console.log(value);
+        g.rgb[mixer.index] = value;
+        g.mixers.forEach(function (mixer) {
+          mixer.paint();
+        });
+        g.mixGrid.paint();
       }
     };
     return mixer;
@@ -172,7 +176,8 @@ ColorSpinner.load = function () {
       gridSize = 256*cell,
       edge = layout.grid.edge,
       containerSize = 2*edge + gridSize,
-      mixGrid = M.make('div', { id: 'mixGrid', into: drawingArea });
+      mixGrid = g.mixGrid = M.make('div', { id: 'mixGrid',
+          into: drawingArea });
   mixGrid.style.left = layout.grid.left + 'px';
   mixGrid.style.top = layout.controls.height + 'px';
   mixGrid.style.width = containerSize + 'px';
@@ -185,14 +190,15 @@ ColorSpinner.load = function () {
   });
 
   context = mixGrid.context.pixels;
-  mixGrid.paint = function (holdIndex) {
+  g.holdIndex = 0;
+  mixGrid.paint = function () {
     var rgb = g.rgb.slice(),
         rowIndex = 1,
         colIndex = 2;
-    if (holdIndex == 1) {
+    if (g.holdIndex == 1) {
       rowIndex = 0;
       colIndex = 2;
-    } else if (holdIndex == 2) {
+    } else if (g.holdIndex == 2) {
       rowIndex = 0;
       colIndex = 1;
     }
