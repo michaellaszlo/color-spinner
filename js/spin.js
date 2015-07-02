@@ -1,6 +1,6 @@
 var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
-  mix: { rgb: [0, 0, 0] },
+  rgb: [0, 0, 0],
   layout: {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
     controls: { width: 300, height: 250 },
@@ -22,23 +22,16 @@ ColorSpinner.toHex2 = function (i) {
   return hex;
 }
 
-ColorSpinner.makeMixerSetValue = function (mixer) {
-  var g = ColorSpinner;
-  return function (value) {
-    g.mix.rgb[mixer.index] = value;
-    // Display the mixer's own value.
-    mixer.label.innerHTML = value + '<br />' + g.toHex2(value);
-  };
-};
-
 ColorSpinner.makeMixerPaint = function (mixer) {
   var g = ColorSpinner,
       layout = g.layout,
       index = mixer.index;
   return function () {
     // Copy the current RGB tuple.
-    var rgb = g.mix.rgb.slice(),
+    var rgb = g.rgb.slice(),
         currentValue = rgb[index];
+    // Display the mixer's value.
+    mixer.label.innerHTML = currentValue + '<br />' + g.toHex2(currentValue);
     // Paint the ring with other values, sampling coarsely through the range.
     var context = mixer.context.ring,
         coarse = layout.mixer.coarse,
@@ -95,7 +88,11 @@ ColorSpinner.makeMixerPaint = function (mixer) {
 
 ColorSpinner.load = function () {
   var g = ColorSpinner,
-      layout = g.layout;
+      layout = g.layout,
+      diameter = layout.mixer.diameter,
+      totalRadius = diameter/2,
+      center = { x: totalRadius, y: totalRadius },
+      holeRadius = layout.hole.radius.proportion * totalRadius;
 
   // Allocate the drawing area.
   var drawingArea = M.make('div', { id: 'drawingArea', into: document.body }),
@@ -104,9 +101,7 @@ ColorSpinner.load = function () {
   drawingArea.style.height = layout.canvas.height + 'px';
 
   function makeMixer() {
-    var mixer = M.make('div', { className: 'mixer', into: drawingArea }),
-        diameter = layout.mixer.diameter,
-        center = { x: diameter/2, y: diameter/2 };
+    var mixer = M.make('div', { className: 'mixer', into: drawingArea });
     mixer.style.width = diameter + 'px';
     mixer.style.height = diameter + 'px';
     mixer.context = {};
@@ -128,14 +123,17 @@ ColorSpinner.load = function () {
       var position = M.getMousePosition(event),
           x = position.x - mixer.offset.left - center.x,
           y = mixer.offset.top + center.y - position.y,
-          distance = Math.hypot(x, y),
-          angle = Math.PI/2 - (y >= 0 ?
-              Math.acos(x/distance) : 2*Math.PI - Math.acos(x/distance));
-      if (angle < 0) {  // Normalize to the range [0, 2*pi).
-        angle += 2*Math.PI;
+          distance = Math.hypot(x, y);
+      if (distance <= holeRadius) {
+      } else if (distance <= totalRadius) {
+        var angle = Math.PI/2 - (y >= 0 ?
+                Math.acos(x/distance) : 2*Math.PI - Math.acos(x/distance));
+        if (angle < 0) {  // Normalize to the range [0, 2*pi).
+          angle += 2*Math.PI;
+        }
+        var value = Math.floor(128 * angle / Math.PI);
+        console.log(value);
       }
-      console.log('mouse down on ' + g.colors[mixer.index] + ' disc');
-      console.log(x, y, angle/Math.PI*180);
     };
     return mixer;
   }
@@ -165,7 +163,6 @@ ColorSpinner.load = function () {
     label.style.height = labelHeight + 'px';
     label.style.left = (width - labelWidth)/2 + 'px';
     label.style.top = (height - labelHeight)/2 + 'px';
-    mixer.setValue = g.makeMixerSetValue(mixer);
     mixer.paint = g.makeMixerPaint(mixer);
   });
 
@@ -189,7 +186,7 @@ ColorSpinner.load = function () {
 
   context = mixGrid.context.pixels;
   mixGrid.paint = function (holdIndex) {
-    var rgb = g.mix.rgb.slice(),
+    var rgb = g.rgb.slice(),
         rowIndex = 1,
         colIndex = 2;
     if (holdIndex == 1) {
@@ -212,7 +209,7 @@ ColorSpinner.load = function () {
 
   // Choose a color at random.
   g.colors.forEach(function (color, ix, array) {
-    g.mixer[color].setValue(Math.floor(Math.random() * 256));
+    g.rgb[ix] = Math.floor(Math.random() * 256);
   });
 
   // Paint the discs and the mixing grid.

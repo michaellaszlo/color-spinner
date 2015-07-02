@@ -3,6 +3,11 @@ Goals:
 - a new way to discover colors
 - palette management: compare choices and group related colors
 
+layout
+- calculate automatically based on canvas dimensions
+  - set holeRadius once
+- size canvas to screen
+
 color rings
 - mousedown to change value
 - plus/minus buttons in the hole
