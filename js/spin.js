@@ -127,9 +127,15 @@ ColorSpinner.load = function () {
     mixer.onmousedown = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - mixer.offset.left - center.x,
-          y = position.y - mixer.offset.top - center.y;
+          y = mixer.offset.top + center.y - position.y,
+          distance = Math.hypot(x, y),
+          angle = Math.PI/2 - (y >= 0 ?
+              Math.acos(x/distance) : 2*Math.PI - Math.acos(x/distance));
+      if (angle < 0) {  // Normalize to the range [0, 2*pi).
+        angle += 2*Math.PI;
+      }
       console.log('mouse down on ' + g.colors[mixer.index] + ' disc');
-      console.log(x, y);
+      console.log(x, y, angle/Math.PI*180);
     };
     return mixer;
   }
