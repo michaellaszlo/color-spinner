@@ -9,7 +9,7 @@ var ColorSpinner = {
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
     grid: { left: 10, coarse: 3, cell: 1, edge: 5 },
-    select: { width: 4 }
+    select: { width: 3.5, gap: 2.5 }
   },
 	show: { ring: { solid: false, mix: true } }
 };
@@ -41,10 +41,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     // Copy the current RGB tuple.
     var rgb = g.rgb.slice(),
         currentValue = rgb[index],
-        //contrastValue = 255 - Math.floor(Math.pow(currentValue / 40.21, 3)),
-        contrastValue = 255 - Math.floor(Math.pow(currentValue / 15.96, 2)),
-        //contrastValue = 192 - Math.floor(128 * currentValue / 255),
-        //contrastValue = (currentValue < 128 ? 223 : 191),
+        contrastValue = 255,
         contrastRgb = [contrastValue, contrastValue, contrastValue],
         context = mixer.context.ring;
     var contrastColor = mixer.contrastColor = 'rgb(' + contrastRgb + ')';
@@ -91,8 +88,9 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     //context.arc(x0, y0, holeRadius + bandWidth/2, angleFrom, angleTo);
     context.stroke();
   };
-  var selectContext = mixer.context.select;
-  selectContext.lineWidth = layout.select.width;
+  var selectContext = mixer.context.select,
+      width = selectContext.lineWidth = layout.select.width,
+      selectRadius = holeRadius - layout.select.gap - width / 2;
   mixer.select = function () {
     if (g.holdIndex !== undefined) {
       g.mixers[g.holdIndex].deselect();
@@ -100,7 +98,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     g.holdIndex = index;
     selectContext.strokeStyle = mixer.contrastColor;
     selectContext.beginPath();
-    selectContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
+    selectContext.arc(x0, y0, selectRadius, 0, 2*Math.PI);
     selectContext.stroke();
     g.mixGrid.paint();
   };
