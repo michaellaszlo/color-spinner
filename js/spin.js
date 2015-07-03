@@ -9,7 +9,7 @@ var ColorSpinner = {
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
     grid: { left: 10, coarse: 3, cell: 1, edge: 5 },
-    select: { width: 2 }
+    select: { width: 4 }
   },
 	show: { ring: { solid: false, mix: true } }
 };
@@ -30,7 +30,6 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       radius = diameter/2,
       x0 = radius,
       y0 = radius,
-      context = mixer.context.ring,
       coarse = layout.mixer.coarse,
       start = -Math.PI/2,
       increment = coarse * Math.PI / 128,
@@ -41,9 +40,17 @@ ColorSpinner.addMixerFunctions = function (mixer) {
   mixer.paint = function () {
     // Copy the current RGB tuple.
     var rgb = g.rgb.slice(),
-        currentValue = rgb[index];
+        currentValue = rgb[index],
+        //contrastValue = 255 - Math.floor(Math.pow(currentValue / 40.21, 3)),
+        contrastValue = 255 - Math.floor(Math.pow(currentValue / 15.96, 2)),
+        //contrastValue = 192 - Math.floor(128 * currentValue / 255),
+        //contrastValue = (currentValue < 128 ? 223 : 191),
+        contrastRgb = [contrastValue, contrastValue, contrastValue],
+        context = mixer.context.ring;
+    var contrastColor = mixer.contrastColor = 'rgb(' + contrastRgb + ')';
     // Display the mixer's value.
     mixer.label.innerHTML = currentValue + '<br />' + g.toHex2(currentValue);
+    mixer.label.style.color = contrastColor;
     // Paint the ring with other values, sampling coarsely through the range.
     context.lineWidth = radius;
     for (var x = 0; x < 256; x += coarse) {
@@ -86,12 +93,12 @@ ColorSpinner.addMixerFunctions = function (mixer) {
   };
   var selectContext = mixer.context.select;
   selectContext.lineWidth = layout.select.width;
-  selectContext.strokeStyle = '#fff';
   mixer.select = function () {
     if (g.holdIndex !== undefined) {
       g.mixers[g.holdIndex].deselect();
     }
     g.holdIndex = index;
+    selectContext.strokeStyle = mixer.contrastColor;
     selectContext.beginPath();
     selectContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
     selectContext.stroke();
@@ -155,6 +162,7 @@ ColorSpinner.load = function () {
         });
         if (mixer.index == g.holdIndex) {
           g.mixGrid.paint();
+          mixer.select();
         }
       }
     };
