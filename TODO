@@ -1,7 +1,27 @@
 Goals:
-- precise selection of color
-- a new way to discover colors
-- palette management: compare choices and group related colors
+- explore the relationships among RGB, HSL, HSV
+- discover new colors
+  - broaden one's perspective with new color bands
+  - generate colors randomly
+- select colors precisely
+- manage palettes
+  - store color alternatives in a group
+  - automatically generate model layouts from palettes
+
+next steps
+- improve grid
+  + add colored axes
+  - mark within axis
+  - mark in grid 
+  - clickable grid
+  - draggable grid
+- improve ring
+  - extend sector outside band using hole color
+  - micro-adjust buttons near sector
+  - draggable sector
+- improve layout
+  - move grid to top row
+  - enlarge rings to match grid
 
 layout
 - calculate automatically based on canvas dimensions
@@ -9,9 +29,9 @@ layout
 - size canvas to screen
 
 color rings
-- mousedown to change value
-- plus/minus buttons in the hole
 + 256 notches around the perimeter
+- drag to change value
+- plus/minus buttons in the hole
 
 other mixing methods
 + show a mixing band around each basic ring
@@ -19,18 +39,19 @@ other mixing methods
   - overlap inside
   - smooth outside
   - show sector in band
-- click to fix one color and show grid of the two others
++ click to fix one color and show grid of the two others
 - figure out what else would be useful
   - HSV? HSL? other color models?
   - complementary colors?
 
 mixed color
-+ show the mixed color
+- show the mixed color
 - make new ball
 - animate new ball
 
 palette management
 - rearrange colors
-- make groups
-- change shape
+- group alternatives around a color
+- group colors into a palette
+- generate a model layout for a palette
 

@@ -8,7 +8,10 @@ var ColorSpinner = {
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
-    grid: { left: 10, coarse: 3, cell: 1, edge: 5 },
+    grid: {
+      left: 10, coarse: 3, cell: 1, edge: 5,
+      axis: { width: 10, gap: 1 }
+    },
     select: { width: 3.5, gap: 2.5 }
   },
 	show: { ring: { solid: false, mix: true } }
@@ -215,8 +218,12 @@ ColorSpinner.load = function () {
   });
 
   context = mixGrid.context.pixels;
+  var axisWidth = layout.grid.axis.width,
+      corner = { x: axisWidth + layout.grid.axis.gap };
+  corner.y = corner.x;
   mixGrid.paint = function () {
     var rgb = g.rgb.slice(),
+        axisRgb = [0, 0, 0],
         rowIndex = 1,
         colIndex = 2;
     if (g.holdIndex == 1) {
@@ -226,14 +233,24 @@ ColorSpinner.load = function () {
       rowIndex = 0;
       colIndex = 1;
     }
-    for (r = 0; r < 256; r += coarse) {
-      rgb[rowIndex] = r;
-      for (c = 0; c < 256; c += coarse) {
-        rgb[colIndex] = c;
+    for (c = 0; c < 256; c += coarse) {
+      rgb[colIndex] = axisRgb[colIndex] = c;
+      context.fillStyle = 'rgb(' + axisRgb.join(', ') + ')';
+      context.fillRect(corner.x + c, 0,
+          Math.min(256-c, coarse), axisWidth);
+      for (r = 0; r < 256; r += coarse) {
+        rgb[rowIndex] = r;
         context.fillStyle = 'rgb(' + rgb.join(', ') + ')';
-        context.fillRect(c, r,
+        context.fillRect(corner.x + c, corner.y + r,
             Math.min(256-c, coarse), Math.min(256-r, coarse));
       }
+    }
+    axisRgb = [0, 0, 0];
+    for (r = 0; r < 256; r += coarse) {
+      axisRgb[rowIndex] = r;
+      context.fillStyle = 'rgb(' + axisRgb.join(', ') + ')';
+      context.fillRect(0, corner.y + r,
+          axisWidth, Math.min(256-r, coarse));
     }
   }
 
