@@ -12,7 +12,7 @@ var ColorSpinner = {
       left: 10, coarse: 3, cell: 1, edge: 5,
       axis: { width: 10, gap: 1 }
     },
-    select: { gap: 6 }
+    select: { gap: 7 }
   },
 	show: { ring: { solid: false, mix: true } }
 };
@@ -121,10 +121,6 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     var holeRgb = [0, 0, 0];
     holeRgb[index] = g.rgb[index];
     mixer.label.style.color = g.rgbToCss(g.makeContrastRgb(holeRgb));
-    selectContext.fillStyle = g.rgbToCss(holeRgb);
-    selectContext.beginPath();
-    selectContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
-    selectContext.fill();
   };
 };
 
