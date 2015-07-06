@@ -12,7 +12,7 @@ var ColorSpinner = {
       left: 10, coarse: 3, cell: 1, edge: 5,
       axis: { width: 10, gap: 1 }
     },
-    select: { width: 3.5, gap: 2.5 }
+    select: { gap: 6 }
   },
 	show: { ring: { solid: false, mix: true } }
 };
@@ -24,6 +24,16 @@ ColorSpinner.toHex2 = function (i) {
   }
   return hex;
 }
+
+ColorSpinner.makeContrastRgb = function (rgb) {
+  var contrastRgb = [255, 255, 255];
+  return contrastRgb;
+};
+
+ColorSpinner.rgbToCss = function (rgb) {
+  var css = 'rgb(' + rgb.join(', ') + ')';
+  return css;
+};
 
 ColorSpinner.addMixerFunctions = function (mixer) {
   var g = ColorSpinner,
@@ -41,23 +51,24 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       bandWidth = radius - holeRadius,
       sectorLength = layout.sector.band.proportion * bandWidth;
   mixer.paint = function () {
-    // Copy the current RGB tuple.
+    // Copy the current RGB tuple. Make the hole color and a contrasting color.
     var rgb = g.rgb.slice(),
         currentValue = rgb[index],
-        contrastValue = 255,
-        contrastRgb = [contrastValue, contrastValue, contrastValue],
-        context = mixer.context.ring;
-    var contrastColor = mixer.contrastColor = 'rgb(' + contrastRgb + ')';
+        holeRgb = [0, 0, 0];
+    holeRgb[index] = currentValue;
     // Display the mixer's value.
+    var labelRgb = (index === g.holdIndex ?
+                    holeRgb : g.makeContrastRgb(holeRgb));
+    mixer.label.style.color = g.rgbToCss(labelRgb);
     mixer.label.innerHTML = currentValue + '<br />' + g.toHex2(currentValue);
-    mixer.label.style.color = contrastColor;
     // Paint the ring with other values, sampling coarsely through the range.
+    var context = mixer.context.ring;
     context.lineWidth = radius;
     for (var x = 0; x < 256; x += coarse) {
       var angleFrom = start + x * Math.PI / 128,
           angleTo = start + Math.min(256, x + 2*coarse) * Math.PI / 128;
       rgb[index] = x;
-      context.strokeStyle = 'rgb(' + rgb.join(', ') + ')';
+      context.strokeStyle = g.rgbToCss(rgb);
       context.beginPath();
       context.arc(x0, y0, radius/2, angleFrom, angleTo);
       context.stroke();
@@ -71,9 +82,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     // Paint the hole.
     context = mixer.context.hole;
     context.clearRect(0, 0, diameter, diameter);
-    rgb = [0, 0, 0];
-    rgb[index] = currentValue;
-    context.fillStyle = 'rgb(' + rgb.join(', ') + ')';
+    context.fillStyle = g.rgbToCss(holeRgb);
     context.lineWidth = 2;
     context.strokeStyle = '#000';
     context.beginPath();
@@ -92,21 +101,30 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     context.stroke();
   };
   var selectContext = mixer.context.select,
-      width = selectContext.lineWidth = layout.select.width,
-      selectRadius = holeRadius - layout.select.gap - width / 2;
+      selectRadius = holeRadius - layout.select.gap;
   mixer.select = function () {
     if (g.holdIndex !== undefined) {
       g.mixers[g.holdIndex].deselect();
     }
     g.holdIndex = index;
-    selectContext.strokeStyle = mixer.contrastColor;
+    var holeRgb = [0, 0, 0];
+    holeRgb[index] = g.rgb[index];
+    mixer.label.style.color = g.rgbToCss(holeRgb);
+    selectContext.fillStyle = g.rgbToCss(g.makeContrastRgb(holeRgb));
     selectContext.beginPath();
     selectContext.arc(x0, y0, selectRadius, 0, 2*Math.PI);
-    selectContext.stroke();
+    selectContext.fill();
     g.mixGrid.paint();
   };
   mixer.deselect = function () {
     selectContext.clearRect(0, 0, diameter, diameter);
+    var holeRgb = [0, 0, 0];
+    holeRgb[index] = g.rgb[index];
+    mixer.label.style.color = g.rgbToCss(g.makeContrastRgb(holeRgb));
+    selectContext.fillStyle = g.rgbToCss(holeRgb);
+    selectContext.beginPath();
+    selectContext.arc(x0, y0, holeRadius, 0, 2*Math.PI);
+    selectContext.fill();
   };
 };
 
@@ -235,12 +253,12 @@ ColorSpinner.load = function () {
     }
     for (c = 0; c < 256; c += coarse) {
       rgb[colIndex] = axisRgb[colIndex] = c;
-      context.fillStyle = 'rgb(' + axisRgb.join(', ') + ')';
+      context.fillStyle = g.rgbToCss(axisRgb);
       context.fillRect(corner.x + c, 0,
           Math.min(256-c, coarse), axisWidth);
       for (r = 0; r < 256; r += coarse) {
         rgb[rowIndex] = r;
-        context.fillStyle = 'rgb(' + rgb.join(', ') + ')';
+        context.fillStyle = g.rgbToCss(rgb);
         context.fillRect(corner.x + c, corner.y + r,
             Math.min(256-c, coarse), Math.min(256-r, coarse));
       }
@@ -248,7 +266,7 @@ ColorSpinner.load = function () {
     axisRgb = [0, 0, 0];
     for (r = 0; r < 256; r += coarse) {
       axisRgb[rowIndex] = r;
-      context.fillStyle = 'rgb(' + axisRgb.join(', ') + ')';
+      context.fillStyle = g.rgbToCss(axisRgb);
       context.fillRect(0, corner.y + r,
           axisWidth, Math.min(256-r, coarse));
     }

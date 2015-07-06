@@ -24,7 +24,6 @@ canvas {
 #drawingArea .label {
   cursor: default;
   position: absolute;
-  color: #fff;
   display: inline;
   font-size: 25px;
   text-align: center;
