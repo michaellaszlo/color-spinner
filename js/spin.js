@@ -3,16 +3,15 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    controls: { width: 300, height: 250 },
-    mixer: { coarse: 1, diameter: 200, gap: 10 },
+    mixer: { coarse: 1, diameter: 260, gap: 15 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
     grid: {
-      left: 10, coarse: 3, cell: 1, edge: 5,
-      axis: { width: 10, gap: 1 }
+      left: 20, top: 15, coarse: 3, cell: 1, edge: 5,
+      axis: { width: 8, gap: 1 }
     },
-    select: { gap: 7 }
+    select: { gap: 10 }
   },
 	show: { ring: { solid: false, mix: true } }
 };
@@ -184,6 +183,13 @@ ColorSpinner.load = function () {
     return mixer;
   }
 
+  // Layout calculations for the two-color mixing grid.
+  var coarse = layout.grid.coarse,
+      cell = layout.grid.cell,
+      gridSize = 256*cell,
+      edge = layout.grid.edge,
+      mixGridContainerSize = 2*edge + gridSize;
+
   // Make the three color discs.
   g.mixer = {};
   g.mixers = [];
@@ -193,8 +199,8 @@ ColorSpinner.load = function () {
         width = diameter,
         height = diameter;
     g.mixers.push(mixer);
-    mixer.style.left = layout.controls.width +
-        ix * (layout.mixer.gap + diameter) + 'px';
+    mixer.style.left = layout.grid.left + mixGridContainerSize +
+        layout.mixer.gap + ix * (layout.mixer.gap + diameter) + 'px';
     mixer.style.top = layout.mixer.gap + 'px';
     mixer.offset = M.getOffset(mixer, document.body);
     mixer.diameter = diameter;
@@ -213,21 +219,16 @@ ColorSpinner.load = function () {
   });
 
   // Make the two-color mixing grid.
-  var coarse = layout.grid.coarse,
-      cell = layout.grid.cell,
-      gridSize = 256*cell,
-      edge = layout.grid.edge,
-      containerSize = 2*edge + gridSize,
-      mixGrid = g.mixGrid = M.make('div', { id: 'mixGrid',
+  var mixGrid = g.mixGrid = M.make('div', { id: 'mixGrid',
           into: drawingArea });
   mixGrid.style.left = layout.grid.left + 'px';
-  mixGrid.style.top = layout.controls.height + 'px';
-  mixGrid.style.width = containerSize + 'px';
-  mixGrid.style.height = containerSize + 'px';
+  mixGrid.style.top = layout.grid.top + 'px';
+  mixGrid.style.width = mixGridContainerSize + 'px';
+  mixGrid.style.height = mixGridContainerSize + 'px';
   mixGrid.context = {};
-  ['pixels'].forEach(function (canvasName) {
+  ['pixels', 'marks'].forEach(function (canvasName) {
     var canvas = M.make('canvas', { into: mixGrid });
-    canvas.width = canvas.height = containerSize;
+    canvas.width = canvas.height = mixGridContainerSize;
     mixGrid.context[canvasName] = canvas.getContext('2d');
   });
 
@@ -237,7 +238,6 @@ ColorSpinner.load = function () {
   corner.y = corner.x;
   mixGrid.paint = function () {
     var rgb = g.rgb.slice(),
-        axisRgb = [0, 0, 0],
         rowIndex = 1,
         colIndex = 2;
     if (g.holdIndex == 1) {
@@ -247,11 +247,13 @@ ColorSpinner.load = function () {
       rowIndex = 0;
       colIndex = 1;
     }
+    var axisRgb = [0, 0, 0];
+    // Paint the grid.
     for (c = 0; c < 256; c += coarse) {
       rgb[colIndex] = axisRgb[colIndex] = c;
+      // Paint the horizontal axis.
       context.fillStyle = g.rgbToCss(axisRgb);
-      context.fillRect(corner.x + c, 0,
-          Math.min(256-c, coarse), axisWidth);
+      context.fillRect(corner.x + c, 0, Math.min(256-c, coarse), axisWidth);
       for (r = 0; r < 256; r += coarse) {
         rgb[rowIndex] = r;
         context.fillStyle = g.rgbToCss(rgb);
@@ -260,12 +262,16 @@ ColorSpinner.load = function () {
       }
     }
     axisRgb = [0, 0, 0];
+    // Paint the vertical axis.
     for (r = 0; r < 256; r += coarse) {
       axisRgb[rowIndex] = r;
       context.fillStyle = g.rgbToCss(axisRgb);
       context.fillRect(0, corner.y + r,
           axisWidth, Math.min(256-r, coarse));
     }
+    // Draw markings for current color.
+    var rowValue = rgb[rowIndex],
+        colValue = rgb[colIndex];
   }
 
   // Choose a color at random.
