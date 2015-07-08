@@ -13,7 +13,7 @@ next steps
   + add colored axes
   + mark grid 
   + clickable grid
-  - draggable grid
+  + draggable grid
 - improve ring
   - draggable sector
   - extend sector outside band using hole color

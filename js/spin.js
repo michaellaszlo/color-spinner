@@ -301,7 +301,7 @@ ColorSpinner.load = function () {
     markContext.stroke();
   }
 
-  mixGrid.onmousedown = function (event) {
+  mixGrid.update = function (event) {
     var indices = getIndices(),
         position = M.getMousePosition(event),
         x = Math.max(0, position.x - mixGrid.offset.left - corner.x),
@@ -313,6 +313,15 @@ ColorSpinner.load = function () {
     mixGrid.mark();
     g.mixers[indices.row].paint();
     g.mixers[indices.col].paint();
+  };
+  mixGrid.onmousedown = function (event) {
+    mixGrid.update(event);
+    mixGrid.onmousemove = mixGrid.update;
+    window.onmouseup = function () {
+      console.log('mouseup or mouseout');
+      mixGrid.onmousemove = undefined;
+      document.body.onmouseup = undefined;
+    };
   };
 
   // Choose a color at random.
