@@ -3,7 +3,7 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { sample: 1, diameter: 260, gap: 15 },
+    mixer: { sample: 2, diameter: 260, gap: 15 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
@@ -136,13 +136,15 @@ ColorSpinner.load = function () {
       holeRadius = layout.hole.radius.proportion * totalRadius;
 
   // Allocate the drawing area.
-  var drawingArea = M.make('div', { id: 'drawingArea', into: document.body }),
+  var drawingArea = M.make('div', { id: 'drawingArea', into: document.body,
+      unselectable: true }),
       canvases = g.canvases = [];
   drawingArea.style.width = layout.canvas.width + 'px';
   drawingArea.style.height = layout.canvas.height + 'px';
 
   function makeMixer() {
-    var mixer = M.make('div', { className: 'mixer', into: drawingArea });
+    var mixer = M.make('div', { className: 'mixer', into: drawingArea,
+        unselectable: true });
     mixer.style.width = diameter + 'px';
     mixer.style.height = diameter + 'px';
     mixer.context = {};
@@ -159,7 +161,7 @@ ColorSpinner.load = function () {
     mixer.onmouseout = function () {
       //mixer.onmousemove = undefined;
     };
-    mixer.onmousedown = function (event) {
+    mixer.update = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - mixer.offset.left - center.x,
           y = mixer.offset.top + center.y - position.y,
@@ -184,6 +186,14 @@ ColorSpinner.load = function () {
           g.mixGrid.mark();
         }
       }
+    };
+    mixer.onmousedown = function (event) {
+      mixer.update(event);
+      mixer.onmousemove = mixer.update;
+      window.onmouseup = function () {
+        mixer.onmousemove = undefined;
+        window.onmouseup = undefined;
+      };
     };
     return mixer;
   }
@@ -212,7 +222,7 @@ ColorSpinner.load = function () {
     mixer.color = color;
     mixer.index = ix;
     var label = mixer.label = M.make('div', { className: 'label',
-        into: mixer });
+        into: mixer, unselectable: true });
     // Insert dummy content and calculate label dimensions.
     label.innerHTML = '256<br />xFF';
     var labelWidth = label.offsetWidth,
@@ -318,9 +328,8 @@ ColorSpinner.load = function () {
     mixGrid.update(event);
     mixGrid.onmousemove = mixGrid.update;
     window.onmouseup = function () {
-      console.log('mouseup or mouseout');
       mixGrid.onmousemove = undefined;
-      document.body.onmouseup = undefined;
+      window.onmouseup = undefined;
     };
   };
 

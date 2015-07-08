@@ -9,19 +9,20 @@ Goals:
   - automatically generate model layouts from palettes
 
 next steps
-- improve grid
++ improve layout
+  + move grid to top row
+  + enlarge rings to match grid
++ improve grid
   + add colored axes
   + mark grid 
   + clickable grid
   + draggable grid
++ make everything unselectable
+- reduce sampling rate during click-and-drag updates
 - improve ring
-  - draggable sector
+  + draggable sector
   - extend sector outside band using hole color
   - micro-adjust buttons near sector
-  - unselectable label
-- improve layout
-  - move grid to top row
-  - enlarge rings to match grid
 
 layout
 - calculate automatically based on canvas dimensions
