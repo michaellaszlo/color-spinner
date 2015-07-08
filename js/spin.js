@@ -114,6 +114,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     selectContext.arc(x0, y0, selectRadius, 0, 2*Math.PI);
     selectContext.fill();
     g.mixGrid.paint();
+    g.mixGrid.mark();
   };
   mixer.deselect = function () {
     selectContext.clearRect(0, 0, diameter, diameter);
@@ -177,6 +178,8 @@ ColorSpinner.load = function () {
         if (mixer.index == g.holdIndex) {
           g.mixGrid.paint();
           mixer.select();
+        } else {
+          g.mixGrid.mark();
         }
       }
     };
@@ -232,13 +235,8 @@ ColorSpinner.load = function () {
     mixGrid.context[canvasName] = canvas.getContext('2d');
   });
 
-  context = mixGrid.context.pixels;
-  var axisWidth = layout.grid.axis.width,
-      corner = { x: axisWidth + layout.grid.axis.gap };
-  corner.y = corner.x;
-  mixGrid.paint = function () {
-    var rgb = g.rgb.slice(),
-        rowIndex = 1,
+  function getIndices() {
+    var rowIndex = 1,
         colIndex = 2;
     if (g.holdIndex == 1) {
       rowIndex = 0;
@@ -247,31 +245,53 @@ ColorSpinner.load = function () {
       rowIndex = 0;
       colIndex = 1;
     }
+    return { row: rowIndex, col: colIndex };
+  }
+
+  var gridContext = mixGrid.context.pixels,
+      axisWidth = layout.grid.axis.width,
+      corner = { x: axisWidth + layout.grid.axis.gap };
+  corner.y = corner.x;
+  // Paint the pixels making up the background of the two-color grid.
+  mixGrid.paint = function () {
+    var rgb = g.rgb.slice(),
+        indices = getIndices();
     var axisRgb = [0, 0, 0];
-    // Paint the grid.
+    // Paint the square grid.
     for (c = 0; c < 256; c += coarse) {
-      rgb[colIndex] = axisRgb[colIndex] = c;
+      rgb[indices.col] = axisRgb[indices.col] = c;
       // Paint the horizontal axis.
-      context.fillStyle = g.rgbToCss(axisRgb);
-      context.fillRect(corner.x + c, 0, Math.min(256-c, coarse), axisWidth);
+      gridContext.fillStyle = g.rgbToCss(axisRgb);
+      gridContext.fillRect(corner.x + c, 0, Math.min(256-c, coarse), axisWidth);
       for (r = 0; r < 256; r += coarse) {
-        rgb[rowIndex] = r;
-        context.fillStyle = g.rgbToCss(rgb);
-        context.fillRect(corner.x + c, corner.y + r,
+        rgb[indices.row] = r;
+        gridContext.fillStyle = g.rgbToCss(rgb);
+        gridContext.fillRect(corner.x + c, corner.y + r,
             Math.min(256-c, coarse), Math.min(256-r, coarse));
       }
     }
     axisRgb = [0, 0, 0];
     // Paint the vertical axis.
     for (r = 0; r < 256; r += coarse) {
-      axisRgb[rowIndex] = r;
-      context.fillStyle = g.rgbToCss(axisRgb);
-      context.fillRect(0, corner.y + r,
+      axisRgb[indices.row] = r;
+      gridContext.fillStyle = g.rgbToCss(axisRgb);
+      gridContext.fillRect(0, corner.y + r,
           axisWidth, Math.min(256-r, coarse));
     }
-    // Draw markings for current color.
-    var rowValue = rgb[rowIndex],
-        colValue = rgb[colIndex];
+  };
+  var markContext = mixGrid.context.marks;
+  // Draw markings for current color.
+  mixGrid.mark = function () {
+    var indices = getIndices();
+    markContext.clearRect(0, 0, mixGridContainerSize, mixGridContainerSize);
+    var rowValue = g.rgb[indices.row],
+        colValue = g.rgb[indices.col];
+    markContext.beginPath();
+    markContext.moveTo(corner.x + colValue, 0);
+    markContext.lineTo(corner.x + colValue, mixGridContainerSize - 1);
+    markContext.moveTo(0, corner.y + rowValue);
+    markContext.lineTo(mixGridContainerSize - 1, corner.y + rowValue);
+    markContext.stroke();
   }
 
   // Choose a color at random.

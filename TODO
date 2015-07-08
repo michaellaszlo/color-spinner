@@ -11,8 +11,7 @@ Goals:
 next steps
 - improve grid
   + add colored axes
-  - mark within axis
-  - mark in grid 
+  + mark grid 
   - clickable grid
   - draggable grid
 - improve ring
