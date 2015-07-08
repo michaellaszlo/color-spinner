@@ -166,32 +166,39 @@ ColorSpinner.load = function () {
           x = position.x - mixer.offset.left - center.x,
           y = mixer.offset.top + center.y - position.y,
           distance = Math.hypot(x, y);
-      if (distance <= holeRadius) {
+      var angle = Math.PI/2 - (y >= 0 ?
+              Math.acos(x/distance) : 2*Math.PI - Math.acos(x/distance));
+      if (angle < 0) {  // Normalize to the range [0, 2*pi).
+        angle += 2*Math.PI;
+      }
+      var value = Math.floor(128 * angle / Math.PI);
+      g.rgb[mixer.index] = value;
+      g.mixers.forEach(function (mixer) {
+        mixer.paint();
+      });
+      if (mixer.index == g.holdIndex) {
+        g.mixGrid.paint();
         mixer.select();
-      } else if (distance <= totalRadius) {
-        var angle = Math.PI/2 - (y >= 0 ?
-                Math.acos(x/distance) : 2*Math.PI - Math.acos(x/distance));
-        if (angle < 0) {  // Normalize to the range [0, 2*pi).
-          angle += 2*Math.PI;
-        }
-        var value = Math.floor(128 * angle / Math.PI);
-        g.rgb[mixer.index] = value;
-        g.mixers.forEach(function (mixer) {
-          mixer.paint();
-        });
-        if (mixer.index == g.holdIndex) {
-          g.mixGrid.paint();
-          mixer.select();
-        } else {
-          g.mixGrid.mark();
-        }
+      } else {
+        g.mixGrid.mark();
       }
     };
     mixer.onmousedown = function (event) {
+      var position = M.getMousePosition(event),
+          x = position.x - mixer.offset.left - center.x,
+          y = mixer.offset.top + center.y - position.y,
+          distance = Math.hypot(x, y);
+      if (distance > totalRadius) {
+        return;
+      }
+      if (distance <= holeRadius) {
+        mixer.select();
+        return;
+      }
       mixer.update(event);
-      mixer.onmousemove = mixer.update;
+      window.onmousemove = mixer.update;
       window.onmouseup = function () {
-        mixer.onmousemove = undefined;
+        window.onmousemove = undefined;
         window.onmouseup = undefined;
       };
     };
@@ -314,8 +321,10 @@ ColorSpinner.load = function () {
   mixGrid.update = function (event) {
     var indices = getIndices(),
         position = M.getMousePosition(event),
-        x = Math.max(0, position.x - mixGrid.offset.left - corner.x),
-        y = Math.max(0, position.y - mixGrid.offset.top - corner.y),
+        x = Math.max(0, Math.min(255 * scale,
+              position.x - mixGrid.offset.left - corner.x)),
+        y = Math.max(0, Math.min(255 * scale,
+              position.y - mixGrid.offset.top - corner.y)),
         colValue = Math.floor(256 * x / gridSize),
         rowValue = Math.floor(256 * y / gridSize);
     g.rgb[indices.row] = rowValue;
@@ -326,9 +335,9 @@ ColorSpinner.load = function () {
   };
   mixGrid.onmousedown = function (event) {
     mixGrid.update(event);
-    mixGrid.onmousemove = mixGrid.update;
+    window.onmousemove = mixGrid.update;
     window.onmouseup = function () {
-      mixGrid.onmousemove = undefined;
+      window.onmousemove = undefined;
       window.onmouseup = undefined;
     };
   };

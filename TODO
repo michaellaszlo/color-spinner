@@ -18,7 +18,10 @@ next steps
   + clickable grid
   + draggable grid
 + make everything unselectable
-- reduce sampling rate during click-and-drag updates
+- improve drawing performance
+  - paint off-screen?
+  - make pixel grid in memory?
+  - reduce sampling rate while dragging?
 - improve ring
   + draggable sector
   - extend sector outside band using hole color
