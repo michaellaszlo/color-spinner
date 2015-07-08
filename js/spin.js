@@ -3,13 +3,16 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { coarse: 1, diameter: 260, gap: 15 },
+    mixer: { sample: 1, diameter: 260, gap: 15 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
     grid: {
-      left: 20, top: 15, coarse: 3, cell: 1, edge: 5,
-      axis: { width: 8, gap: 1 }
+      left: 20, top: 15,
+      sample: 3,  // 256 is divided into samples of this size
+      scale: 1,  // the grid is magnified by this linear factor
+      overlap: 1,  // to prevent white lines, overlap by this many pixels
+      axis: { width: 8, gap: 4 }
     },
     select: { gap: 10 }
   },
@@ -42,9 +45,9 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       radius = diameter/2,
       x0 = radius,
       y0 = radius,
-      coarse = layout.mixer.coarse,
+      sample = layout.mixer.sample,
       start = -Math.PI/2,
-      increment = coarse * Math.PI / 128,
+      increment = sample * Math.PI / 128,
       smoother = layout.smoother,
       holeRadius = layout.hole.radius.proportion * radius,
       bandWidth = radius - holeRadius,
@@ -60,12 +63,12 @@ ColorSpinner.addMixerFunctions = function (mixer) {
                     holeRgb : g.makeContrastRgb(holeRgb));
     mixer.label.style.color = g.rgbToCss(labelRgb);
     mixer.label.innerHTML = currentValue + '<br />' + g.toHex2(currentValue);
-    // Paint the ring with other values, sampling coarsely through the range.
+    // Paint the ring with other values, sampling samplely through the range.
     var context = mixer.context.ring;
     context.lineWidth = radius;
-    for (var x = 0; x < 256; x += coarse) {
+    for (var x = 0; x < 256; x += sample) {
       var angleFrom = start + x * Math.PI / 128,
-          angleTo = start + Math.min(256, x + 2*coarse) * Math.PI / 128;
+          angleTo = start + Math.min(256, x + 2*sample) * Math.PI / 128;
       rgb[index] = x;
       context.strokeStyle = g.rgbToCss(rgb);
       context.beginPath();
@@ -149,13 +152,12 @@ ColorSpinner.load = function () {
       mixer.context[canvasName] = canvas.getContext('2d');
     });
     function mouseMove (event) {
-      event = event || window.event;
     }
     mixer.onmouseover = function () {
-      mixer.onmousemove = mouseMove;
+      //mixer.onmousemove = mouseMove;
     };
     mixer.onmouseout = function () {
-      mixer.onmousemove = undefined;
+      //mixer.onmousemove = undefined;
     };
     mixer.onmousedown = function (event) {
       var position = M.getMousePosition(event),
@@ -187,11 +189,11 @@ ColorSpinner.load = function () {
   }
 
   // Layout calculations for the two-color mixing grid.
-  var coarse = layout.grid.coarse,
-      cell = layout.grid.cell,
-      gridSize = 256*cell,
-      edge = layout.grid.edge,
-      mixGridContainerSize = 2*edge + gridSize;
+  var sample = layout.grid.sample,
+      scale = layout.grid.scale,
+      gridSize = 256*scale,
+      mixGridContainerSize = layout.grid.axis.width + layout.grid.axis.gap +
+          gridSize;
 
   // Make the three color discs.
   g.mixer = {};
@@ -211,6 +213,7 @@ ColorSpinner.load = function () {
     mixer.index = ix;
     var label = mixer.label = M.make('div', { className: 'label',
         into: mixer });
+    // Insert dummy content and calculate label dimensions.
     label.innerHTML = '256<br />xFF';
     var labelWidth = label.offsetWidth,
         labelHeight = label.offsetHeight;
@@ -226,6 +229,7 @@ ColorSpinner.load = function () {
           into: drawingArea });
   mixGrid.style.left = layout.grid.left + 'px';
   mixGrid.style.top = layout.grid.top + 'px';
+  mixGrid.offset = M.getOffset(mixGrid, document.body);
   mixGrid.style.width = mixGridContainerSize + 'px';
   mixGrid.style.height = mixGridContainerSize + 'px';
   mixGrid.context = {};
@@ -250,7 +254,8 @@ ColorSpinner.load = function () {
 
   var gridContext = mixGrid.context.pixels,
       axisWidth = layout.grid.axis.width,
-      corner = { x: axisWidth + layout.grid.axis.gap };
+      corner = { x: axisWidth + layout.grid.axis.gap },
+      overlap = layout.grid.overlap;
   corner.y = corner.x;
   // Paint the pixels making up the background of the two-color grid.
   mixGrid.paint = function () {
@@ -258,25 +263,27 @@ ColorSpinner.load = function () {
         indices = getIndices();
     var axisRgb = [0, 0, 0];
     // Paint the square grid.
-    for (c = 0; c < 256; c += coarse) {
+    for (var c = 0; c < 256; c += sample) {
       rgb[indices.col] = axisRgb[indices.col] = c;
       // Paint the horizontal axis.
       gridContext.fillStyle = g.rgbToCss(axisRgb);
-      gridContext.fillRect(corner.x + c, 0, Math.min(256-c, coarse), axisWidth);
-      for (r = 0; r < 256; r += coarse) {
+      gridContext.fillRect(corner.x + scale*c, 0,
+          scale*Math.min(256-c, sample+overlap), axisWidth);
+      for (var r = 0; r < 256; r += sample) {
         rgb[indices.row] = r;
         gridContext.fillStyle = g.rgbToCss(rgb);
-        gridContext.fillRect(corner.x + c, corner.y + r,
-            Math.min(256-c, coarse), Math.min(256-r, coarse));
+        gridContext.fillRect(corner.x + scale*c, corner.y + scale*r,
+            scale*Math.min(256-c, sample+overlap),
+            scale*Math.min(256-r, sample+overlap));
       }
     }
     axisRgb = [0, 0, 0];
     // Paint the vertical axis.
-    for (r = 0; r < 256; r += coarse) {
+    for (var r = 0; r < 256; r += sample) {
       axisRgb[indices.row] = r;
       gridContext.fillStyle = g.rgbToCss(axisRgb);
-      gridContext.fillRect(0, corner.y + r,
-          axisWidth, Math.min(256-r, coarse));
+      gridContext.fillRect(0, corner.y + scale*r,
+          axisWidth, scale*Math.min(256-r, sample+overlap));
     }
   };
   var markContext = mixGrid.context.marks;
@@ -288,11 +295,25 @@ ColorSpinner.load = function () {
         colValue = g.rgb[indices.col];
     markContext.beginPath();
     markContext.moveTo(corner.x + colValue, 0);
-    markContext.lineTo(corner.x + colValue, mixGridContainerSize - 1);
+    markContext.lineTo(corner.x + colValue, mixGridContainerSize);
     markContext.moveTo(0, corner.y + rowValue);
-    markContext.lineTo(mixGridContainerSize - 1, corner.y + rowValue);
+    markContext.lineTo(mixGridContainerSize, corner.y + rowValue);
     markContext.stroke();
   }
+
+  mixGrid.onmousedown = function (event) {
+    var indices = getIndices(),
+        position = M.getMousePosition(event),
+        x = Math.max(0, position.x - mixGrid.offset.left - corner.x),
+        y = Math.max(0, position.y - mixGrid.offset.top - corner.y),
+        colValue = Math.floor(256 * x / gridSize),
+        rowValue = Math.floor(256 * y / gridSize);
+    g.rgb[indices.row] = rowValue;
+    g.rgb[indices.col] = colValue;
+    mixGrid.mark();
+    g.mixers[indices.row].paint();
+    g.mixers[indices.col].paint();
+  };
 
   // Choose a color at random.
   g.colors.forEach(function (color, ix, array) {

@@ -12,12 +12,12 @@ next steps
 - improve grid
   + add colored axes
   + mark grid 
-  - clickable grid
+  + clickable grid
   - draggable grid
 - improve ring
+  - draggable sector
   - extend sector outside band using hole color
   - micro-adjust buttons near sector
-  - draggable sector
   - unselectable label
 - improve layout
   - move grid to top row
