@@ -277,36 +277,46 @@ ColorSpinner.load = function () {
       gridContext = mixGrid.context.pixels,
       axisWidth = layout.grid.axis.width,
       corner = { x: axisWidth + layout.grid.axis.gap },
-      overlap = layout.grid.overlap;
+      overlap = 0;//layout.grid.overlap;
   corner.y = corner.x;
   // Paint the pixels making up the background of the two-color grid.
   mixGrid.paint = function () {
     var rgb = g.rgb.slice(),
         indices = getIndices();
-    var axisRgb = [0, 0, 0];
-    // Paint the square grid.
-    for (var c = 0; c < 256; c += sample) {
-      rgb[indices.col] = axisRgb[indices.col] = c;
-      // Paint the horizontal axis.
-      prepContext.fillStyle = g.rgbToCss(axisRgb);
-      prepContext.fillRect(corner.x + scale*c, 0,
-          scale*Math.min(256-c, sample+overlap), axisWidth);
-      for (var r = 0; r < 256; r += sample) {
-        rgb[indices.row] = r;
-        prepContext.fillStyle = g.rgbToCss(rgb);
-        prepContext.fillRect(corner.x + scale*c, corner.y + scale*r,
-            scale*Math.min(256-c, sample+overlap),
-            scale*Math.min(256-r, sample+overlap));
-      }
+    // Paint the rows of the grid with linear gradients.
+    for (var r = 0; r < 256; r += sample) {
+      var gradient = prepContext.createLinearGradient(
+              corner.x, corner.y + scale*r,
+              corner.x + scale*256, corner.y + scale*r);
+      rgb[indices.row] = r;
+      rgb[indices.col] = 0;
+      gradient.addColorStop(0, g.rgbToCss(rgb)); 
+      rgb[indices.col] = 255;
+      gradient.addColorStop(1, g.rgbToCss(rgb)); 
+      prepContext.fillStyle = gradient;
+      prepContext.fillRect(
+          corner.x, corner.y + scale*r,
+          corner.x + scale*256, corner.y + scale*(r+1) + overlap);
     }
-    axisRgb = [0, 0, 0];
+    
     // Paint the vertical axis.
+    var axisRgb = [0, 0, 0];
     for (var r = 0; r < 256; r += sample) {
       axisRgb[indices.row] = r;
       prepContext.fillStyle = g.rgbToCss(axisRgb);
       prepContext.fillRect(0, corner.y + scale*r,
           axisWidth, scale*Math.min(256-r, sample+overlap));
     }
+
+    // Paint the horizontal axis.
+    var axisRgb = [0, 0, 0];
+    for (var c = 0; c < 256; c += sample) {
+      axisRgb[indices.col] = c;
+      prepContext.fillStyle = g.rgbToCss(axisRgb);
+      prepContext.fillRect(corner.x + scale*c, 0,
+          scale*Math.min(256-c, sample+overlap), axisWidth);
+    }
+
     gridContext.drawImage(prepCanvas, 0, 0);
   };
   var markContext = mixGrid.context.marks;
