@@ -249,12 +249,15 @@ ColorSpinner.load = function () {
   mixGrid.offset = M.getOffset(mixGrid, document.body);
   mixGrid.style.width = mixGridContainerSize + 'px';
   mixGrid.style.height = mixGridContainerSize + 'px';
+  mixGrid.canvas = {};
   mixGrid.context = {};
-  ['pixels', 'marks'].forEach(function (canvasName) {
-    var canvas = M.make('canvas', { into: mixGrid });
+  ['pixels', 'prep', 'marks'].forEach(function (canvasName) {
+    var canvas = mixGrid.canvas[canvasName] = M.make('canvas',
+        { into: (canvasName == 'prep' ? undefined : mixGrid) });
     canvas.width = canvas.height = mixGridContainerSize;
     mixGrid.context[canvasName] = canvas.getContext('2d');
   });
+  mixGrid.canvas.prep.style.visibility = 'hidden';
 
   function getIndices() {
     var rowIndex = 1,
@@ -269,7 +272,9 @@ ColorSpinner.load = function () {
     return { row: rowIndex, col: colIndex };
   }
 
-  var gridContext = mixGrid.context.pixels,
+  var prepCanvas = mixGrid.canvas.prep,
+      prepContext = mixGrid.context.prep,
+      gridContext = mixGrid.context.pixels,
       axisWidth = layout.grid.axis.width,
       corner = { x: axisWidth + layout.grid.axis.gap },
       overlap = layout.grid.overlap;
@@ -283,13 +288,13 @@ ColorSpinner.load = function () {
     for (var c = 0; c < 256; c += sample) {
       rgb[indices.col] = axisRgb[indices.col] = c;
       // Paint the horizontal axis.
-      gridContext.fillStyle = g.rgbToCss(axisRgb);
-      gridContext.fillRect(corner.x + scale*c, 0,
+      prepContext.fillStyle = g.rgbToCss(axisRgb);
+      prepContext.fillRect(corner.x + scale*c, 0,
           scale*Math.min(256-c, sample+overlap), axisWidth);
       for (var r = 0; r < 256; r += sample) {
         rgb[indices.row] = r;
-        gridContext.fillStyle = g.rgbToCss(rgb);
-        gridContext.fillRect(corner.x + scale*c, corner.y + scale*r,
+        prepContext.fillStyle = g.rgbToCss(rgb);
+        prepContext.fillRect(corner.x + scale*c, corner.y + scale*r,
             scale*Math.min(256-c, sample+overlap),
             scale*Math.min(256-r, sample+overlap));
       }
@@ -298,10 +303,11 @@ ColorSpinner.load = function () {
     // Paint the vertical axis.
     for (var r = 0; r < 256; r += sample) {
       axisRgb[indices.row] = r;
-      gridContext.fillStyle = g.rgbToCss(axisRgb);
-      gridContext.fillRect(0, corner.y + scale*r,
+      prepContext.fillStyle = g.rgbToCss(axisRgb);
+      prepContext.fillRect(0, corner.y + scale*r,
           axisWidth, scale*Math.min(256-r, sample+overlap));
     }
+    gridContext.drawImage(prepCanvas, 0, 0);
   };
   var markContext = mixGrid.context.marks;
   // Draw markings for current color.

@@ -19,8 +19,9 @@ next steps
   + draggable grid
 + make everything unselectable
 - improve drawing performance
-  - paint off-screen?
-  - make pixel grid in memory?
+  + paint off-screen? -> no advantage
+  - make grid pixels in memory? use Uint8ClampedArray?
+  - paint the grid with linear gradients?
   - reduce sampling rate while dragging?
 - improve ring
   + draggable sector
