@@ -23,6 +23,11 @@ body {
   left: 0;
 }
 
+#paletteCanvas {
+  position: absolute;
+  border: 1px dotted #ccc;
+}
+
 canvas {
   cursor: default;
 }

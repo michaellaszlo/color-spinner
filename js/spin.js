@@ -2,7 +2,7 @@ var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
   rgb: [0, 0, 0],
   layout: {
-    canvas: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
+    container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 260, gap: 15 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
@@ -139,8 +139,8 @@ ColorSpinner.load = function () {
   var drawingArea = M.make('div', { id: 'drawingArea', into: document.body,
       unselectable: true }),
       canvases = g.canvases = [];
-  drawingArea.style.width = layout.canvas.width + 'px';
-  drawingArea.style.height = layout.canvas.height + 'px';
+  drawingArea.style.width = layout.container.width + 'px';
+  drawingArea.style.height = layout.container.height + 'px';
 
   function makeMixer() {
     var mixer = M.make('div', { className: 'mixer', into: drawingArea,
@@ -357,6 +357,15 @@ ColorSpinner.load = function () {
       window.onmouseup = undefined;
     };
   };
+
+  var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
+      into: drawingArea });
+  paletteCanvas.width = layout.container.width;
+  paletteCanvas.height = layout.container.height - layout.grid.top -
+      mixGridContainerSize;
+  paletteCanvas.style.left = '0';
+  paletteCanvas.style.top = layout.container.height - paletteCanvas.height +
+      'px';
 
   // Choose a color at random.
   g.colors.forEach(function (color, ix, array) {

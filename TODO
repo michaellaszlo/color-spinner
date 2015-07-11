@@ -19,16 +19,21 @@ next steps
   + draggable grid
 + make everything unselectable
 - improve drawing performance
-  + paint off-screen? -> no advantage
+  + paint off-screen?
   + paint the grid with linear gradients?
   - time the paint functions
-  - skip frames?
+  - paint discs to hidden canvases?
+  - request animation frames?
   - reduce sampling rate while dragging?
   - make image data in memory? https://goo.gl/YSdzh
 - improve ring
   + draggable sector
   - extend sector outside band using hole color
   - micro-adjust buttons near sector
+
+other color models
+- HSL
+- HSV
 
 layout
 - calculate automatically based on canvas dimensions
@@ -37,7 +42,7 @@ layout
 
 color rings
 + 256 notches around the perimeter
-- drag to change value
++ drag to change value
 - plus/minus buttons in the hole
 
 other mixing methods
