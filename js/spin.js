@@ -54,11 +54,19 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       sectorLength = layout.sector.band.proportion * bandWidth;
   mixer.paint = function () {
     // Copy the current RGB tuple. Make the hole color and a contrasting color.
-    var rgb = g.rgb.slice(),
-        currentValue = rgb[index],
+    var rgb = g.rgb.slice();
+    // Update the mixed color.
+    var paletteCanvas = g.palette.canvas,
+        paletteContext = g.palette.context;
+    paletteContext.clearRect(0, 0, paletteCanvas.width, paletteCanvas.height);
+    paletteContext.fillStyle = g.rgbToCss(rgb);
+    paletteContext.beginPath();
+    paletteContext.arc(100, 100, 75, 0, 2*Math.PI);
+    paletteContext.fill();
+    // Display the mixer's value.
+    var currentValue = rgb[index],
         holeRgb = [0, 0, 0];
     holeRgb[index] = currentValue;
-    // Display the mixer's value.
     var labelRgb = (index === g.holdIndex ?
                     holeRgb : g.makeContrastRgb(holeRgb));
     mixer.label.style.color = g.rgbToCss(labelRgb);
@@ -360,13 +368,15 @@ ColorSpinner.load = function () {
   };
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
-      into: drawingArea });
+        into: drawingArea }),
+      paletteContext = paletteCanvas.getContext('2d');
   paletteCanvas.width = layout.container.width;
   paletteCanvas.height = layout.container.height - layout.grid.top -
       mixGridContainerSize;
   paletteCanvas.style.left = '0';
   paletteCanvas.style.top = layout.container.height - paletteCanvas.height +
       'px';
+  g.palette = { canvas: paletteCanvas, context: paletteContext };
 
   // Choose a color at random.
   g.colors.forEach(function (color, ix, array) {
