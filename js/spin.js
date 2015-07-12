@@ -346,8 +346,9 @@ ColorSpinner.load = function () {
     g.rgb[indices.row] = rowValue;
     g.rgb[indices.col] = colValue;
     mixGrid.mark();
-    g.mixers[indices.row].paint();
-    g.mixers[indices.col].paint();
+    g.mixers.forEach(function (mixer) {
+      mixer.paint();
+    });
   };
   mixGrid.onmousedown = function (event) {
     mixGrid.update(event);
