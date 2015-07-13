@@ -8,7 +8,7 @@ Goals:
   - store color alternatives in a group
   - automatically generate model layouts from palettes
 
-next steps
+RGB picker
 + improve layout
   + move grid to top row
   + enlarge rings to match grid
@@ -31,9 +31,13 @@ next steps
   - extend sector outside band using hole color
   - micro-adjust buttons near sector
 
-other color models
-- HSL
-- HSV
+next steps
+- test on mobile
+- implement HSL and HSV
+- figure out layout parameters
+- implement auto-layout
+- define API
+- move on to color manager
 
 layout
 - calculate automatically based on canvas dimensions

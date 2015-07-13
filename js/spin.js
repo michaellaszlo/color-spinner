@@ -3,7 +3,7 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { sample: 2, diameter: 260, gap: 15 },
+    mixer: { sample: 2, diameter: 260, gap: 15, handle: 20 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
@@ -107,7 +107,11 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     var angleFrom = start + currentValue * Math.PI / 128,
         angleTo = angleFrom + Math.PI / 128;
     context.arc(x0, y0, radius - sectorLength/2, angleFrom, angleTo);
-    //context.arc(x0, y0, holeRadius + bandWidth/2, angleFrom, angleTo);
+    context.stroke();
+    context.beginPath();
+    context.strokeStyle = '#000';
+    context.lineWidth = layout.mixer.handle;
+    context.arc(x0, y0, radius + context.lineWidth/2, angleFrom, angleTo);
     context.stroke();
   };
   var selectContext = mixer.context.select,
