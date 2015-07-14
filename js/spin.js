@@ -3,7 +3,7 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { sample: 2, diameter: 260, gap: 15, handle: 20 },
+    mixer: { sample: 2, diameter: 260, gap: 15, handle: 12 },
     hole: { radius: { proportion: 0.42 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.75 } },
@@ -42,6 +42,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       layout = g.layout,
       index = mixer.index,
       diameter = mixer.diameter,
+      handle = layout.mixer.handle,
       radius = diameter/2,
       x0 = radius,
       y0 = radius,
@@ -50,7 +51,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
       increment = sample * Math.PI / 128,
       smoother = layout.smoother,
       holeRadius = layout.hole.radius.proportion * radius,
-      bandWidth = radius - holeRadius,
+      bandWidth = radius - handle - holeRadius,
       sectorLength = layout.sector.band.proportion * bandWidth;
   mixer.paint = function () {
     // Copy the current RGB tuple. Make the hole color and a contrasting color.
@@ -73,21 +74,21 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     mixer.label.innerHTML = currentValue + '<br />' + g.toHex2(currentValue);
     // Paint the ring with other values, sampling samplely through the range.
     var context = mixer.context.ring;
-    context.lineWidth = radius;
+    context.lineWidth = radius - handle;
     for (var x = 0; x < 256; x += sample) {
       var angleFrom = start + x * Math.PI / 128,
           angleTo = start + Math.min(256, x + 2*sample) * Math.PI / 128;
       rgb[index] = x;
       context.strokeStyle = g.rgbToCss(rgb);
       context.beginPath();
-      context.arc(x0, y0, radius/2, angleFrom, angleTo);
+      context.arc(x0, y0, context.lineWidth/2, angleFrom, angleTo);
       context.stroke();
     }
     // Paint a white smoothing ring.
     context.lineWidth = smoother;
     context.strokeStyle = '#fff';
     context.beginPath()
-    context.arc(x0, y0, radius + smoother/2, 0, 2*Math.PI);
+    context.arc(x0, y0, radius - handle + smoother/2, 0, 2*Math.PI);
     context.stroke();
     // Paint the hole.
     context = mixer.context.hole;
@@ -110,8 +111,8 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     context.stroke();
     context.beginPath();
     context.strokeStyle = '#000';
-    context.lineWidth = layout.mixer.handle;
-    context.arc(x0, y0, radius + context.lineWidth/2, angleFrom, angleTo);
+    context.lineWidth = handle;
+    context.arc(x0, y0, radius - handle/2, angleFrom, angleTo);
     context.stroke();
   };
   var selectContext = mixer.context.select,
@@ -143,6 +144,7 @@ ColorSpinner.load = function () {
   var g = ColorSpinner,
       layout = g.layout,
       diameter = layout.mixer.diameter,
+      handle = layout.mixer.handle,
       totalRadius = diameter/2,
       center = { x: totalRadius, y: totalRadius },
       holeRadius = layout.hole.radius.proportion * totalRadius;
