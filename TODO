@@ -28,7 +28,7 @@ RGB picker
   - make image data in memory? https://goo.gl/YSdzh
 - improve ring
   + draggable sector
-  - extend sector outside band using hole color
+  + extend sector outside band using hole color
   - micro-adjust buttons near sector
 
 next steps

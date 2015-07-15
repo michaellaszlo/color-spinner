@@ -3,13 +3,13 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { sample: 2, diameter: 260, gap: 15, handle: 12 },
-    hole: { radius: { proportion: 0.42 } },
+    mixer: { sample: 2, diameter: 280, gap: 5, handle: 15 },
+    hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
-    sector: { color: '#fff', band: { proportion: 0.75 } },
+    sector: { color: '#fff', band: { proportion: 0.7 } },
     grid: {
       left: 20, top: 15,
-      sample: 3,  // 256 is divided into samples of this size
+      sample: 2,  // 256 is divided into samples of this size
       scale: 1,  // the grid is magnified by this linear factor
       overlap: 1,  // to prevent white lines, overlap by this many pixels
       axis: { width: 8, gap: 4 }
@@ -107,10 +107,11 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     context.beginPath();
     var angleFrom = start + currentValue * Math.PI / 128,
         angleTo = angleFrom + Math.PI / 128;
-    context.arc(x0, y0, radius - sectorLength/2, angleFrom, angleTo);
+    context.arc(x0, y0, radius - handle - sectorLength/2, angleFrom, angleTo);
     context.stroke();
+    // Paint the handle.
     context.beginPath();
-    context.strokeStyle = '#000';
+    context.strokeStyle = g.rgbToCss(holeRgb);
     context.lineWidth = handle;
     context.arc(x0, y0, radius - handle/2, angleFrom, angleTo);
     context.stroke();
