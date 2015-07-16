@@ -22,14 +22,16 @@ RGB picker
   + paint off-screen?
   + paint the grid with linear gradients?
   - time the paint functions
-  - paint discs to hidden canvases?
   - request animation frames?
+  - try to speed up rgbToCss()?
+  - paint discs to hidden canvases?
   - reduce sampling rate while dragging?
   - make image data in memory? https://goo.gl/YSdzh
 - improve ring
   + draggable sector
   + extend sector outside band using hole color
   - micro-adjust buttons near sector
+- refactor layout calculations
 
 next steps
 - test on mobile

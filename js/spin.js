@@ -3,10 +3,11 @@ var ColorSpinner = {
   rgb: [0, 0, 0],
   layout: {
     container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
-    mixer: { sample: 2, diameter: 280, gap: 5, handle: 15 },
+    mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
+    hexagon: { height: 260 },
     hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
-    sector: { color: '#fff', band: { proportion: 0.7 } },
+    sector: { color: '#fff', band: { proportion: 0.65 } },
     grid: {
       left: 20, top: 15,
       sample: 2,  // 256 is divided into samples of this size
@@ -374,12 +375,22 @@ ColorSpinner.load = function () {
     };
   };
 
+  // Make the HSL and HSV hexagons;
+  var hexagonHeight = layout.hexagon.height;
+  function makeHexagon() {
+  };
+
+  g.hexagon = {};
+  ['hsl', 'hsv'].forEach(function (modelName) {
+    var hexagon = g.hexagon[modelName] = makeHexagon();
+  });
+
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
         into: drawingArea }),
       paletteContext = paletteCanvas.getContext('2d');
   paletteCanvas.width = layout.container.width;
   paletteCanvas.height = layout.container.height - layout.grid.top -
-      mixGridContainerSize;
+      hexagonHeight - mixGridContainerSize;
   paletteCanvas.style.left = '0';
   paletteCanvas.style.top = layout.container.height - paletteCanvas.height +
       'px';
