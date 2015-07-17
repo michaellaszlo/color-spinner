@@ -2,7 +2,7 @@ var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
   rgb: [0, 0, 0],
   layout: {
-    container: { width: 1100, height: 650, left: 0, top: 0, number: 5 },
+    container: { width: 1100, height: 675, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
     hexagon: { height: 260 },
     hole: { radius: { proportion: 0.4 } },
@@ -169,14 +169,6 @@ ColorSpinner.load = function () {
       canvas.width = canvas.height = layout.mixer.diameter;
       mixer.context[canvasName] = canvas.getContext('2d');
     });
-    function mouseMove (event) {
-    }
-    mixer.onmouseover = function () {
-      //mixer.onmousemove = mouseMove;
-    };
-    mixer.onmouseout = function () {
-      //mixer.onmousemove = undefined;
-    };
     mixer.update = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - mixer.offset.left - center.x,
@@ -376,20 +368,38 @@ ColorSpinner.load = function () {
   };
 
   // Make the HSL and HSV hexagons;
-  var hexagonHeight = layout.hexagon.height;
+  var hexagonHeight = layout.hexagon.height,
+      hexagonEdge = hexagonHeight * Math.tan(Math.PI / 6);
   function makeHexagon() {
+    var hexagon = M.make('div', { className: 'hexagon', into: drawingArea,
+        unselectable: true });
+    hexagon.style.width = 2 * hexagonEdge + 'px';
+    hexagon.style.height = hexagonHeight + 'px';
+    hexagon.context = {};
+    ['border', 'color'].forEach(function (canvasName) {
+      var canvas = M.make('canvas', { into: hexagon });
+      canvas.width = 2 * hexagonEdge;
+      canvas.height = hexagonHeight;
+      hexagon.context[canvasName] = canvas.getContext('2d');
+    });
+    return hexagon;
   };
 
+  var left = 15,
+      top = mixGridContainerSize + 30;
   g.hexagon = {};
-  ['hsl', 'hsv'].forEach(function (modelName) {
+  ['hsl', 'hsv'].forEach(function (modelName, ix) {
+    console.log(ix);
     var hexagon = g.hexagon[modelName] = makeHexagon();
+    hexagon.style.left = left + ix * (2 * hexagonEdge + 15) + 'px';
+    hexagon.style.top = top + 'px';
   });
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
         into: drawingArea }),
       paletteContext = paletteCanvas.getContext('2d');
   paletteCanvas.width = layout.container.width;
-  paletteCanvas.height = layout.container.height - layout.grid.top -
+  paletteCanvas.height = layout.container.height - layout.grid.top - 30 -
       hexagonHeight - mixGridContainerSize;
   paletteCanvas.style.left = '0';
   paletteCanvas.style.top = layout.container.height - paletteCanvas.height +

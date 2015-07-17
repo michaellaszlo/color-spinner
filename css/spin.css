@@ -44,8 +44,12 @@ canvas {
   text-align: center;
 }
 
-.mixer canvas {
+.mixer canvas, .hexagon canvas {
   position: absolute;
+}
+
+.hexagon {
+  border: 1px dotted #ccc;
 }
 
 #mixGrid {
