@@ -369,17 +369,18 @@ ColorSpinner.load = function () {
 
   // Make the HSL and HSV hexagons;
   var hexagonHeight = layout.hexagon.height,
-      hexagonEdge = hexagonHeight * Math.tan(Math.PI / 6);
+      hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
+      hexagonWidth = 2 * hexagonRadius;
   function makeHexagon() {
     var hexagon = M.make('div', { className: 'hexagon', into: drawingArea,
         unselectable: true });
-    hexagon.style.width = 2 * hexagonEdge + 'px';
-    hexagon.style.height = hexagonHeight + 'px';
+    hexagon.style.width = hexagonWidth + 2 + 'px';
+    hexagon.style.height = hexagonHeight + 2 + 'px';
     hexagon.context = {};
     ['border', 'color'].forEach(function (canvasName) {
       var canvas = M.make('canvas', { into: hexagon });
-      canvas.width = 2 * hexagonEdge;
-      canvas.height = hexagonHeight;
+      canvas.width = hexagonWidth + 2;
+      canvas.height = hexagonHeight + 2;
       hexagon.context[canvasName] = canvas.getContext('2d');
     });
     return hexagon;
@@ -389,10 +390,22 @@ ColorSpinner.load = function () {
       top = mixGridContainerSize + 30;
   g.hexagon = {};
   ['hsl', 'hsv'].forEach(function (modelName, ix) {
-    console.log(ix);
     var hexagon = g.hexagon[modelName] = makeHexagon();
-    hexagon.style.left = left + ix * (2 * hexagonEdge + 15) + 'px';
+    hexagon.style.left = left + ix * (hexagonWidth + 15) + 'px';
     hexagon.style.top = top + 'px';
+    var context = hexagon.context.border,
+        x0 = hexagonWidth / 2 + 1,
+        y0 = hexagonHeight / 2;
+    context.strokeStyle = '#444';
+    context.beginPath();
+    context.moveTo(hexagonWidth, y0);
+    for (var i = 1; i <= 6; ++i) {
+      var angle = i * Math.PI / 3,
+          x = x0 + Math.cos(angle) * hexagonRadius,
+          y = y0 + Math.sin(angle) * hexagonRadius;
+      context.lineTo(x, y);
+    }
+    context.stroke();
   });
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
