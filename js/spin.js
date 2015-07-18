@@ -2,9 +2,9 @@ var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
   rgb: [0, 0, 0],
   layout: {
-    container: { width: 1100, height: 675, left: 0, top: 0, number: 5 },
+    container: { width: 1100, height: 700, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
-    hexagon: { height: 260 },
+    hexagon: { height: 280 },
     hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.65 } },
@@ -367,7 +367,15 @@ ColorSpinner.load = function () {
     };
   };
 
-  // Make the HSL and HSV hexagons;
+
+  // HSL and HSV calculations.
+  function alphaBeta(rgb) {
+    var alpha = rgb.r - (rgb.g + rgb.b) / 2,
+        beta = Math.sqrt(3) * (rgb.g - rgb.b) / 2;
+    return { alpha: alpha, beta: beta };
+  }
+
+  // Make the HSL and HSV hexagons.
   var hexagonHeight = layout.hexagon.height,
       hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
       hexagonWidth = 2 * hexagonRadius;
