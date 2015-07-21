@@ -375,7 +375,7 @@ ColorSpinner.load = function () {
     return { alpha: alpha, beta: beta };
   }
 
-  // Make the HSL and HSV hexagons.
+  // Make a container and canvases for a hexagon.
   var hexagonHeight = layout.hexagon.height,
       hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
       hexagonWidth = 2 * hexagonRadius;
@@ -394,16 +394,19 @@ ColorSpinner.load = function () {
     return hexagon;
   };
 
+  // Make hexagons for the HSL and HSV color models.
   var left = 15,
       top = mixGridContainerSize + 30;
   g.hexagon = {};
   ['hsl', 'hsv'].forEach(function (modelName, ix) {
     var hexagon = g.hexagon[modelName] = makeHexagon();
+    // Position the container.
     hexagon.style.left = left + ix * (hexagonWidth + 15) + 'px';
     hexagon.style.top = top + 'px';
+    // Draw the hexagon borders.
     var context = hexagon.context.border,
         x0 = hexagonWidth / 2 + 1,
-        y0 = hexagonHeight / 2;
+        y0 = hexagonHeight / 2 + 1;
     context.strokeStyle = '#444';
     context.beginPath();
     context.moveTo(hexagonWidth, y0);
@@ -414,6 +417,17 @@ ColorSpinner.load = function () {
       context.lineTo(x, y);
     }
     context.stroke();
+    // Fill the interior of the hexagon.
+    context = hexagon.context.color;
+    context.fillStyle = '#000';
+    var queue = [ { x: Math.floor(x0), y: Math.floor(y0) } ],
+        head = 1, tail = 0;
+    while (tail != head) {
+      x = queue[tail].x;
+      y = queue[tail].y;
+      ++tail;
+      context.fillRect(x, y, 1, 1);
+    }
   });
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',

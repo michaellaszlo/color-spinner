@@ -48,6 +48,10 @@ canvas {
   position: absolute;
 }
 
+.hexagon {
+  border: 1px solid #ccc;
+}
+
 #mixGrid {
   position: relative;
 }
