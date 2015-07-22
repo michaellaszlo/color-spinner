@@ -132,7 +132,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     selectContext.arc(x0, y0, selectRadius, 0, 2*Math.PI);
     selectContext.fill();
     g.mixGrid.paint();
-    g.mixGrid.mark();
+    g.mixGrid.mask();
   };
   mixer.deselect = function () {
     selectContext.clearRect(0, 0, diameter, diameter);
@@ -188,7 +188,7 @@ ColorSpinner.load = function () {
         g.mixGrid.paint();
         mixer.select();
       } else {
-        g.mixGrid.mark();
+        g.mixGrid.mask();
       }
     };
     mixer.onmousedown = function (event) {
@@ -259,7 +259,7 @@ ColorSpinner.load = function () {
   mixGrid.style.height = mixGridContainerSize + 'px';
   mixGrid.canvas = {};
   mixGrid.context = {};
-  ['pixels', 'prep', 'marks'].forEach(function (canvasName) {
+  ['pixels', 'prep', 'masks'].forEach(function (canvasName) {
     var canvas = mixGrid.canvas[canvasName] = M.make('canvas',
         { into: (canvasName == 'prep' ? undefined : mixGrid) });
     canvas.width = canvas.height = mixGridContainerSize;
@@ -327,19 +327,19 @@ ColorSpinner.load = function () {
 
     gridContext.drawImage(prepCanvas, 0, 0);
   };
-  var markContext = mixGrid.context.marks;
-  // Draw markings for current color.
-  mixGrid.mark = function () {
+  var maskContext = mixGrid.context.masks;
+  // Draw maskings for current color.
+  mixGrid.mask = function () {
     var indices = getIndices();
-    markContext.clearRect(0, 0, mixGridContainerSize, mixGridContainerSize);
+    maskContext.clearRect(0, 0, mixGridContainerSize, mixGridContainerSize);
     var rowValue = g.rgb[indices.row],
         colValue = g.rgb[indices.col];
-    markContext.beginPath();
-    markContext.moveTo(corner.x + colValue, 0);
-    markContext.lineTo(corner.x + colValue, mixGridContainerSize);
-    markContext.moveTo(0, corner.y + rowValue);
-    markContext.lineTo(mixGridContainerSize, corner.y + rowValue);
-    markContext.stroke();
+    maskContext.beginPath();
+    maskContext.moveTo(corner.x + colValue, 0);
+    maskContext.lineTo(corner.x + colValue, mixGridContainerSize);
+    maskContext.moveTo(0, corner.y + rowValue);
+    maskContext.lineTo(mixGridContainerSize, corner.y + rowValue);
+    maskContext.stroke();
   }
 
   mixGrid.update = function (event) {
@@ -353,7 +353,7 @@ ColorSpinner.load = function () {
         rowValue = Math.floor(256 * y / gridSize);
     g.rgb[indices.row] = rowValue;
     g.rgb[indices.col] = colValue;
-    mixGrid.mark();
+    mixGrid.mask();
     g.mixers.forEach(function (mixer) {
       mixer.paint();
     });
@@ -378,17 +378,19 @@ ColorSpinner.load = function () {
   // Make a container and canvases for a hexagon.
   var hexagonHeight = layout.hexagon.height,
       hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
-      hexagonWidth = 2 * hexagonRadius;
+      hexagonCanvasWidth = Math.ceil(2 * hexagonRadius);
   function makeHexagon() {
     var hexagon = M.make('div', { className: 'hexagon', into: drawingArea,
         unselectable: true });
-    hexagon.style.width = hexagonWidth + 2 + 'px';
-    hexagon.style.height = hexagonHeight + 2 + 'px';
+    hexagon.style.width = hexagonCanvasWidth + 'px';
+    hexagon.style.height = hexagonHeight + 'px';
+    hexagon.canvas = {};
     hexagon.context = {};
-    ['border', 'color'].forEach(function (canvasName) {
-      var canvas = M.make('canvas', { into: hexagon });
-      canvas.width = hexagonWidth + 2;
-      canvas.height = hexagonHeight + 2;
+    ['mask', 'color'].forEach(function (canvasName) {
+      var canvas = hexagon.canvas[canvasName] = M.make('canvas',
+          { into: hexagon });
+      canvas.width = hexagonCanvasWidth;
+      canvas.height = hexagonHeight;
       hexagon.context[canvasName] = canvas.getContext('2d');
     });
     return hexagon;
@@ -399,34 +401,69 @@ ColorSpinner.load = function () {
       top = mixGridContainerSize + 30;
   g.hexagon = {};
   ['hsl', 'hsv'].forEach(function (modelName, ix) {
-    var hexagon = g.hexagon[modelName] = makeHexagon();
+    var hexagon = g.hexagon[modelName] = makeHexagon(),
+        width = hexagonCanvasWidth,
+        height = hexagonHeight;
     // Position the container.
-    hexagon.style.left = left + ix * (hexagonWidth + 15) + 'px';
+    hexagon.style.left = left + ix * (width + 15) + 'px';
     hexagon.style.top = top + 'px';
-    // Draw the hexagon borders.
-    var context = hexagon.context.border,
-        x0 = hexagonWidth / 2 + 1,
-        y0 = hexagonHeight / 2 + 1;
-    context.strokeStyle = '#444';
+    // Paint a hexagon onto the mask canvas.
+    var context = hexagon.context.mask,
+        x0 = width / 2,
+        y0 = height / 2;
+    // Disable fuzzy interpolation.
+    /*
+    context.mozImageSmoothingEnabled = false;
+    context.webkitImageSmoothingEnabled = false;
+    context.msImageSmoothingEnabled = false;
+    context.imageSmoothingEnabled = false;
+    */
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, width, height);
     context.beginPath();
-    context.moveTo(hexagonWidth, y0);
+    context.moveTo(width, y0);
     for (var i = 1; i <= 6; ++i) {
       var angle = i * Math.PI / 3,
           x = x0 + Math.cos(angle) * hexagonRadius,
           y = y0 + Math.sin(angle) * hexagonRadius;
       context.lineTo(x, y);
     }
-    context.stroke();
+    context.fillStyle = '#000';
+    context.fill();
+    hexagon.canvas.mask.style.visibility = 'hidden';
     // Fill the interior of the hexagon.
     context = hexagon.context.color;
-    context.fillStyle = '#000';
-    var queue = [ { x: Math.floor(x0), y: Math.floor(y0) } ],
-        head = 1, tail = 0;
+    context.fillStyle = '#ccc';
+    var maskData = hexagon.context.mask.getImageData(0, 0,
+            width, height).data,
+        queue = [ { x: Math.floor(x0), y: Math.floor(y0) } ],
+        head = 1, tail = 0,
+        dy = [-1, 0, 1, 0],
+        dx = [0, 1, 0, -1],
+        mask = new Array(width);
+    for (var x = 0; x < width; ++x) {
+      mask[x] = new Array(height);
+    }
+    mask[x0][y0] = true;
+    context.fillRect(x0, y0, 1, 1);
     while (tail != head) {
       x = queue[tail].x;
       y = queue[tail].y;
       ++tail;
-      context.fillRect(x, y, 1, 1);
+      for (var i = 0; i < 4; ++i) {
+        var X = x + dx[i], Y = y + dy[i];
+        if (X < 0 || X == width || Y < 0 || Y == height || mask[X][Y]) {
+          continue;
+        }
+        var pos = 4 * (Y * width + X);
+        if (maskData[pos] + maskData[pos+1] + maskData[pos+2] == 765) {
+          continue;
+        }
+        mask[X][Y] = true;
+        context.fillRect(X, Y, 1, 1);
+        queue.push({ x: X, y: Y });
+        ++head;
+      }
     }
   });
 
