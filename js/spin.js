@@ -188,7 +188,7 @@ ColorSpinner.load = function () {
         g.mixGrid.paint();
         mixer.select();
       } else {
-        g.mixGrid.mask();
+        g.mixGrid.mark();
       }
     };
     mixer.onmousedown = function (event) {
@@ -451,11 +451,14 @@ ColorSpinner.load = function () {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
           y = position.y - touchCanvas.offset.top;
-      if (mask[x][y]) {
-        g.message(x+' '+y);
-      } else {
-        g.message();
+      if (!mask[x][y]) {
+        return;
       }
+      x -= x0;
+      y = y0 - y;
+      var r = Math.hypot(x, y),
+          angle = (y >= 0 ? Math.acos(x / r) : 2*Math.PI - Math.acos(x / r));
+      g.message(x+' '+y+' '+Math.round(r)+' '+Math.round(180*angle/Math.PI));
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
