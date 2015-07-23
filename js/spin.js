@@ -132,7 +132,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     selectContext.arc(x0, y0, selectRadius, 0, 2*Math.PI);
     selectContext.fill();
     g.mixGrid.paint();
-    g.mixGrid.mask();
+    g.mixGrid.mark();
   };
   mixer.deselect = function () {
     selectContext.clearRect(0, 0, diameter, diameter);
@@ -259,7 +259,7 @@ ColorSpinner.load = function () {
   mixGrid.style.height = mixGridContainerSize + 'px';
   mixGrid.canvas = {};
   mixGrid.context = {};
-  ['pixels', 'prep', 'masks'].forEach(function (canvasName) {
+  ['pixels', 'prep', 'marking'].forEach(function (canvasName) {
     var canvas = mixGrid.canvas[canvasName] = M.make('canvas',
         { into: (canvasName == 'prep' ? undefined : mixGrid) });
     canvas.width = canvas.height = mixGridContainerSize;
@@ -327,19 +327,19 @@ ColorSpinner.load = function () {
 
     gridContext.drawImage(prepCanvas, 0, 0);
   };
-  var maskContext = mixGrid.context.masks;
-  // Draw maskings for current color.
-  mixGrid.mask = function () {
+  var markingContext = mixGrid.context.marking;
+  // Draw markings for current color.
+  mixGrid.mark = function () {
     var indices = getIndices();
-    maskContext.clearRect(0, 0, mixGridContainerSize, mixGridContainerSize);
+    markingContext.clearRect(0, 0, mixGridContainerSize, mixGridContainerSize);
     var rowValue = g.rgb[indices.row],
         colValue = g.rgb[indices.col];
-    maskContext.beginPath();
-    maskContext.moveTo(corner.x + colValue, 0);
-    maskContext.lineTo(corner.x + colValue, mixGridContainerSize);
-    maskContext.moveTo(0, corner.y + rowValue);
-    maskContext.lineTo(mixGridContainerSize, corner.y + rowValue);
-    maskContext.stroke();
+    markingContext.beginPath();
+    markingContext.moveTo(corner.x + colValue, 0);
+    markingContext.lineTo(corner.x + colValue, mixGridContainerSize);
+    markingContext.moveTo(0, corner.y + rowValue);
+    markingContext.lineTo(mixGridContainerSize, corner.y + rowValue);
+    markingContext.stroke();
   }
 
   mixGrid.update = function (event) {
@@ -353,7 +353,7 @@ ColorSpinner.load = function () {
         rowValue = Math.floor(256 * y / gridSize);
     g.rgb[indices.row] = rowValue;
     g.rgb[indices.col] = colValue;
-    mixGrid.mask();
+    mixGrid.mark();
     g.mixers.forEach(function (mixer) {
       mixer.paint();
     });
@@ -381,43 +381,24 @@ ColorSpinner.load = function () {
       hexagonCanvasWidth = Math.ceil(2 * hexagonRadius);
   function makeHexagon() {
     var hexagon = M.make('div', { className: 'hexagon', into: drawingArea,
-        unselectable: true });
-    hexagon.style.width = hexagonCanvasWidth + 'px';
-    hexagon.style.height = hexagonHeight + 'px';
-    hexagon.canvas = {};
-    hexagon.context = {};
-    ['mask', 'color'].forEach(function (canvasName) {
-      var canvas = hexagon.canvas[canvasName] = M.make('canvas',
-          { into: hexagon });
-      canvas.width = hexagonCanvasWidth;
-      canvas.height = hexagonHeight;
-      hexagon.context[canvasName] = canvas.getContext('2d');
-    });
-    return hexagon;
-  };
-
-  // Make hexagons for the HSL and HSV color models.
-  var left = 15,
-      top = mixGridContainerSize + 30;
-  g.hexagon = {};
-  ['hsl', 'hsv'].forEach(function (modelName, ix) {
-    var hexagon = g.hexagon[modelName] = makeHexagon(),
+          unselectable: true }),
         width = hexagonCanvasWidth,
         height = hexagonHeight;
-    // Position the container.
-    hexagon.style.left = left + ix * (width + 15) + 'px';
-    hexagon.style.top = top + 'px';
+    hexagon.style.width = width + 'px';
+    hexagon.style.height = height + 'px';
+    hexagon.canvas = {};
+    hexagon.context = {};
+    ['mask', 'color', 'touch'].forEach(function (canvasName) {
+      var canvas = hexagon.canvas[canvasName] = M.make('canvas',
+          { into: hexagon });
+      canvas.width = width;
+      canvas.height = height;
+      hexagon.context[canvasName] = canvas.getContext('2d');
+    });
     // Paint a hexagon onto the mask canvas.
     var context = hexagon.context.mask,
         x0 = width / 2,
         y0 = height / 2;
-    // Disable fuzzy interpolation.
-    /*
-    context.mozImageSmoothingEnabled = false;
-    context.webkitImageSmoothingEnabled = false;
-    context.msImageSmoothingEnabled = false;
-    context.imageSmoothingEnabled = false;
-    */
     context.fillStyle = '#fff';
     context.fillRect(0, 0, width, height);
     context.beginPath();
@@ -465,6 +446,40 @@ ColorSpinner.load = function () {
         ++head;
       }
     }
+    var touchCanvas = hexagon.canvas.touch;
+    touchCanvas.update = function (event) {
+      var position = M.getMousePosition(event),
+          x = position.x - touchCanvas.offset.left,
+          y = position.y - touchCanvas.offset.top;
+      if (mask[x][y]) {
+        g.message(x+' '+y);
+      } else {
+        g.message();
+      }
+    };
+    touchCanvas.onmouseover = function (event) {
+      touchCanvas.update(event);
+      touchCanvas.onmousemove = touchCanvas.update;
+      touchCanvas.onmouseout = function () {
+        touchCanvas.onmousemove = undefined;
+        touchCanvas.onmouseout = undefined;
+        g.message();
+      };
+    };
+    return hexagon;
+  }
+
+  // Make hexagons for the HSL and HSV color models.
+  var left = 15,
+      top = mixGridContainerSize + 30;
+  g.hexagon = {};
+  ['hsl'].forEach(function (modelName, ix) {
+    var hexagon = g.hexagon[modelName] = makeHexagon();
+    // Position the container.
+    hexagon.style.left = left + ix * (hexagonCanvasWidth + 15) + 'px';
+    hexagon.style.top = top + 'px';
+    var touchCanvas = hexagon.canvas.touch;
+    touchCanvas.offset = M.getOffset(touchCanvas, document.body);
   });
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
@@ -490,6 +505,17 @@ ColorSpinner.load = function () {
 
   // Select the pivot at random.
   g.mixers[Math.floor(3 * Math.random())].select();
+};
+
+ColorSpinner.message = function (s) {
+  var container = document.getElementById('debug');
+  if (s === undefined) {
+    container.innerHTML = '';
+    container.style.visibility = 'hidden';
+    return;
+  }
+  container.style.visibility = 'visible';
+  container.innerHTML = s;
 };
 
 window.onload = ColorSpinner.load;
