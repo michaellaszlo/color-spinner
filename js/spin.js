@@ -457,8 +457,9 @@ ColorSpinner.load = function () {
       x -= x0;
       y = y0 - y;
       var r = Math.hypot(x, y),
-          angle = (y >= 0 ? Math.acos(x / r) : 2*Math.PI - Math.acos(x / r));
-      g.message(x+' '+y+' '+Math.round(r)+' '+Math.round(180*angle/Math.PI));
+          angle = (y >= 0 ? Math.acos(x / r) : 2*Math.PI - Math.acos(x / r)),
+          reducedAngle = angle % (Math.PI / 3);
+      g.message(x+' '+y+' '+Math.round(r)+' '+Math.round(180*reducedAngle/Math.PI));
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
