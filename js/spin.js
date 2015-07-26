@@ -446,7 +446,8 @@ ColorSpinner.load = function () {
         ++head;
       }
     }
-    var touchCanvas = hexagon.canvas.touch;
+    var touchCanvas = hexagon.canvas.touch,
+        touchContext = hexagon.context.touch;
     touchCanvas.update = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
@@ -456,10 +457,20 @@ ColorSpinner.load = function () {
       }
       x -= x0;
       y = y0 - y;
-      var r = Math.hypot(x, y),
+      // Find intersection with hexagon border.
+      var r = Math.hypot(x, y),  // Inner radius.
           angle = (y >= 0 ? Math.acos(x / r) : 2*Math.PI - Math.acos(x / r)),
-          reducedAngle = angle % (Math.PI / 3);
-      g.message(x+' '+y+' '+Math.round(r)+' '+Math.round(180*reducedAngle/Math.PI));
+          reducedAngle = angle % (Math.PI / 3),
+          X = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
+          Y = X * Math.tan(reducedAngle),
+          R = Math.hypot(X, Y),  // Outer radius at this angle.
+          x1 = x0 + R * Math.cos(angle),
+          y1 = y0 - R * Math.sin(angle);
+      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
+      touchContext.beginPath();
+      touchContext.moveTo(x0, y0);
+      touchContext.lineTo(x1, y1);
+      touchContext.stroke();
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
