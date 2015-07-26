@@ -426,11 +426,40 @@ ColorSpinner.load = function () {
       mask[x] = new Array(height);
     }
     mask[x0][y0] = true;
-    context.fillRect(x0, y0, 1, 1);
     while (tail != head) {
       x = queue[tail].x;
       y = queue[tail].y;
       ++tail;
+      // Calculate the chroma at this point.
+      var x1 = x - x0,
+          y1 = y0 - y,
+          r = Math.hypot(x1, y1),  // Inner radius.
+          angle = 0;
+      if (r != 0) {
+          angle = (y1 >= 0 ? Math.acos(x1 / r) :
+                             2*Math.PI - Math.acos(x1 / r));
+      }
+      var reducedAngle = angle % (Math.PI / 3),
+          x2 = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
+          y2 = x2 * Math.tan(reducedAngle),
+          R = Math.hypot(x2, y2),  // Outer radius, i.e., hexagon radius.
+          C = Math.min(1, r / R);  // Chroma = ratio of inner to outer radius.
+      // Paint the current pixel.
+      var h = angle * 3 / Math.PI,
+          i = Math.floor(h),
+          X = C * (1 - Math.abs(h % 2 - 1)),
+          rgb = [0, 0, 0];
+      rgb[(7 - i) % 3] = X;
+      rgb[Math.floor((i + 1) / 2) % 3] = C;
+      var lightness = 0.5,
+          m = lightness - C / 2;
+      rgb[0] = Math.round(255 * (rgb[0] + m));
+      rgb[1] = Math.round(255 * (rgb[1] + m));
+      rgb[2] = Math.round(255 * (rgb[2] + m));
+      var css = g.rgbToCss(rgb);
+      context.fillStyle = css;
+      context.fillRect(x, y, 1, 1);
+      // Flood the neighboring pixels.
       for (var i = 0; i < 4; ++i) {
         var X = x + dx[i], Y = y + dy[i];
         if (X < 0 || X == width || Y < 0 || Y == height || mask[X][Y]) {
@@ -441,7 +470,6 @@ ColorSpinner.load = function () {
           continue;
         }
         mask[X][Y] = true;
-        context.fillRect(X, Y, 1, 1);
         queue.push({ x: X, y: Y });
         ++head;
       }
@@ -453,23 +481,48 @@ ColorSpinner.load = function () {
           x = position.x - touchCanvas.offset.left,
           y = position.y - touchCanvas.offset.top;
       if (!mask[x][y]) {
+        touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
         return;
       }
-      x -= x0;
-      y = y0 - y;
-      // Find intersection with hexagon border.
-      var r = Math.hypot(x, y),  // Inner radius.
-          angle = (y >= 0 ? Math.acos(x / r) : 2*Math.PI - Math.acos(x / r)),
-          reducedAngle = angle % (Math.PI / 3),
-          X = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
-          Y = X * Math.tan(reducedAngle),
-          R = Math.hypot(X, Y),  // Outer radius at this angle.
-          x1 = x0 + R * Math.cos(angle),
-          y1 = y0 - R * Math.sin(angle);
+      var x1 = x - x0,
+          y1 = y0 - y,
+          r = Math.hypot(x1, y1),  // Inner radius.
+          angle = 0;
+      if (r != 0) {
+          angle = (y1 >= 0 ? Math.acos(x1 / r) :
+                             2*Math.PI - Math.acos(x1 / r));
+      }
+      var reducedAngle = angle % (Math.PI / 3),
+          x2 = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
+          y2 = x2 * Math.tan(reducedAngle),
+          R = Math.hypot(x2, y2),  // Outer radius, i.e., hexagon radius.
+          C = Math.min(1, r / R);  // Chroma = ratio of inner to outer radius.
+      // Paint the current pixel.
+      var h = angle * 3 / Math.PI,
+          i = Math.floor(h),
+          X = C * (1 - Math.abs(h % 2 - 1)),
+          rgb = [0, 0, 0];
+      rgb[(7 - i) % 3] = X;
+      rgb[Math.floor((i + 1) / 2) % 3] = C;
+      var lightness = 0.5,
+          m = lightness - C / 2;
+      rgb[0] = Math.floor(255 * (rgb[0] + m));
+      rgb[1] = Math.floor(255 * (rgb[1] + m));
+      rgb[2] = Math.floor(255 * (rgb[2] + m));
+      var css = g.rgbToCss(rgb);
+      //touchContext.fillRect(x, y, 1, 1);
       touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
+      g.message(C+' '+X+' '+css);
       touchContext.beginPath();
+      touchContext.strokeStyle = css;
+      touchContext.strokeStyle = 'red';
       touchContext.moveTo(x0, y0);
-      touchContext.lineTo(x1, y1);
+      touchContext.lineTo(x, y);
+      touchContext.stroke();
+      touchContext.beginPath();
+      touchContext.strokeStyle = 'blue';
+      touchContext.moveTo(x, y);
+      touchContext.lineTo(x0 + R * Math.cos(angle), y0 - R * Math.sin(angle));
       touchContext.stroke();
     };
     touchCanvas.onmouseover = function (event) {
@@ -478,6 +531,7 @@ ColorSpinner.load = function () {
       touchCanvas.onmouseout = function () {
         touchCanvas.onmousemove = undefined;
         touchCanvas.onmouseout = undefined;
+        touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
         g.message();
       };
     };
