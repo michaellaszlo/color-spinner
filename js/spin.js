@@ -471,7 +471,7 @@ ColorSpinner.load = function () {
         if (maskData[pos] + maskData[pos+1] + maskData[pos+2] == 765) {
           continue;
         }
-        mask[X][Y] = true;
+        mask[X][Y] = rgb;
         queue.push({ x: X, y: Y });
         ++head;
       }
@@ -486,15 +486,13 @@ ColorSpinner.load = function () {
           y = position.y - touchCanvas.offset.top;
       touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
       if (!mask[x][y]) {
+        g.message();
         return;
       }
+      g.message(JSON.stringify(mask[x][y]));
       touchContext.beginPath();
       touchContext.arc(x - 1.5, y - 1.5, 7.5, 0, 2 * Math.PI);
       touchContext.stroke();
-      /*
-      touchContext.fillRect(x - 5, y - 5, 11, 11);
-      touchContext.clearRect(x - 3, y - 3, 7, 7);
-      */
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
