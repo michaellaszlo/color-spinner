@@ -478,39 +478,23 @@ ColorSpinner.load = function () {
     }
     var touchCanvas = hexagon.canvas.touch,
         touchContext = hexagon.context.touch;
+    touchContext.lineWidth = 2;
+    touchContext.strokeStyle = '#333';
     touchCanvas.update = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
           y = position.y - touchCanvas.offset.top;
+      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
       if (!mask[x][y]) {
-        touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
         return;
       }
-      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
-      //g.message(C+' '+X+' '+css);
       touchContext.beginPath();
-      touchContext.strokeStyle = css;
-      touchContext.strokeStyle = 'red';
-      touchContext.moveTo(x0, y0);
-      touchContext.lineTo(x, y);
+      touchContext.arc(x - 1.5, y - 1.5, 7.5, 0, 2 * Math.PI);
       touchContext.stroke();
-      touchContext.beginPath();
-      touchContext.strokeStyle = 'blue';
-      touchContext.moveTo(x, y);
-      var x1 = x - x0,
-          y1 = y0 - y,
-          r = Math.hypot(x1, y1),  // Inner radius.
-          angle = 0;
-      if (r != 0) {
-          angle = (y1 >= 0 ? Math.acos(x1 / r) :
-                             2*Math.PI - Math.acos(x1 / r));
-      }
-      var reducedAngle = angle % (Math.PI / 3),
-          x2 = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
-          y2 = x2 * Math.tan(reducedAngle),
-          R = Math.hypot(x2, y2);  // Outer radius, i.e., hexagon radius.
-      touchContext.lineTo(x0 + R * Math.cos(angle), y0 - R * Math.sin(angle));
-      touchContext.stroke();
+      /*
+      touchContext.fillRect(x - 5, y - 5, 11, 11);
+      touchContext.clearRect(x - 3, y - 3, 7, 7);
+      */
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
