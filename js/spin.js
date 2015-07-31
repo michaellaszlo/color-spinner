@@ -486,6 +486,17 @@ ColorSpinner.load = function () {
         touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
         return;
       }
+      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
+      //g.message(C+' '+X+' '+css);
+      touchContext.beginPath();
+      touchContext.strokeStyle = css;
+      touchContext.strokeStyle = 'red';
+      touchContext.moveTo(x0, y0);
+      touchContext.lineTo(x, y);
+      touchContext.stroke();
+      touchContext.beginPath();
+      touchContext.strokeStyle = 'blue';
+      touchContext.moveTo(x, y);
       var x1 = x - x0,
           y1 = y0 - y,
           r = Math.hypot(x1, y1),  // Inner radius.
@@ -497,34 +508,7 @@ ColorSpinner.load = function () {
       var reducedAngle = angle % (Math.PI / 3),
           x2 = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
           y2 = x2 * Math.tan(reducedAngle),
-          R = Math.hypot(x2, y2),  // Outer radius, i.e., hexagon radius.
-          C = Math.min(1, r / R);  // Chroma = ratio of inner to outer radius.
-      // Paint the current pixel.
-      var h = angle * 3 / Math.PI,
-          i = Math.floor(h),
-          X = C * (1 - Math.abs(h % 2 - 1)),
-          rgb = [0, 0, 0];
-      rgb[(7 - i) % 3] = X;
-      rgb[Math.floor((i + 1) / 2) % 3] = C;
-      var lightness = 0.5,
-          //m = lightness - C / 2;
-          m = Math.max(rgb[0], rgb[1], rgb[2]) - C;
-      rgb[0] = Math.floor(255 * (rgb[0] + m));
-      rgb[1] = Math.floor(255 * (rgb[1] + m));
-      rgb[2] = Math.floor(255 * (rgb[2] + m));
-      var css = g.rgbToCss(rgb);
-      //touchContext.fillRect(x, y, 1, 1);
-      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
-      g.message(C+' '+X+' '+css);
-      touchContext.beginPath();
-      touchContext.strokeStyle = css;
-      touchContext.strokeStyle = 'red';
-      touchContext.moveTo(x0, y0);
-      touchContext.lineTo(x, y);
-      touchContext.stroke();
-      touchContext.beginPath();
-      touchContext.strokeStyle = 'blue';
-      touchContext.moveTo(x, y);
+          R = Math.hypot(x2, y2);  // Outer radius, i.e., hexagon radius.
       touchContext.lineTo(x0 + R * Math.cos(angle), y0 - R * Math.sin(angle));
       touchContext.stroke();
     };
