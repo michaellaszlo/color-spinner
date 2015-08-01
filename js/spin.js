@@ -499,13 +499,8 @@ ColorSpinner.load = function () {
       g.mixers.forEach(function (mixer) {
         mixer.paint();
       });
-      return;
-      if (mixer.index == g.holdIndex) {
-        g.mixGrid.paint();
-        mixer.select();
-      } else {
-        g.mixGrid.mark();
-      }
+      g.mixGrid.paint();
+      g.mixGrid.mark();
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
