@@ -452,7 +452,7 @@ ColorSpinner.load = function () {
       rgb[(7 - i) % 3] = X;
       rgb[Math.floor((i + 1) / 2) % 3] = C;
       var lightness = 0.5,
-          value = 1.0,
+          value = 0.875,
           //m = lightness - C / 2;
           m = value - C;
       rgb[0] = Math.round(255 * (rgb[0] + m));
@@ -489,10 +489,23 @@ ColorSpinner.load = function () {
         g.message();
         return;
       }
-      g.message(JSON.stringify(mask[x][y]));
+      // Highlight the area under the mouse.
       touchContext.beginPath();
       touchContext.arc(x - 1.5, y - 1.5, 7.5, 0, 2 * Math.PI);
       touchContext.stroke();
+      // Set the global RGB value and update the other color controls.
+      g.message(JSON.stringify(mask[x][y]));
+      g.rgb = mask[x][y];
+      g.mixers.forEach(function (mixer) {
+        mixer.paint();
+      });
+      return;
+      if (mixer.index == g.holdIndex) {
+        g.mixGrid.paint();
+        mixer.select();
+      } else {
+        g.mixGrid.mark();
+      }
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
