@@ -7,6 +7,28 @@ Goals:
 - manage palettes
   - store color alternatives in a group
   - automatically generate model layouts from palettes
+- make a configurable color picker
+  - color controls: RGB mixers, RGB grid, HS[LV] wheels
+    - mixer: circular or linear
+    - grid: associated with one mixer or three
+    - wheel: HSV or HSL; circle or hexagon; circular or linear [LV] control
+  - lay out the controls as you wish: position, size
+  - allow the whole layout to be resizable in the app
+  - add a help layer and tool tips
+- the final result should be a pluggable component
+  - plug it into any context where the user picks a color
+- make a separate palette manager, also configurable and pluggable
+- finally, make a sketchpad that uses the color picker and palette manager
+  - use the palette manager to assign colors to sketching tools
+  - use the color picker to add or modify palette colors
+
+to do right now:
+- hexagon
+  - fix bug with negative numbers
+  - add slider for value or lightness
+  - change update action from hover to drag
+  - update hexagon on grid or mixer action
+  - make an HS[VL] object
 
 RGB picker
 + improve layout

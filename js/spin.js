@@ -445,16 +445,16 @@ ColorSpinner.load = function () {
           R = Math.hypot(x2, y2),  // Outer radius, i.e., hexagon radius.
           C = Math.min(1, r / R);  // Chroma = ratio of inner to outer radius.
       // Paint the current pixel.
+      //    m = lightness - C / 2;
+      var saturation = 0.5;
+      C *= saturation;
       var h = angle * 3 / Math.PI,
           i = Math.floor(h),
           X = C * (1 - Math.abs(h % 2 - 1)),
+          m = saturation - C;
           rgb = [0, 0, 0];
       rgb[(7 - i) % 3] = X;
       rgb[Math.floor((i + 1) / 2) % 3] = C;
-      var lightness = 0.5,
-          value = 0.875,
-          //m = lightness - C / 2;
-          m = value - C;
       rgb[0] = Math.round(255 * (rgb[0] + m));
       rgb[1] = Math.round(255 * (rgb[1] + m));
       rgb[2] = Math.round(255 * (rgb[2] + m));
