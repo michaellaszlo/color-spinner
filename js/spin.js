@@ -451,10 +451,11 @@ ColorSpinner.load = function () {
           rgb = [0, 0, 0];
       rgb[(7 - i) % 3] = X;
       rgb[Math.floor((i + 1) / 2) % 3] = C;
-      var lightness = 0.5,
-          value = 0.875,
-          //m = lightness - C / 2;
-          m = value - C;
+      //var lightness = 0.5,
+      //    m = lightness - C / 2;
+      var value = 0.5,
+          saturation = (value == 0 ? 0 : C / value),
+          m = value - value * C;
       rgb[0] = Math.round(255 * (rgb[0] + m));
       rgb[1] = Math.round(255 * (rgb[1] + m));
       rgb[2] = Math.round(255 * (rgb[2] + m));
