@@ -24,11 +24,13 @@ Goals:
 
 to do right now:
 - hexagon
-  - fix bug with negative numbers
-  - add slider for value or lightness
+  + fix bug with negative numbers
   - change update action from hover to drag
   - update hexagon on grid or mixer action
-  - make an HS[VL] object
+  - add slider for value
+  - change to HSL
+  - change to circle
+  - make a mixer object that support HSL/HSV, circle/hexagon
 
 RGB picker
 + improve layout

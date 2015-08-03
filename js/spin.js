@@ -5,6 +5,7 @@ var ColorSpinner = {
     container: { width: 1100, height: 700, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
     hexagon: { height: 280 },
+    slider: { height: 280, width: 50, bar: { width: 10, overhang: 5 } },
     hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.65 } },
@@ -425,7 +426,6 @@ ColorSpinner.load = function () {
     for (var x = 0; x < width; ++x) {
       mask[x] = new Array(height);
     }
-    mask[x0][y0] = true;
     while (tail != head) {
       x = queue[tail].x;
       y = queue[tail].y;
@@ -446,7 +446,7 @@ ColorSpinner.load = function () {
           saturation = Math.min(1, r / R);  // ratio of inner to outer radius.
       // Paint the current pixel.
       //    m = lightness - C / 2;
-      var value = 0.3,
+      var value = g.value,
           C = saturation * value,
           h = angle * 3 / Math.PI,
           i = Math.floor(h),
@@ -515,17 +515,75 @@ ColorSpinner.load = function () {
     return hexagon;
   }
 
+  var sliderCanvasWidth = g.layout.slider.width,
+      sliderHeight = g.layout.slider.height,
+      sliderWidth = sliderCanvasWidth,
+      barOverhang = g.layout.slider.bar.overhang,
+      barLength = sliderCanvasWidth - 2 * barOverhang,
+      barWidth = g.layout.slider.bar.width;
+  function makeSlider() {
+    var slider = M.make('div', { className: 'slider', into: drawingArea,
+        unselectable: true }),
+        width = sliderCanvasWidth,
+        height = sliderHeight;
+    slider.style.width = width + 'px';
+    slider.style.height = height + 'px';
+    slider.canvas = {};
+    slider.context = {};
+    ['gradient', 'bar', 'touch'].forEach(function (canvasName) {
+      var canvas = slider.canvas[canvasName] = M.make('canvas',
+          { into: slider });
+      canvas.width = width;
+      canvas.height = height;
+      slider.context[canvasName] = canvas.getContext('2d');
+    });
+    // Paint the slider with a gradient to indicate value/lightness.
+    var context = slider.context.gradient,
+        gradient = context.createLinearGradient(
+            sliderWidth / 2, 0,
+            sliderWidth / 2, sliderHeight);
+    gradient.addColorStop(0, '#fff');
+    gradient.addColorStop(1, '#000');
+    context.fillStyle = gradient;
+    context.fillRect(barOverhang, 0, barLength, sliderHeight);
+    /*
+      var gradient = prepContext.createLinearGradient(
+              corner.x, corner.y + scale*r,
+              corner.x + scale*256, corner.y + scale*r);
+      rgb[indices.row] = r;
+      rgb[indices.col] = 0;
+      gradient.addColorStop(0, g.rgbToCss(rgb)); 
+      rgb[indices.col] = 255;
+      gradient.addColorStop(1, g.rgbToCss(rgb)); 
+      prepContext.fillStyle = gradient;
+      prepContext.fillRect(
+          corner.x, corner.y + scale*r,
+          corner.x + scale*256, corner.y + scale*(r+1) + overlap);
+    */
+    return slider;
+  }
+
   // Make hexagons for the HSL and HSV color models.
   var left = 15,
       top = mixGridContainerSize + 30;
   g.hexagon = {};
-  ['hsl'].forEach(function (modelName, ix) {
-    var hexagon = g.hexagon[modelName] = makeHexagon();
-    // Position the container.
-    hexagon.style.left = left + ix * (hexagonCanvasWidth + 15) + 'px';
+  ['hsv'].forEach(function (modelName, ix) {
+    // Choose a random value/lightness.
+    var value = 0.5 + 0.1 * Math.floor(6 * Math.random());
+    g.value = value;
+    console.log('value: ' + value);
+    // Make the hexagon and the value/lightness slider.
+    var hexagon = g.hexagon[modelName] = makeHexagon(),
+        slider = hexagon.slider = makeSlider();
+    // Position the hexagon and slider. Precalculate document offsets.
+    hexagon.style.left = left + 'px';
     hexagon.style.top = top + 'px';
+    left += hexagonCanvasWidth + 15;
     var touchCanvas = hexagon.canvas.touch;
     touchCanvas.offset = M.getOffset(touchCanvas, document.body);
+    slider.style.left = left + 'px';
+    slider.style.top = top + 'px';
+    left += sliderCanvasWidth;
   });
 
   var paletteCanvas = M.make('canvas', { id: 'paletteCanvas',
