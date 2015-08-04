@@ -1,6 +1,7 @@
 var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
   rgb: [0, 0, 0],
+  hsv: {},
   layout: {
     container: { width: 1100, height: 700, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
@@ -37,6 +38,54 @@ ColorSpinner.makeContrastRgb = function (rgb) {
 ColorSpinner.rgbToCss = function (rgb) {
   var css = 'rgb(' + rgb.join(', ') + ')';
   return css;
+};
+
+ColorSpinner.decimal = function (x, numDigits) {
+  var whole = Math.floor(x),
+      fraction = x - whole,
+      digits = '' + Math.round(Math.pow(10, numDigits) * fraction);
+  while (digits.length < numDigits) {
+    digits += '0';
+  }
+  return whole + '.' + digits;
+};
+
+ColorSpinner.hsv.update = function () {
+  var g = ColorSpinner,
+      rgb = g.rgb,
+      R = rgb[0] / 255, G = rgb[1] / 255, B = rgb[2] / 255,
+      /* Calculation for a circle.
+      alpha = R - (G + B) / 2,
+      beta = Math.sqrt(3) * (G - B) / 2,
+      H = Math.atan2(beta, alpha),
+      C = Math.hypot(alpha, beta);
+      if (H < 0) {
+        H += 2 * Math.PI;
+      }
+      H = H / Math.PI * 180;
+      */
+      max = Math.max.apply(null, rgb) / 255,
+      min = Math.min.apply(null, rgb) / 255,
+      C = max - min,
+      h;
+  if (max == min) {
+    h = 0;
+  } else if (max == R) {
+    h = ((G - B) / C) % 6;
+  } else if (max == G) {
+    h = (B - R) / C + 2;
+  } else {
+    h = (R - G) / C + 4;
+  }
+  if (h < 0) {
+    h += 6;
+  }
+  h *= Math.PI / 3;
+  var H = h * 180 / Math.PI;
+  var value = max,
+      saturation = (value == 0 ? 0 : C / value);
+  g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
+      g.decimal(value, 2)+')');
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
@@ -191,6 +240,7 @@ ColorSpinner.load = function () {
       } else {
         g.mixGrid.mark();
       }
+      g.hsv.update();
     };
     mixer.onmousedown = function (event) {
       var position = M.getMousePosition(event),
@@ -358,6 +408,7 @@ ColorSpinner.load = function () {
     g.mixers.forEach(function (mixer) {
       mixer.paint();
     });
+    g.hsv.update();
   };
   mixGrid.onmousedown = function (event) {
     mixGrid.update(event);
@@ -367,14 +418,6 @@ ColorSpinner.load = function () {
       window.onmouseup = undefined;
     };
   };
-
-
-  // HSL and HSV calculations.
-  function alphaBeta(rgb) {
-    var alpha = rgb.r - (rgb.g + rgb.b) / 2,
-        beta = Math.sqrt(3) * (rgb.g - rgb.b) / 2;
-    return { alpha: alpha, beta: beta };
-  }
 
   // Make a container and canvases for a hexagon.
   var hexagonHeight = layout.hexagon.height,
@@ -486,7 +529,6 @@ ColorSpinner.load = function () {
           y = position.y - touchCanvas.offset.top;
       touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
       if (!mask[x][y]) {
-        g.message();
         return;
       }
       // Highlight the area under the mouse.
@@ -494,13 +536,13 @@ ColorSpinner.load = function () {
       touchContext.arc(x - 1.5, y - 1.5, 7.5, 0, 2 * Math.PI);
       touchContext.stroke();
       // Set the global RGB value and update the other color controls.
-      g.message(JSON.stringify(mask[x][y]));
       g.rgb = mask[x][y];
       g.mixers.forEach(function (mixer) {
         mixer.paint();
       });
       g.mixGrid.paint();
       g.mixGrid.mark();
+      g.hsv.update();
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
@@ -509,7 +551,6 @@ ColorSpinner.load = function () {
         touchCanvas.onmousemove = undefined;
         touchCanvas.onmouseout = undefined;
         touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
-        g.message();
       };
     };
     return hexagon;
@@ -546,20 +587,6 @@ ColorSpinner.load = function () {
     gradient.addColorStop(1, '#000');
     context.fillStyle = gradient;
     context.fillRect(barOverhang, 0, barLength, sliderHeight);
-    /*
-      var gradient = prepContext.createLinearGradient(
-              corner.x, corner.y + scale*r,
-              corner.x + scale*256, corner.y + scale*r);
-      rgb[indices.row] = r;
-      rgb[indices.col] = 0;
-      gradient.addColorStop(0, g.rgbToCss(rgb)); 
-      rgb[indices.col] = 255;
-      gradient.addColorStop(1, g.rgbToCss(rgb)); 
-      prepContext.fillStyle = gradient;
-      prepContext.fillRect(
-          corner.x, corner.y + scale*r,
-          corner.x + scale*256, corner.y + scale*(r+1) + overlap);
-    */
     return slider;
   }
 
@@ -609,6 +636,8 @@ ColorSpinner.load = function () {
 
   // Select the pivot at random.
   g.mixers[Math.floor(3 * Math.random())].select();
+
+  g.hsv.update();
 };
 
 ColorSpinner.message = function (s) {

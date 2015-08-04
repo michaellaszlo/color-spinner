@@ -25,8 +25,10 @@ Goals:
 to do right now:
 - hexagon
   + fix bug with negative numbers
-  - change update action from hover to drag
-  - update hexagon on grid or mixer action
+  + convert RGB to HSV
+  - make hexagon reflect the other controls
+  - hexagon: change update action from hover to drag
+  - update all controls in parallel
   - add slider for value
   - change to HSL
   - change to circle
