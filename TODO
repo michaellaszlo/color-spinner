@@ -24,9 +24,10 @@ Goals:
 
 to do right now:
 - hexagon
-  + fix bug with negative numbers
+  + fix bug: negative RGB values
   + convert RGB to HSV
-  - make hexagon reflect the other controls
+  + fix bug: high saturation near center of hexagon
+  - sync the hexagon with the other controls
   - hexagon: change update action from hover to drag
   - update all controls in parallel
   - add slider for value

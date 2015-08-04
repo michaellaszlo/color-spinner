@@ -45,7 +45,7 @@ ColorSpinner.decimal = function (x, numDigits) {
       fraction = x - whole,
       digits = '' + Math.round(Math.pow(10, numDigits) * fraction);
   while (digits.length < numDigits) {
-    digits += '0';
+    digits = '0' + digits;
   }
   return whole + '.' + digits;
 };
@@ -84,7 +84,8 @@ ColorSpinner.hsv.update = function () {
   var H = h * 180 / Math.PI;
   var value = max,
       saturation = (value == 0 ? 0 : C / value);
-  g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
+  g.message('RGB('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')<br />'+
+      'HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')');
 };
 
