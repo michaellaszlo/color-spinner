@@ -96,14 +96,21 @@ ColorSpinner.hsv.update = function () {
   var H = h * 180 / Math.PI;
   var value = max,
       saturation = (value == 0 ? 0 : C / value);
-  g.message(//'RGB('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')<br />'+
-      'HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
-      g.decimal(value, 2)+')');
   // Convert HSV to coordinates in hexagon.
   var canvas = g.hexagon.hsv.canvas.touch,
       context = g.hexagon.hsv.context.touch,
       width = canvas.width, height = canvas.height,
-      x0 = Math.floor(width / 2), y0 = Math.floor(height / 2);
+      x0 = width / 2, y0 = height / 2,
+      r = saturation * g.hexagonRadiusAtAngle(h, width / 2),
+      x = Math.floor(x0 + r * Math.cos(h)),
+      y = Math.floor(y0 - r * Math.sin(h));
+  g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
+      g.decimal(value, 2)+')'+'<br />h = '+g.decimal(h, 3)+
+      ', r = '+Math.floor(r)+', x = '+x+', y = '+y);
+  context.fillStyle = '#fff';
+  context.beginPath();
+  context.arc(x, y, 3, 0, 2 * Math.PI);
+  context.fill();
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
