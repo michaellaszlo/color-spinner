@@ -58,8 +58,8 @@ canvas {
 #debug {
   position: fixed;
   z-index: 10000;
-  left: 10px;
-  top: 10px;
+  top: 310px;
+  left: 430px;
   padding: 10px 15px;
   background: #f9f0df;
   color: #951c15;

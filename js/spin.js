@@ -50,6 +50,17 @@ ColorSpinner.decimal = function (x, numDigits) {
   return whole + '.' + digits;
 };
 
+ColorSpinner.hexagonRadiusAtAngle = function(angle, maximumRadius) {
+  if (maximumRadius === undefined) {
+    maximumRadius = 1;
+  }
+  var reducedAngle = angle % (Math.PI / 3),
+      x = maximumRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
+      y = x * Math.tan(reducedAngle),
+      R = Math.hypot(x, y);  // Outer radius, i.e., hexagon radius.
+  return R;
+};
+
 ColorSpinner.hsv.update = function () {
   var g = ColorSpinner,
       rgb = g.rgb,
@@ -68,6 +79,7 @@ ColorSpinner.hsv.update = function () {
       min = Math.min.apply(null, rgb) / 255,
       C = max - min,
       h;
+  // Convert RGB to HSV.
   if (max == min) {
     h = 0;
   } else if (max == R) {
@@ -84,9 +96,14 @@ ColorSpinner.hsv.update = function () {
   var H = h * 180 / Math.PI;
   var value = max,
       saturation = (value == 0 ? 0 : C / value);
-  g.message('RGB('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')<br />'+
+  g.message(//'RGB('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')<br />'+
       'HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')');
+  // Convert HSV to coordinates in hexagon.
+  var canvas = g.hexagon.hsv.canvas.touch,
+      context = g.hexagon.hsv.context.touch,
+      width = canvas.width, height = canvas.height,
+      x0 = Math.floor(width / 2), y0 = Math.floor(height / 2);
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
@@ -483,10 +500,7 @@ ColorSpinner.load = function () {
           angle = (y1 >= 0 ? Math.acos(x1 / r) :
                              2*Math.PI - Math.acos(x1 / r));
       }
-      var reducedAngle = angle % (Math.PI / 3),
-          x2 = hexagonRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
-          y2 = x2 * Math.tan(reducedAngle),
-          R = Math.hypot(x2, y2),  // Outer radius, i.e., hexagon radius.
+      var R = g.hexagonRadiusAtAngle(angle, hexagonRadius),
           saturation = Math.min(1, r / R);  // ratio of inner to outer radius.
       // Paint the current pixel.
       //    m = lightness - C / 2;
