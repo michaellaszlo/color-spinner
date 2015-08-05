@@ -1,7 +1,6 @@
 var ColorSpinner = {
   colors: ['red', 'green', 'blue'],
   rgb: [0, 0, 0],
-  hsv: {},
   layout: {
     container: { width: 1100, height: 700, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
@@ -19,7 +18,11 @@ var ColorSpinner = {
     },
     select: { gap: 10 }
   },
-	show: { ring: { solid: false, mix: true } }
+	show: { ring: { solid: false, mix: true } },
+  hsv: {},
+  cache: {
+    hexagonRadiusAtHue: {}
+  }
 };
 
 ColorSpinner.toHex2 = function (i) {
@@ -36,8 +39,7 @@ ColorSpinner.makeContrastRgb = function (rgb) {
 };
 
 ColorSpinner.rgbToCss = function (rgb) {
-  var css = 'rgb(' + rgb.join(', ') + ')';
-  return css;
+  return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')';
 };
 
 ColorSpinner.decimal = function (x, numDigits) {
@@ -50,14 +52,18 @@ ColorSpinner.decimal = function (x, numDigits) {
   return whole + '.' + digits;
 };
 
-ColorSpinner.hexagonRadiusAtAngle = function(angle, maximumRadius) {
-  if (maximumRadius === undefined) {
-    maximumRadius = 1;
+ColorSpinner.hexagonRadiusAtHue = function(H) {
+  var cache = ColorSpinner.cache.hexagonRadiusAtHue,
+      lookup = cache[H];
+  if (lookup !== undefined) {
+    return lookup;
   }
-  var reducedAngle = angle % (Math.PI / 3),
-      x = maximumRadius / (Math.tan(reducedAngle) / Math.sqrt(3) + 1),
-      y = x * Math.tan(reducedAngle),
+  var h = H % 60,
+      slope = Math.tan(h / 180 * Math.PI),
+      x = 1 / (slope / Math.sqrt(3) + 1),
+      y = x * slope,
       R = Math.hypot(x, y);  // Outer radius, i.e., hexagon radius.
+  cache[H] = R;
   return R;
 };
 
@@ -92,20 +98,82 @@ ColorSpinner.hsv.update = function () {
   if (h < 0) {
     h += 6;
   }
-  h *= Math.PI / 3;
-  var H = h * 180 / Math.PI;
-  var value = max,
+  var H = Math.floor(60 * h),
+      angle = h * Math.PI / 3,
+      value = max,
       saturation = (value == 0 ? 0 : C / value);
   // Convert HSV to coordinates in hexagon.
-  var canvas = g.hexagon.hsv.canvas.touch,
-      context = g.hexagon.hsv.context.touch,
-      width = canvas.width, height = canvas.height,
-      x0 = width / 2, y0 = height / 2,
-      r = saturation * g.hexagonRadiusAtAngle(h, width / 2),
-      x = Math.floor(x0 + r * Math.cos(h)),
-      y = Math.floor(y0 - r * Math.sin(h));
+  var hexagon = g.hexagon.hsv,
+      canvas = hexagon.canvas.touch,
+      context = hexagon.context.touch,
+      width = canvas.width,
+      height = canvas.height,
+      hexagonRadius = width / 2,
+      x0 = hexagonRadius,
+      y0 = height / 2,
+      r = saturation * g.hexagonRadiusAtHue(H) * hexagonRadius,
+      x = Math.floor(x0 + r * Math.cos(angle)),
+      y = Math.floor(y0 - r * Math.sin(angle));
+
+  // Look for the closest match in the hexagon mask.
+  /*
+  var mask = hexagon.mask,
+      numRows = mask.length,
+      numColumns = mask[0].length;
+  x = Math.max(0, Math.min(x, numRows));
+  y = Math.max(0, Math.min(y, numColumns));
+  var bestMaxDelta = undefined,
+      bestDeltaSum = undefined,
+      bestX = undefined,
+      bestY = undefined,
+      dx = [ -1, 0, 1, 0 ],
+      dy = [ 0, -1, 0, 1 ],
+      key = x * numColumns + y,
+      seen = { key: true },
+      queue = [ key ],
+      tail = 0;
+  while (tail != queue.length && tail < 5) {
+    key = queue[tail++];
+    y = key % numColumns;
+    x = (key - y) / numColumns;
+    var found = mask[x][y];
+    if (!found) {
+      continue;
+    }
+    console.log(x, y, bestX, bestY, JSON.stringify(rgb), JSON.stringify(found));
+    var dr = Math.abs(found[0] - rgb[0]),
+        dg = Math.abs(found[1] - rgb[1]),
+        db = Math.abs(found[2] - rgb[2]),
+        maxDelta = Math.max(dr, dg, db),
+        deltaSum = dr + dg + db;
+    console.log('->', maxDelta, deltaSum, bestMaxDelta, bestDeltaSum);
+    if (bestMaxDelta === undefined || maxDelta < bestMaxDelta ||
+          (maxDelta == bestMaxDelta && deltaSum < bestDeltaSum)) {
+      bestMaxDelta = maxDelta;
+      bestDeltaSum = deltaSum;
+      bestX = x;
+      bestY = y;
+    }
+    for (var i = 0; i < 4; ++i) {
+      var X = x + dx[i],
+          Y = y + dy[i];
+      if (X < 0 || X >= numRows || Y < 0 || Y >= numColumns) {
+        continue;
+      }
+      var key = X * numColumns + Y;
+      if (seen[key]) {
+        continue;
+      }
+      seen[key] = true;
+      queue.push(key);
+    }
+  }
+  x = bestX;
+  y = bestY;
+  */
+
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
-      g.decimal(value, 2)+')'+'<br />h = '+g.decimal(h, 3)+
+      g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
       ', r = '+Math.floor(r)+', x = '+x+', y = '+y);
   context.fillStyle = '#fff';
   context.beginPath();
@@ -218,6 +286,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
 };
 
 ColorSpinner.load = function () {
+  var startTime = performance.now();
   var g = ColorSpinner,
       layout = g.layout,
       diameter = layout.mixer.diameter,
@@ -482,65 +551,64 @@ ColorSpinner.load = function () {
     context.fill();
     hexagon.canvas.mask.style.visibility = 'hidden';
     // Fill the interior of the hexagon.
+    var startTime = performance.now();
     context = hexagon.context.color;
     context.fillStyle = '#ccc';
     var maskData = hexagon.context.mask.getImageData(0, 0,
             width, height).data,
-        queue = [ { x: Math.floor(x0), y: Math.floor(y0) } ],
-        head = 1, tail = 0,
-        dy = [-1, 0, 1, 0],
-        dx = [0, 1, 0, -1],
-        mask = new Array(width);
+        mask = hexagon.mask = new Array(width);
     for (var x = 0; x < width; ++x) {
-      mask[x] = new Array(height);
-    }
-    while (tail != head) {
-      x = queue[tail].x;
-      y = queue[tail].y;
-      ++tail;
-      // Calculate the chroma at this point.
-      var x1 = x - x0,
-          y1 = y0 - y,
-          r = Math.hypot(x1, y1),  // Inner radius.
-          angle = 0;
-      if (r != 0) {
-          angle = (y1 >= 0 ? Math.acos(x1 / r) :
-                             2*Math.PI - Math.acos(x1 / r));
-      }
-      var R = g.hexagonRadiusAtAngle(angle, hexagonRadius),
-          saturation = Math.min(1, r / R);  // ratio of inner to outer radius.
-      // Paint the current pixel.
-      //    m = lightness - C / 2;
-      var value = g.value,
-          C = saturation * value,
-          h = angle * 3 / Math.PI,
-          i = Math.floor(h),
-          X = C * (1 - Math.abs(h % 2 - 1)),
-          m = value - C;
-          rgb = [0, 0, 0];
-      rgb[(7 - i) % 3] = X;
-      rgb[Math.floor((i + 1) / 2) % 3] = C;
-      rgb[0] = Math.round(255 * (rgb[0] + m));
-      rgb[1] = Math.round(255 * (rgb[1] + m));
-      rgb[2] = Math.round(255 * (rgb[2] + m));
-      var css = g.rgbToCss(rgb);
-      context.fillStyle = css;
-      context.fillRect(x, y, 1, 1);
-      // Flood the neighboring pixels.
-      for (var i = 0; i < 4; ++i) {
-        var X = x + dx[i], Y = y + dy[i];
-        if (X < 0 || X == width || Y < 0 || Y == height || mask[X][Y]) {
+      var maskRow = mask[x] = new Array(height);
+      for (var y = 0; y < height; ++y) {
+        var pos = 4 * (y * width + x),
+            sum = maskData[pos] + maskData[pos + 1] + maskData[pos + 2];
+        if (sum == 765) {
           continue;
         }
-        var pos = 4 * (Y * width + X);
-        if (maskData[pos] + maskData[pos+1] + maskData[pos+2] == 765) {
-          continue;
+        // Calculate the chroma at this point.
+        var x1 = x - x0,
+            y1 = y0 - y,
+            r = Math.hypot(x1, y1),  // Inner radius.
+            angle = 0;
+        if (r != 0) {
+            angle = (y1 >= 0 ? Math.acos(x1 / r) :
+                               2*Math.PI - Math.acos(x1 / r));
         }
-        mask[X][Y] = rgb;
-        queue.push({ x: X, y: Y });
-        ++head;
+        var H = Math.floor(180 * angle / Math.PI),
+            R = g.hexagonRadiusAtHue(H) * hexagonRadius,
+            saturation = Math.min(1, r / R);  // ratio of inner to outer radius.
+        // Paint the current pixel.
+        //    m = lightness - C / 2;
+        var value = g.value,
+            C = saturation * value,
+            h = H / 60,
+            X = C * (1 - Math.abs(h % 2 - 1)),
+            m = value - C,
+            rgb;
+        if (h < 1) {
+          rgb = [C, X, 0];
+        } else if (h < 2) {
+          rgb = [X, C, 0];
+        } else if (h < 3) {
+          rgb = [0, C, X];
+        } else if (h < 4) {
+          rgb = [0, X, C];
+        } else if (h < 5) {
+          rgb = [X, 0, C];
+        } else {
+          rgb = [C, 0, X];
+        }
+        rgb[0] = Math.round(255 * (rgb[0] + m));
+        rgb[1] = Math.round(255 * (rgb[1] + m));
+        rgb[2] = Math.round(255 * (rgb[2] + m));
+        maskRow[y] = rgb;
+        var css = g.rgbToCss(rgb);
+        context.fillStyle = css;
+        context.fillRect(x, y, 1, 1);
       }
     }
+    var elapsed = (performance.now() - startTime) / 1000;
+    console.log('painted hexagon in '+g.decimal(elapsed, 3)+' s');
     var touchCanvas = hexagon.canvas.touch,
         touchContext = hexagon.context.touch;
     touchContext.lineWidth = 2;
@@ -660,6 +728,8 @@ ColorSpinner.load = function () {
   g.mixers[Math.floor(3 * Math.random())].select();
 
   g.hsv.update();
+  var elapsed = (performance.now() - startTime) / 1000;
+  console.log('loaded in '+g.decimal(elapsed, 3)+' s');
 };
 
 ColorSpinner.message = function (s) {

@@ -27,13 +27,18 @@ to do right now:
   + fix bug: negative RGB values
   + convert RGB to HSV
   + fix bug: high saturation near center of hexagon
+  - speed up hexagon painting
+  - mark the slider
+  - when RGB changes, update slider and hexagon
   - sync the hexagon with the other controls
-  - hexagon: change update action from hover to drag
+  - change HSV update action from hover to drag
   - update all controls in parallel
-  - add slider for value
   - change to HSL
   - change to circle
   - make a mixer object that support HSL/HSV, circle/hexagon
+- text controls
+  - RGB text box
+  - HSV text box
 
 RGB picker
 + improve layout
