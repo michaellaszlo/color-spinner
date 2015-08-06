@@ -29,9 +29,9 @@ to do right now:
   + fix bug: high saturation near center of hexagon
   + speed up hexagon painting
   + mark the slider
-  - change HSV update action from hover to drag
-  - when RGB changes, update slider and hexagon
+  + when RGB changes, update slider and hexagon
   - make pixel mapping accurate
+  - change HSV update action from hover to drag
   - update all controls in parallel
   - change to HSL
   - change to circle
@@ -39,6 +39,9 @@ to do right now:
 - text controls
   - RGB text box
   - HSV text box
+
+swatch generator
+- make color samples derived from the currently selected color
 
 RGB picker
 + improve layout

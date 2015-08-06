@@ -66,6 +66,41 @@ ColorSpinner.hexagonRadiusAtHue = function(H) {
   cache[H] = R;
   return R;
 };
+ColorSpinner.hexagonXYtoRGB = function(x1, y1) {
+  var g = ColorSpinner,
+      value = g.value || 0.88,
+      r = Math.hypot(x1, y1),  // Inner radius.
+      angle = 0;
+  if (r != 0) {
+      angle = (y1 >= 0 ? Math.acos(x1 / r) :
+                         2*Math.PI - Math.acos(x1 / r));
+  }
+  var H = Math.floor(180 * angle / Math.PI),
+      R = g.hexagonRadiusAtHue(H) * g.hexagonRadius,
+      saturation = Math.min(1, r / R),  // ratio of inner to outer radius.
+      C = saturation * value,
+      h = H / 60,
+      X = C * (1 - Math.abs(h % 2 - 1)),
+      m = value - C,
+      rgb;
+  if (h < 1) {
+    rgb = [C, X, 0];
+  } else if (h < 2) {
+    rgb = [X, C, 0];
+  } else if (h < 3) {
+    rgb = [0, C, X];
+  } else if (h < 4) {
+    rgb = [0, X, C];
+  } else if (h < 5) {
+    rgb = [X, 0, C];
+  } else {
+    rgb = [C, 0, X];
+  }
+  rgb[0] = Math.round(255 * (rgb[0] + m));
+  rgb[1] = Math.round(255 * (rgb[1] + m));
+  rgb[2] = Math.round(255 * (rgb[2] + m));
+  return rgb;
+};
 
 ColorSpinner.hsv.mark = function (x, y, value) {
   var g = ColorSpinner,
@@ -85,7 +120,7 @@ ColorSpinner.hsv.mark = function (x, y, value) {
       sliderHeight = sliderLayout.height,
       sliderWidth = sliderLayout.width,
       barWidth = sliderLayout.bar.width,
-      barTop = (1 - value) * (sliderHeight - barWidth);
+      barTop = Math.round((1 - value) * (sliderHeight - barWidth));
   barContext.clearRect(0, 0, sliderWidth, sliderHeight);
   barContext.fillRect(0, barTop, sliderWidth, barWidth);
 };
@@ -137,17 +172,8 @@ ColorSpinner.hsv.update = function () {
       r = saturation * g.hexagonRadiusAtHue(H) * hexagonRadius,
       x = Math.round(x0 + r * Math.cos(angle)),
       y = Math.round(y0 - r * Math.sin(angle));
-
-  // Look for the closest match in the hexagon mask.
-  var mask = hexagon.mask,
-      numRows = mask.length,
-      numColumns = mask[0].length;
-  x = Math.max(0, Math.min(x, numRows));
-  y = Math.max(0, Math.min(y, numColumns));
-  var bestMaxDelta = undefined,
-      bestDeltaSum = undefined,
-      bestX = x,
-      bestY = y;
+  x = Math.max(0, Math.min(x, width));
+  y = Math.max(0, Math.min(y, height));
 
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
@@ -489,7 +515,7 @@ ColorSpinner.load = function () {
 
   // Make a container and canvases for a hexagon.
   var hexagonHeight = layout.hexagon.height,
-      hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
+      hexagonRadius = g.hexagonRadius = hexagonHeight * Math.tan(Math.PI / 6),
       hexagonCanvasWidth = Math.ceil(2 * hexagonRadius);
   function makeHexagon() {
     var hexagon = M.make('div', { className: 'hexagon', into: drawingArea,
@@ -539,43 +565,11 @@ ColorSpinner.load = function () {
         if (sum == 765) {
           continue;
         }
+        maskRow[y] = true;
         // Calculate the chroma at this point.
         var x1 = x - x0,
-            y1 = y0 - y,
-            r = Math.hypot(x1, y1),  // Inner radius.
-            angle = 0;
-        if (r != 0) {
-            angle = (y1 >= 0 ? Math.acos(x1 / r) :
-                               2*Math.PI - Math.acos(x1 / r));
-        }
-        var H = Math.floor(180 * angle / Math.PI),
-            R = g.hexagonRadiusAtHue(H) * hexagonRadius,
-            saturation = Math.min(1, r / R);  // ratio of inner to outer radius.
-        // Paint the current pixel.
-        //    m = lightness - C / 2;
-        var value = g.value,
-            C = saturation * value,
-            h = H / 60,
-            X = C * (1 - Math.abs(h % 2 - 1)),
-            m = value - C,
-            rgb;
-        if (h < 1) {
-          rgb = [C, X, 0];
-        } else if (h < 2) {
-          rgb = [X, C, 0];
-        } else if (h < 3) {
-          rgb = [0, C, X];
-        } else if (h < 4) {
-          rgb = [0, X, C];
-        } else if (h < 5) {
-          rgb = [X, 0, C];
-        } else {
-          rgb = [C, 0, X];
-        }
-        rgb[0] = Math.round(255 * (rgb[0] + m));
-        rgb[1] = Math.round(255 * (rgb[1] + m));
-        rgb[2] = Math.round(255 * (rgb[2] + m));
-        maskRow[y] = rgb;
+            y1 = y0 - y;
+        var rgb = g.hexagonXYtoRGB(x1, y1);
         var css = g.rgbToCss(rgb);
         context.fillStyle = css;
         context.fillRect(x, y, 1, 1);
@@ -600,8 +594,8 @@ ColorSpinner.load = function () {
       if (!mask[x][y]) {
         return;
       }
-      var rgb = mask[x][y];
-          x1 = x - width / 2, y1 = height / 2 - y,
+      var x1 = x - width / 2, y1 = height / 2 - y,
+          rgb = g.hexagonXYtoRGB(x1, y1),
           r = Math.hypot(x1, y1),  // Inner radius.
           angle = 0;
       if (r != 0) {
@@ -615,16 +609,6 @@ ColorSpinner.load = function () {
           'value = ' + g.decimal(g.value, 2) + '<br />' +
           'angle = ' + g.decimal(angle, 3) + ', r = ' + g.decimal(r, 2) +
           ', x = ' + x + ', y = ' + y);
-      // Set the global RGB value and update the other color controls.
-      /*
-      g.rgb = mask[x][y];
-      g.mixers.forEach(function (mixer) {
-        mixer.paint();
-      });
-      g.mixGrid.paint();
-      g.mixGrid.mark();
-      g.hsv.update();
-      */
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
@@ -675,7 +659,6 @@ ColorSpinner.load = function () {
   // Make hexagons for the HSL and HSV color models.
   var left = 15,
       top = mixGridContainerSize + 30;
-  g.value = 0.75;  // TODO: Change this according to RGB.
   g.hexagon = {};
   ['hsv'].forEach(function (modelName, ix) {
     // Make the hexagon and the value/lightness slider.
