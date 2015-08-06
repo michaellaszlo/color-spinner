@@ -27,11 +27,11 @@ to do right now:
   + fix bug: negative RGB values
   + convert RGB to HSV
   + fix bug: high saturation near center of hexagon
-  - speed up hexagon painting
+  + speed up hexagon painting
+  - change HSV update action from hover to drag
   - mark the slider
   - when RGB changes, update slider and hexagon
-  - sync the hexagon with the other controls
-  - change HSV update action from hover to drag
+  - make pixel mapping accurate
   - update all controls in parallel
   - change to HSL
   - change to circle

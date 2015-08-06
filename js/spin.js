@@ -67,6 +67,19 @@ ColorSpinner.hexagonRadiusAtHue = function(H) {
   return R;
 };
 
+ColorSpinner.hsv.mark = function (x, y) {
+  var g = ColorSpinner,
+      hexagon = g.hexagon.hsv,
+      canvas = hexagon.canvas.touch,
+      width = canvas.width,
+      height = canvas.height,
+      context = hexagon.context.touch;
+  context.clearRect(0, 0, width, height);
+  context.beginPath();
+  context.arc(x, y, 7.5, 0, 2 * Math.PI);
+  context.stroke();
+};
+
 ColorSpinner.hsv.update = function () {
   var g = ColorSpinner,
       rgb = g.rgb,
@@ -81,8 +94,8 @@ ColorSpinner.hsv.update = function () {
       }
       H = H / Math.PI * 180;
       */
-      max = Math.max.apply(null, rgb) / 255,
-      min = Math.min.apply(null, rgb) / 255,
+      max = Math.max(R, G, B),
+      min = Math.min(R, G, B),
       C = max - min,
       h;
   // Convert RGB to HSV.
@@ -112,11 +125,10 @@ ColorSpinner.hsv.update = function () {
       x0 = hexagonRadius,
       y0 = height / 2,
       r = saturation * g.hexagonRadiusAtHue(H) * hexagonRadius,
-      x = Math.floor(x0 + r * Math.cos(angle)),
-      y = Math.floor(y0 - r * Math.sin(angle));
+      x = Math.round(x0 + r * Math.cos(angle)),
+      y = Math.round(y0 - r * Math.sin(angle));
 
   // Look for the closest match in the hexagon mask.
-  /*
   var mask = hexagon.mask,
       numRows = mask.length,
       numColumns = mask[0].length;
@@ -124,61 +136,13 @@ ColorSpinner.hsv.update = function () {
   y = Math.max(0, Math.min(y, numColumns));
   var bestMaxDelta = undefined,
       bestDeltaSum = undefined,
-      bestX = undefined,
-      bestY = undefined,
-      dx = [ -1, 0, 1, 0 ],
-      dy = [ 0, -1, 0, 1 ],
-      key = x * numColumns + y,
-      seen = { key: true },
-      queue = [ key ],
-      tail = 0;
-  while (tail != queue.length && tail < 5) {
-    key = queue[tail++];
-    y = key % numColumns;
-    x = (key - y) / numColumns;
-    var found = mask[x][y];
-    if (!found) {
-      continue;
-    }
-    console.log(x, y, bestX, bestY, JSON.stringify(rgb), JSON.stringify(found));
-    var dr = Math.abs(found[0] - rgb[0]),
-        dg = Math.abs(found[1] - rgb[1]),
-        db = Math.abs(found[2] - rgb[2]),
-        maxDelta = Math.max(dr, dg, db),
-        deltaSum = dr + dg + db;
-    console.log('->', maxDelta, deltaSum, bestMaxDelta, bestDeltaSum);
-    if (bestMaxDelta === undefined || maxDelta < bestMaxDelta ||
-          (maxDelta == bestMaxDelta && deltaSum < bestDeltaSum)) {
-      bestMaxDelta = maxDelta;
-      bestDeltaSum = deltaSum;
-      bestX = x;
+      bestX = x,
       bestY = y;
-    }
-    for (var i = 0; i < 4; ++i) {
-      var X = x + dx[i],
-          Y = y + dy[i];
-      if (X < 0 || X >= numRows || Y < 0 || Y >= numColumns) {
-        continue;
-      }
-      var key = X * numColumns + Y;
-      if (seen[key]) {
-        continue;
-      }
-      seen[key] = true;
-      queue.push(key);
-    }
-  }
-  x = bestX;
-  y = bestY;
-  */
 
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
       ', r = '+Math.floor(r)+', x = '+x+', y = '+y);
-  context.fillStyle = '#fff';
-  context.beginPath();
-  context.arc(x, y, 3, 0, 2 * Math.PI);
-  context.fill();
+  g.hsv.mark(x, y);
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
@@ -526,7 +490,7 @@ ColorSpinner.load = function () {
     hexagon.style.height = height + 'px';
     hexagon.canvas = {};
     hexagon.context = {};
-    ['mask', 'color', 'touch'].forEach(function (canvasName) {
+    ['mask', 'color', 'highlight', 'touch'].forEach(function (canvasName) {
       var canvas = hexagon.canvas[canvasName] = M.make('canvas',
           { into: hexagon });
       canvas.width = width;
@@ -610,22 +574,28 @@ ColorSpinner.load = function () {
     var elapsed = (performance.now() - startTime) / 1000;
     console.log('painted hexagon in '+g.decimal(elapsed, 3)+' s');
     var touchCanvas = hexagon.canvas.touch,
-        touchContext = hexagon.context.touch;
+        touchContext = hexagon.context.touch,
+        width = touchCanvas.width,
+        height = touchCanvas.height,
+        highlightContext = hexagon.context.highlight;
     touchContext.lineWidth = 2;
     touchContext.strokeStyle = '#333';
+    highlightContext.lineWidth = 2;
+    highlightContext.strokeStyle = '#fff';
     touchCanvas.update = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
           y = position.y - touchCanvas.offset.top;
-      touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
+      highlightContext.clearRect(0, 0, width, height);
       if (!mask[x][y]) {
         return;
       }
       // Highlight the area under the mouse.
-      touchContext.beginPath();
-      touchContext.arc(x - 1.5, y - 1.5, 7.5, 0, 2 * Math.PI);
-      touchContext.stroke();
+      highlightContext.beginPath();
+      highlightContext.arc(x, y, 5.5, 0, 2 * Math.PI);
+      highlightContext.stroke();
       // Set the global RGB value and update the other color controls.
+      /*
       g.rgb = mask[x][y];
       g.mixers.forEach(function (mixer) {
         mixer.paint();
@@ -633,6 +603,7 @@ ColorSpinner.load = function () {
       g.mixGrid.paint();
       g.mixGrid.mark();
       g.hsv.update();
+      */
     };
     touchCanvas.onmouseover = function (event) {
       touchCanvas.update(event);
@@ -640,7 +611,7 @@ ColorSpinner.load = function () {
       touchCanvas.onmouseout = function () {
         touchCanvas.onmousemove = undefined;
         touchCanvas.onmouseout = undefined;
-        touchContext.clearRect(0, 0, touchCanvas.width, touchCanvas.height);
+        highlightContext.clearRect(0, 0, width, height);
       };
     };
     return hexagon;
@@ -683,12 +654,9 @@ ColorSpinner.load = function () {
   // Make hexagons for the HSL and HSV color models.
   var left = 15,
       top = mixGridContainerSize + 30;
+  g.value = 0.85;  // TODO: Change this according to RGB.
   g.hexagon = {};
   ['hsv'].forEach(function (modelName, ix) {
-    // Choose a random value/lightness.
-    var value = 0.5 + 0.1 * Math.floor(6 * Math.random());
-    g.value = value;
-    console.log('value: ' + value);
     // Make the hexagon and the value/lightness slider.
     var hexagon = g.hexagon[modelName] = makeHexagon(),
         slider = hexagon.slider = makeSlider();
