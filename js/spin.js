@@ -5,7 +5,7 @@ var ColorSpinner = {
     container: { width: 1100, height: 700, left: 0, top: 0, number: 5 },
     mixer: { sample: 2, diameter: 280, gap: 5, handle: 12 },
     hexagon: { height: 280 },
-    slider: { height: 280, width: 50, bar: { width: 10, overhang: 5 } },
+    slider: { height: 280, width: 50, bar: { width: 8, overhang: 2 } },
     hole: { radius: { proportion: 0.4 } },
     smoother: 0.5,
     sector: { color: '#fff', band: { proportion: 0.65 } },
@@ -67,7 +67,7 @@ ColorSpinner.hexagonRadiusAtHue = function(H) {
   return R;
 };
 
-ColorSpinner.hsv.mark = function (x, y) {
+ColorSpinner.hsv.mark = function (x, y, value) {
   var g = ColorSpinner,
       hexagon = g.hexagon.hsv,
       canvas = hexagon.canvas.touch,
@@ -78,6 +78,16 @@ ColorSpinner.hsv.mark = function (x, y) {
   context.beginPath();
   context.arc(x, y, 7.5, 0, 2 * Math.PI);
   context.stroke();
+  var slider = g.hexagon.hsv.slider,
+      barCanvas = slider.canvas.bar,
+      barContext = slider.context.bar,
+      sliderLayout = g.layout.slider,
+      sliderHeight = sliderLayout.height,
+      sliderWidth = sliderLayout.width,
+      barWidth = sliderLayout.bar.width,
+      barTop = (1 - value) * (sliderHeight - barWidth);
+  barContext.clearRect(0, 0, sliderWidth, sliderHeight);
+  barContext.fillRect(0, barTop, sliderWidth, barWidth);
 };
 
 ColorSpinner.hsv.update = function () {
@@ -142,7 +152,7 @@ ColorSpinner.hsv.update = function () {
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
       ', r = '+Math.floor(r)+', x = '+x+', y = '+y);
-  g.hsv.mark(x, y);
+  g.hsv.mark(x, y, value);
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {

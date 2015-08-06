@@ -28,8 +28,8 @@ to do right now:
   + convert RGB to HSV
   + fix bug: high saturation near center of hexagon
   + speed up hexagon painting
+  + mark the slider
   - change HSV update action from hover to drag
-  - mark the slider
   - when RGB changes, update slider and hexagon
   - make pixel mapping accurate
   - update all controls in parallel
