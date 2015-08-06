@@ -55,10 +55,21 @@ canvas {
   position: absolute;
 }
 
-#debug {
+#debugHSV {
   position: fixed;
   z-index: 10000;
   top: 310px;
+  left: 430px;
+  padding: 10px 15px;
+  background: #dde6be;
+  color: #951c15;
+  visibility: hidden;
+}
+
+#debug {
+  position: fixed;
+  z-index: 10000;
+  top: 370px;
   left: 430px;
   padding: 10px 15px;
   background: #f9f0df;

@@ -123,7 +123,7 @@ ColorSpinner.hsv.update = function () {
   }
   var H = Math.floor(60 * h),
       angle = h * Math.PI / 3,
-      value = max,
+      value = g.value = max,
       saturation = (value == 0 ? 0 : C / value);
   // Convert HSV to coordinates in hexagon.
   var hexagon = g.hexagon.hsv,
@@ -151,7 +151,7 @@ ColorSpinner.hsv.update = function () {
 
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
-      ', r = '+Math.floor(r)+', x = '+x+', y = '+y);
+      ', r = '+ g.decimal(r, 2)+', x = '+x+', y = '+y, 'HSV');
   g.hsv.mark(x, y, value);
 };
 
@@ -600,10 +600,21 @@ ColorSpinner.load = function () {
       if (!mask[x][y]) {
         return;
       }
+      var rgb = mask[x][y];
+          x1 = x - width / 2, y1 = height / 2 - y,
+          r = Math.hypot(x1, y1),  // Inner radius.
+          angle = 0;
+      if (r != 0) {
+        angle = (y1 >= 0 ? Math.acos(x1 / r) : 2*Math.PI - Math.acos(x1 / r));
+      }
       // Highlight the area under the mouse.
       highlightContext.beginPath();
       highlightContext.arc(x, y, 5.5, 0, 2 * Math.PI);
       highlightContext.stroke();
+      g.message('RGB(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')<br />' +
+          'value = ' + g.decimal(g.value, 2) + '<br />' +
+          'angle = ' + g.decimal(angle, 3) + ', r = ' + g.decimal(r, 2) +
+          ', x = ' + x + ', y = ' + y);
       // Set the global RGB value and update the other color controls.
       /*
       g.rgb = mask[x][y];
@@ -664,7 +675,7 @@ ColorSpinner.load = function () {
   // Make hexagons for the HSL and HSV color models.
   var left = 15,
       top = mixGridContainerSize + 30;
-  g.value = 0.85;  // TODO: Change this according to RGB.
+  g.value = 0.75;  // TODO: Change this according to RGB.
   g.hexagon = {};
   ['hsv'].forEach(function (modelName, ix) {
     // Make the hexagon and the value/lightness slider.
@@ -710,8 +721,11 @@ ColorSpinner.load = function () {
   console.log('loaded in '+g.decimal(elapsed, 3)+' s');
 };
 
-ColorSpinner.message = function (s) {
-  var container = document.getElementById('debug');
+ColorSpinner.message = function (s, prefix) {
+  if (prefix === undefined) {
+    prefix = '';
+  }
+  var container = document.getElementById('debug' + prefix);
   if (s === undefined) {
     container.innerHTML = '';
     container.style.visibility = 'hidden';
