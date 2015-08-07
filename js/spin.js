@@ -586,7 +586,7 @@ ColorSpinner.load = function () {
     touchContext.strokeStyle = '#333';
     highlightContext.lineWidth = 2;
     highlightContext.strokeStyle = '#fff';
-    touchCanvas.update = function (event) {
+    touchCanvas.hover = function (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
           y = position.y - touchCanvas.offset.top;
@@ -610,14 +610,45 @@ ColorSpinner.load = function () {
           'angle = ' + g.decimal(angle, 3) + ', r = ' + g.decimal(r, 2) +
           ', x = ' + x + ', y = ' + y);
     };
-    touchCanvas.onmouseover = function (event) {
-      touchCanvas.update(event);
-      touchCanvas.onmousemove = touchCanvas.update;
+    touchCanvas.startHover = function (event) {
+      touchCanvas.hover(event);
+      touchCanvas.onmousemove = touchCanvas.hover;
       touchCanvas.onmouseout = function () {
-        touchCanvas.onmousemove = undefined;
         touchCanvas.onmouseout = undefined;
+        touchCanvas.onmousemove = undefined;
         highlightContext.clearRect(0, 0, width, height);
       };
+    };
+    touchCanvas.onmouseover = touchCanvas.startHover;
+    touchCanvas.press = function (event) {
+      var position = M.getMousePosition(event),
+          x = position.x - touchCanvas.offset.left,
+          y = position.y - touchCanvas.offset.top;
+      if (!mask[x][y]) {
+        return;
+      }
+      highlightContext.clearRect(0, 0, width, height);
+      var x1 = x - width / 2, y1 = height / 2 - y;
+      g.rgb = g.hexagonXYtoRGB(x1, y1);
+      g.mixers.forEach(function (mixer) {
+        mixer.paint();
+      });
+      g.mixGrid.paint();
+      g.mixGrid.mark();
+      g.hsv.mark(x, y, g.value);
+    };
+    touchCanvas.onmousedown = function (event) {
+      touchCanvas.onmouseover = undefined;
+      touchCanvas.press(event);
+      touchCanvas.onmousemove = touchCanvas.press;
+      touchCanvas.onmouseover = function (event) {
+        touchCanvas.onmousemove = touchCanvas.onmousedown;
+      };
+      window.onmouseup = function () {
+        window.onmouseup = undefined;
+        touchCanvas.onmousemove = touchCanvas.startHover;
+        touchCanvas.onmouseover = touchCanvas.startHover;
+      }
     };
     return hexagon;
   }

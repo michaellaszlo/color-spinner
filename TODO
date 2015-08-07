@@ -30,9 +30,9 @@ to do right now:
   + speed up hexagon painting
   + mark the slider
   + when RGB changes, update slider and hexagon
-  - make pixel mapping accurate
-  - change HSV update action from hover to drag
-  - update all controls in parallel
+  + change HSV update action from hover to drag
+  - update hexagon backdrop when value changes
+  - make value slider click-and-draggable
   - change to HSL
   - change to circle
   - make a mixer object that support HSL/HSV, circle/hexagon
