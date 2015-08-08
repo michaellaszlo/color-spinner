@@ -31,7 +31,8 @@ to do right now:
   + mark the slider
   + when RGB changes, update slider and hexagon
   + change HSV update action from hover to drag
-  - update hexagon backdrop when value changes
+  + paint hexagons in advance
+  + update hexagon backdrop when value changes
   - make value slider click-and-draggable
   - change to HSL
   - change to circle

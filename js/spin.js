@@ -66,10 +66,12 @@ ColorSpinner.hexagonRadiusAtHue = function(H) {
   cache[H] = R;
   return R;
 };
-ColorSpinner.hexagonXYtoRGB = function(x1, y1) {
-  var g = ColorSpinner,
-      value = g.value || 0.88,
-      r = Math.hypot(x1, y1),  // Inner radius.
+ColorSpinner.hexagonXYtoRGB = function(x1, y1, value) {
+  var g = ColorSpinner;
+  if (value === undefined) {
+    value = g.value;
+  }
+  var r = Math.hypot(x1, y1),  // Inner radius.
       angle = 0;
   if (r != 0) {
       angle = (y1 >= 0 ? Math.acos(x1 / r) :
@@ -103,6 +105,7 @@ ColorSpinner.hexagonXYtoRGB = function(x1, y1) {
 };
 
 ColorSpinner.hsv.mark = function (x, y, value) {
+  // Update hexagon cursor.
   var g = ColorSpinner,
       hexagon = g.hexagon.hsv,
       canvas = hexagon.canvas.touch,
@@ -113,6 +116,10 @@ ColorSpinner.hsv.mark = function (x, y, value) {
   context.beginPath();
   context.arc(x, y, 7.5, 0, 2 * Math.PI);
   context.stroke();
+  // Update hexagon background.
+  var step = Math.max(1, Math.round(value * hexagon.cached.steps));
+  hexagon.context.color.drawImage(hexagon.cached.canvas[step], 0, 0);
+  // Update slider.
   var slider = g.hexagon.hsv.slider,
       barCanvas = slider.canvas.bar,
       barContext = slider.context.bar,
@@ -533,7 +540,8 @@ ColorSpinner.load = function () {
       canvas.height = height;
       hexagon.context[canvasName] = canvas.getContext('2d');
     });
-    // Paint a hexagon onto the mask canvas.
+
+    // Use geometric operations to paint a hexagon onto the mask layer.
     var context = hexagon.context.mask,
         x0 = width / 2,
         y0 = height / 2;
@@ -550,33 +558,51 @@ ColorSpinner.load = function () {
     context.fillStyle = '#000';
     context.fill();
     hexagon.canvas.mask.style.visibility = 'hidden';
-    // Fill the interior of the hexagon.
-    var startTime = performance.now();
-    context = hexagon.context.color;
-    context.fillStyle = '#ccc';
-    var maskData = hexagon.context.mask.getImageData(0, 0,
-            width, height).data,
+
+    // Scan the pixels to make a boolean mask of the hexagon.
+    var maskData = hexagon.context.mask.getImageData(0, 0, width, height).data,
         mask = hexagon.mask = new Array(width);
     for (var x = 0; x < width; ++x) {
       var maskRow = mask[x] = new Array(height);
       for (var y = 0; y < height; ++y) {
         var pos = 4 * (y * width + x),
             sum = maskData[pos] + maskData[pos + 1] + maskData[pos + 2];
-        if (sum == 765) {
-          continue;
+        maskRow[y] = (sum != 765);
+      }
+    }
+
+    // Follow the mask to paint hexagons for several V/L settings in advance.
+    var startTime = performance.now();
+    hexagon.cached = {
+      steps: 25, canvas: [], context: []
+    };
+    var steps = hexagon.cached.steps;
+    for (var i = 1; i <= steps; ++i) {
+      var value = i / steps,
+          canvas = hexagon.cached.canvas[i] = M.make('canvas');
+      console.log('Painting hexagon '+i+', value '+value);
+      canvas.width = width;
+      canvas.height = height;
+      var context = hexagon.cached.context[i] = canvas.getContext('2d');
+      for (var x = 0; x < width; ++x) {
+        for (var y = 0; y < height; ++y) {
+          if (!mask[x][y]) {
+            continue;
+          }
+          // Calculate the chroma at this point.
+          var x1 = x - x0,
+              y1 = y0 - y;
+          var rgb = g.hexagonXYtoRGB(x1, y1, value);
+          var css = g.rgbToCss(rgb);
+          context.fillStyle = css;
+          context.fillRect(x, y, 1, 1);
         }
-        maskRow[y] = true;
-        // Calculate the chroma at this point.
-        var x1 = x - x0,
-            y1 = y0 - y;
-        var rgb = g.hexagonXYtoRGB(x1, y1);
-        var css = g.rgbToCss(rgb);
-        context.fillStyle = css;
-        context.fillRect(x, y, 1, 1);
       }
     }
     var elapsed = (performance.now() - startTime) / 1000;
-    console.log('painted hexagon in '+g.decimal(elapsed, 3)+' s');
+    console.log('prepared '+steps+' hexagons in '+g.decimal(elapsed, 3)+' s');
+    hexagon.context.color.drawImage(hexagon.cached.canvas[steps], 0, 0);
+
     var touchCanvas = hexagon.canvas.touch,
         touchContext = hexagon.context.touch,
         width = touchCanvas.width,
