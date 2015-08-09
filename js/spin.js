@@ -574,13 +574,13 @@ ColorSpinner.load = function () {
     // Follow the mask to paint hexagons for several V/L settings in advance.
     var startTime = performance.now();
     hexagon.cached = {
-      steps: 25, canvas: [], context: []
+      steps: 1, canvas: [], context: []
     };
     var steps = hexagon.cached.steps;
     for (var i = 1; i <= steps; ++i) {
       var value = i / steps,
           canvas = hexagon.cached.canvas[i] = M.make('canvas');
-      console.log('Painting hexagon '+i+', value '+value);
+      console.log('Painting hexagon '+i+' of '+steps+', value '+value);
       canvas.width = width;
       canvas.height = height;
       var context = hexagon.cached.context[i] = canvas.getContext('2d');
@@ -710,6 +710,19 @@ ColorSpinner.load = function () {
     gradient.addColorStop(1, '#000');
     context.fillStyle = gradient;
     context.fillRect(barOverhang, 0, barLength, sliderHeight);
+    // Click-and-drag stuff. Should pass a function to makeSlider, right?
+    var touchCanvas = slider.canvas.touch;
+    function clickSlider (event) {
+      console.log('clickSlider');
+    };
+    touchCanvas.onmousedown = function () {
+      clickSlider();
+      window.onmousemove = clickSlider;
+      window.onmouseup = function () {
+        window.onmouseup = undefined;
+        window.onmousemove = undefined;
+      };
+    };
     return slider;
   }
 
