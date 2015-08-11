@@ -712,8 +712,6 @@ ColorSpinner.load = function () {
     context.fillRect(barOverhang, 0, barLength, sliderHeight);
     // Click-and-drag stuff. Should pass a function to makeSlider, right?
     var touchCanvas = slider.canvas.touch;
-    touchCanvas.offset = M.getOffset(touchCanvas, document.body);
-    console.log(touchCanvas.offset.left, touchCanvas.offset.top);
     function clickSlider (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
@@ -743,10 +741,12 @@ ColorSpinner.load = function () {
     hexagon.style.left = left + 'px';
     hexagon.style.top = top + 'px';
     left += hexagonCanvasWidth + 15;
-    var touchCanvas = hexagon.canvas.touch;
-    touchCanvas.offset = M.getOffset(touchCanvas, document.body);
+    hexagon.canvas.touch.offset = M.getOffset(hexagon.canvas.touch,
+        document.body);
     slider.style.left = left + 'px';
     slider.style.top = top + 'px';
+    slider.canvas.touch.offset = M.getOffset(slider.canvas.touch,
+        document.body);
     left += sliderCanvasWidth;
   });
 
