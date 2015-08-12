@@ -120,16 +120,7 @@ ColorSpinner.hsv.mark = function (x, y, value) {
   var step = Math.max(1, Math.round(value * hexagon.cached.steps));
   hexagon.context.color.drawImage(hexagon.cached.canvas[step], 0, 0);
   // Update slider.
-  var slider = g.hexagon.hsv.slider,
-      barCanvas = slider.canvas.bar,
-      barContext = slider.context.bar,
-      sliderLayout = g.layout.slider,
-      sliderHeight = sliderLayout.height,
-      sliderWidth = sliderLayout.width,
-      barWidth = sliderLayout.bar.width,
-      barTop = Math.round((1 - value) * (sliderHeight - barWidth));
-  barContext.clearRect(0, 0, sliderWidth, sliderHeight);
-  barContext.fillRect(0, barTop, sliderWidth, barWidth);
+  hexagon.slider.mark(value);
 };
 
 ColorSpinner.hsv.update = function () {
@@ -711,12 +702,28 @@ ColorSpinner.load = function () {
     context.fillStyle = gradient;
     context.fillRect(barOverhang, 0, barLength, sliderHeight);
     // Click-and-drag stuff. Should pass a function to makeSlider, right?
-    var touchCanvas = slider.canvas.touch;
+    var touchCanvas = slider.canvas.touch,
+        barContext = slider.context.bar;
+    slider.mark = function (value) {
+      var barTop = Math.round((1 - value) * (sliderHeight - barWidth));
+      barContext.clearRect(0, 0, sliderWidth, sliderHeight);
+      barContext.fillRect(0, barTop, sliderWidth, barWidth);
+    };
     function clickSlider (event) {
       var position = M.getMousePosition(event),
           x = position.x - touchCanvas.offset.left,
-          y = position.y - touchCanvas.offset.top;
-      console.log(x, y);
+          y = position.y - touchCanvas.offset.top,
+          value = 1 - Math.max(0, Math.min(1, y / height));
+      slider.mark(value);
+      return;
+      g.value = value;
+      g.rgb = g.hexagonXYtoRGB(x1, y1);
+      g.mixers.forEach(function (mixer) {
+        mixer.paint();
+      });
+      g.mixGrid.paint();
+      g.mixGrid.mark();
+      g.hsv.mark(x, y, g.value);
     };
     touchCanvas.onmousedown = function () {
       clickSlider();
