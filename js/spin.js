@@ -116,6 +116,10 @@ ColorSpinner.hsv.mark = function (x, y, value) {
   context.beginPath();
   context.arc(x, y, 7.5, 0, 2 * Math.PI);
   context.stroke();
+  g.hsv.repaint(hexagon, value);
+};
+
+ColorSpinner.hsv.repaint = function (hexagon, value) {
   // Update hexagon background.
   var step = Math.max(1, Math.round(value * hexagon.cached.steps));
   hexagon.context.color.drawImage(hexagon.cached.canvas[step], 0, 0);
@@ -172,7 +176,8 @@ ColorSpinner.hsv.update = function () {
       y = Math.round(y0 - r * Math.sin(angle));
   x = Math.max(0, Math.min(x, width));
   y = Math.max(0, Math.min(y, height));
-  g.lastHexagonClick = { x1: x, y1: y };
+  var x1 = x - x0, y1 = y0 - y;
+  g.lastHexagonClick = { x1: x1, y1: y1 };
 
   g.message('HSV('+g.decimal(H, 2)+', '+g.decimal(saturation, 2)+', '+
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
@@ -566,13 +571,12 @@ ColorSpinner.load = function () {
     // Follow the mask to paint hexagons for several V/L settings in advance.
     var startTime = performance.now();
     hexagon.cached = {
-      steps: 10, canvas: [], context: []
+      steps: 8, canvas: [], context: []
     };
     var steps = hexagon.cached.steps;
     for (var i = 1; i <= steps; ++i) {
       var value = i / steps,
           canvas = hexagon.cached.canvas[i] = M.make('canvas');
-      console.log('Painting hexagon '+i+' of '+steps+', value '+value);
       canvas.width = width;
       canvas.height = height;
       var context = hexagon.cached.context[i] = canvas.getContext('2d');
@@ -590,6 +594,8 @@ ColorSpinner.load = function () {
           context.fillRect(x, y, 1, 1);
         }
       }
+      var elapsed = (performance.now() - startTime) / 1000;
+      console.log('made hexagon '+i+' of '+steps+' '+g.decimal(elapsed,3)+' s');
     }
     var elapsed = (performance.now() - startTime) / 1000;
     console.log('prepared '+steps+' hexagons in '+g.decimal(elapsed, 3)+' s');
@@ -719,7 +725,6 @@ ColorSpinner.load = function () {
       slider.mark(value);
       var pos = g.lastHexagonClick,
           x1 = pos.x1, y1 = pos.y1;
-      console.log(x1, y1);
       g.value = value;
       g.rgb = g.hexagonXYtoRGB(x1, y1);
       g.mixers.forEach(function (mixer) {
@@ -727,7 +732,7 @@ ColorSpinner.load = function () {
       });
       g.mixGrid.paint();
       g.mixGrid.mark();
-      g.hsv.mark(x1, y1, g.value);
+      g.hsv.repaint(g.hexagon.hsv, value);
     };
     touchCanvas.onmousedown = function () {
       clickSlider();

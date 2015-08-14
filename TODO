@@ -33,8 +33,8 @@ to do right now:
   + change HSV update action from hover to drag
   + paint hexagons in advance
   + update hexagon backdrop when value changes
-  - prepare value slider click-and-draggable
-  - make backdrop images
+  + make value slider click-and-draggable
+  - prepare backdrop images
     - load images in a sprite sheet
     - fast image swap
   - change to HSL
@@ -48,7 +48,7 @@ to do right now:
 - hexagon zoom: allows more fine-grained selection
 - swatch generator: derive color samples from the current color
 
-next: refactor this hideous mess
+refactor this hideous mess
   - untangle the spaghetti
   - separate things logically
   - DRY out the works
