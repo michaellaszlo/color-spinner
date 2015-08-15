@@ -569,14 +569,15 @@ ColorSpinner.load = function () {
     }
 
     // Follow the mask to paint hexagons for several V/L settings in advance.
-    var startTime = performance.now();
+    var startTime = performance.now(),
+        canvas = hexagon.canvas.color,
+        context = hexagon.context.color;
     hexagon.cached = {
-      steps: 8, canvas: [], context: []
+      steps: 8, dataURLs: [], canvas: [], context: []
     };
     var steps = hexagon.cached.steps;
     for (var i = 1; i <= steps; ++i) {
-      var value = i / steps,
-          canvas = hexagon.cached.canvas[i] = M.make('canvas');
+      var value = i / steps;
       canvas.width = width;
       canvas.height = height;
       var context = hexagon.cached.context[i] = canvas.getContext('2d');
@@ -594,6 +595,7 @@ ColorSpinner.load = function () {
           context.fillRect(x, y, 1, 1);
         }
       }
+      hexagon.cached.dataURLs[i] = canvas.toDataURL();
       var elapsed = (performance.now() - startTime) / 1000;
       console.log('made hexagon '+i+' of '+steps+' '+g.decimal(elapsed,3)+' s');
     }
