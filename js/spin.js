@@ -121,8 +121,11 @@ ColorSpinner.hsv.mark = function (x, y, value) {
 
 ColorSpinner.hsv.repaint = function (hexagon, value) {
   // Update hexagon background.
-  var step = Math.max(1, Math.round(value * hexagon.cached.steps));
-  hexagon.context.color.drawImage(hexagon.cached.canvas[step], 0, 0);
+  var step = Math.max(1, Math.round(value * hexagon.cached.steps)) - 1,
+      width = hexagon.canvas.color.width,
+      height = hexagon.canvas.color.height;
+  hexagon.context.color.drawImage(hexagon.cached.canvas,
+      step * width, 0, width, height, 0, 0, width, height);
   // Update slider.
   hexagon.slider.mark(value);
 };
@@ -569,18 +572,17 @@ ColorSpinner.load = function () {
     }
 
     // Follow the mask to paint hexagons for several V/L settings in advance.
-    var startTime = performance.now(),
-        canvas = hexagon.canvas.color,
-        context = hexagon.context.color;
+    var startTime = performance.now();
     hexagon.cached = {
-      steps: 8, dataURLs: [], canvas: [], context: []
+      steps: 20, canvas: M.make('canvas')
     };
     var steps = hexagon.cached.steps;
-    for (var i = 1; i <= steps; ++i) {
-      var value = i / steps;
-      canvas.width = width;
-      canvas.height = height;
-      var context = hexagon.cached.context[i] = canvas.getContext('2d');
+    hexagon.cached.canvas.width = hexagon.cached.steps * width;
+    hexagon.cached.canvas.height = height;
+    hexagon.cached.context = hexagon.cached.canvas.getContext('2d');
+    var colorContext = hexagon.context.color;
+    for (var i = 0; i < steps; ++i) {
+      var value = (i + 1) / steps;
       for (var x = 0; x < width; ++x) {
         for (var y = 0; y < height; ++y) {
           if (!mask[x][y]) {
@@ -591,17 +593,16 @@ ColorSpinner.load = function () {
               y1 = y0 - y;
           var rgb = g.hexagonXYtoRGB(x1, y1, value);
           var css = g.rgbToCss(rgb);
-          context.fillStyle = css;
-          context.fillRect(x, y, 1, 1);
+          colorContext.fillStyle = css;
+          colorContext.fillRect(x, y, 1, 1);
         }
       }
-      hexagon.cached.dataURLs[i] = canvas.toDataURL();
+      hexagon.cached.context.drawImage(hexagon.canvas.color, i * width, 0);
       var elapsed = (performance.now() - startTime) / 1000;
       console.log('made hexagon '+i+' of '+steps+' '+g.decimal(elapsed,3)+' s');
     }
     var elapsed = (performance.now() - startTime) / 1000;
     console.log('prepared '+steps+' hexagons in '+g.decimal(elapsed, 3)+' s');
-    hexagon.context.color.drawImage(hexagon.cached.canvas[steps], 0, 0);
 
     var touchCanvas = hexagon.canvas.touch,
         touchContext = hexagon.context.touch,
@@ -736,8 +737,8 @@ ColorSpinner.load = function () {
       g.mixGrid.mark();
       g.hsv.repaint(g.hexagon.hsv, value);
     };
-    touchCanvas.onmousedown = function () {
-      clickSlider();
+    touchCanvas.onmousedown = function (event) {
+      clickSlider(event);
       window.onmousemove = clickSlider;
       window.onmouseup = function () {
         window.onmouseup = undefined;
