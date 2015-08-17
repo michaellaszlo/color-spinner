@@ -34,19 +34,27 @@ to do right now:
   + paint hexagons in advance
   + update hexagon backdrop when value changes
   + make value slider click-and-draggable
-  - prepare backdrop images
-    - load images in a sprite sheet
-    - fast image swap
-  - change to HSL
-  - change to circle
+  + prepare backdrop images
+  - generalized backdrop loader
+  - HSL variant
+  - circle variant
+  - make a magnified selection area
   - make a mixer object that support HSL/HSV, circle/hexagon
-- add ghost action to all controls
-  -> good subject for a blog post
-- text controls
-  - RGB text box
-  - HSV text box
-- hexagon zoom: allows more fine-grained selection
-- swatch generator: derive color samples from the current color
+  - add ghost action to all controls
+    -> subject for a blog post?
+  - text controls
+    - RGB text box
+    - HSV text box
+  - hexagon zoom: allows more fine-grained selection
+  - swatch generator: derive color samples from the current color
+
+generalized backdrop loader
+  - generate images in the background
+    - breadth-first through a binary segmentation of the range
+  - when a backdrop is requested, copy the closest available one
+    - put the request at the front of the queue
+  - paint the true image on a fixed canvas and show it when it's ready
+    - keep a small pool of fixed canvases
 
 refactor this hideous mess
   - untangle the spaghetti

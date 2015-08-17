@@ -31,7 +31,13 @@ ColorSpinner.toHex2 = function (i) {
     hex = '0'+hex;
   }
   return hex;
-}
+};
+
+ColorSpinner.makeHexString = function () {
+  var g = ColorSpinner,
+      rgb = g.rgb;
+  return '#' + g.toHex2(rgb[0]) + g.toHex2(rgb[1]) + g.toHex2(rgb[2]);
+};
 
 ColorSpinner.makeContrastRgb = function (rgb) {
   var contrastRgb = [255, 255, 255];
@@ -186,6 +192,7 @@ ColorSpinner.hsv.update = function () {
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
       ', r = '+ g.decimal(r, 2)+', x = '+x+', y = '+y, 'HSV');
   g.hsv.mark(x, y, value);
+  console.log(g.makeHexString());
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
@@ -574,7 +581,7 @@ ColorSpinner.load = function () {
     // Follow the mask to paint hexagons for several V/L settings in advance.
     var startTime = performance.now();
     hexagon.cached = {
-      steps: 20, canvas: M.make('canvas')
+      steps: 4, canvas: M.make('canvas')
     };
     var steps = hexagon.cached.steps;
     hexagon.cached.canvas.width = hexagon.cached.steps * width;
