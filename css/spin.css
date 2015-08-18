@@ -77,3 +77,18 @@ canvas {
   visibility: hidden;
 }
 
+#hexDisplay, #hexInput {
+  position: fixed;
+  right: 10px;
+  width: 300px;
+  height: 50px;
+  border: 1px solid #ddd;
+}
+#hexDisplay {
+  bottom: 200px;
+}
+#hexInput {
+  position: fixed;
+  bottom: 100px;
+}
+
