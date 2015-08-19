@@ -192,7 +192,11 @@ ColorSpinner.hsv.update = function () {
       g.decimal(value, 2)+')'+'<br />angle = '+g.decimal(angle, 3)+
       ', r = '+ g.decimal(r, 2)+', x = '+x+', y = '+y, 'HSV');
   g.hsv.mark(x, y, value);
-  console.log(g.makeHexString());
+};
+
+ColorSpinner.displayHex = function () {
+  var g = ColorSpinner;
+  document.getElementById('hexDisplay').innerHTML = g.makeHexString();
 };
 
 ColorSpinner.addMixerFunctions = function (mixer) {
@@ -290,6 +294,7 @@ ColorSpinner.addMixerFunctions = function (mixer) {
     selectContext.fill();
     g.mixGrid.paint();
     g.mixGrid.mark();
+    g.displayHex();
   };
   mixer.deselect = function () {
     selectContext.clearRect(0, 0, diameter, diameter);
@@ -665,6 +670,7 @@ ColorSpinner.load = function () {
       var x1 = x - width / 2, y1 = height / 2 - y;
       g.lastHexagonClick = { x1: x1, y1: y1 };
       g.rgb = g.hexagonXYtoRGB(x1, y1);
+      g.displayHex();
       g.mixers.forEach(function (mixer) {
         mixer.paint();
       });
@@ -737,6 +743,7 @@ ColorSpinner.load = function () {
           x1 = pos.x1, y1 = pos.y1;
       g.value = value;
       g.rgb = g.hexagonXYtoRGB(x1, y1);
+      g.displayHex();
       g.mixers.forEach(function (mixer) {
         mixer.paint();
       });

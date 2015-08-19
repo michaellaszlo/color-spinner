@@ -80,15 +80,20 @@ canvas {
 #hexDisplay, #hexInput {
   position: fixed;
   right: 10px;
-  width: 300px;
+  width: 200px;
   height: 50px;
   border: 1px solid #ddd;
+  font-size: 32px;
+  padding: 2px 15px 8px;
+  z-index: 100;
 }
 #hexDisplay {
   bottom: 200px;
+  text-align: center;
 }
 #hexInput {
   position: fixed;
   bottom: 100px;
+  outline: none;
 }
 
