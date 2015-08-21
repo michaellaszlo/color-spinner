@@ -85,15 +85,16 @@ canvas {
   border: 1px solid #ddd;
   font-size: 32px;
   padding: 2px 15px 8px;
+  right: 50px;
   z-index: 100;
 }
 #hexDisplay {
-  bottom: 200px;
+  top: 300px;
   text-align: center;
 }
 #hexInput {
   position: fixed;
-  bottom: 100px;
+  top: 400px;
   outline: none;
 }
 
