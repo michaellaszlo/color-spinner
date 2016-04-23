@@ -93,7 +93,7 @@ M.getOffset = function (element, ancestor) {
 
 M.getMousePosition = function (event) {
   event = event || window.event;
-  if (event.pageX) {
+  if (event.pageX !== undefined) {
     return { x: event.pageX, y: event.pageY };
   }
   return {
@@ -102,5 +102,5 @@ M.getMousePosition = function (event) {
     y: event.clientY + document.body.scrollTop +
         document.documentElement.scrollTop
   };
-}
+};
 

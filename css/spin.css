@@ -1,100 +1,10 @@
-body, div, p, span, ul, li {
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
   font-family: sans-serif;
-}
-
-.unselectable {
-  -webkit-user-select: none;
-  -khtml-user-drag: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -moz-user-select: -moz-none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-#drawingArea {
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-#paletteCanvas {
-  position: absolute;
-  border: 1px dotted #ccc;
-}
-
-canvas {
-  cursor: default;
-}
-
-#drawingArea div {
-  position: absolute;
-}
-
-#drawingArea .label {
-  cursor: default;
-  position: absolute;
-  display: inline;
-  font-size: 32px;
-  text-align: center;
-}
-
-.mixer canvas, .hexagon canvas, .slider canvas {
-  position: absolute;
-}
-
-#mixGrid {
-  position: relative;
-}
-#mixGrid canvas {
-  position: absolute;
-}
-
-#debugHSV {
-  position: fixed;
-  z-index: 10000;
-  top: 310px;
-  left: 430px;
-  padding: 10px 15px;
-  background: #dde6be;
-  color: #951c15;
-  visibility: hidden;
-}
-
-#debug {
-  position: fixed;
-  z-index: 10000;
-  top: 370px;
-  left: 430px;
-  padding: 10px 15px;
-  background: #f9f0df;
-  color: #951c15;
-  visibility: hidden;
-}
-
-#hexDisplay, #hexInput {
-  position: fixed;
-  right: 10px;
-  width: 200px;
-  height: 50px;
-  border: 1px solid #ddd;
-  font-size: 32px;
-  padding: 2px 15px 8px;
-  right: 50px;
-  z-index: 100;
-}
-#hexDisplay {
-  top: 300px;
-  text-align: center;
-}
-#hexInput {
-  position: fixed;
-  top: 400px;
-  outline: none;
 }
 
