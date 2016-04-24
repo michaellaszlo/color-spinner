@@ -11,4 +11,6 @@ var ColorPicker = (function () {
   };
 })();
 
-onload = ColorPicker.load(document.getElementById('wrapper'));
+onload = function () {
+  ColorPicker.load(document.getElementById('wrapper'));
+}

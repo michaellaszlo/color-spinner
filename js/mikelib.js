@@ -60,22 +60,16 @@ M.makeUnselectable = function (element) {
 };
 
 M.make = function (tag, options) {
-  var element = document.createElement(tag);
-  if (options !== undefined) {
-    if (options.into !== undefined) {
-      options.into.appendChild(element);
-    }
-    if (options.unselectable === true) {
-      M.makeUnselectable(element);
-      //element.className = 'unselectable';
-    }
-    var keys = ['id', 'className', 'innerHTML'];
-    for (var i = 0; i < keys.length; ++i) {
-      var key = keys[i];
-      if (options[key] !== undefined) {
-        element[key] = options[key];
-      }
-    }
+  var element = document.createElement(tag),
+      keys,
+      i;
+  if ('parent' in options) {
+    options.parent.appendChild(element);
+    delete options.parent;
+  }
+  keys = Object.keys(options);
+  for (i = 0; i < keys.length; ++i) {
+    element[keys[i]] = options[keys[i]];
   }
   return element;
 };
@@ -93,7 +87,7 @@ M.getOffset = function (element, ancestor) {
 
 M.getMousePosition = function (event) {
   event = event || window.event;
-  if (event.pageX !== undefined) {
+  if ('pageX' in event) {
     return { x: event.pageX, y: event.pageY };
   }
   return {
@@ -102,5 +96,5 @@ M.getMousePosition = function (event) {
     y: event.clientY + document.body.scrollTop +
         document.documentElement.scrollTop
   };
-};
+}
 
