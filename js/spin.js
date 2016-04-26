@@ -3,6 +3,14 @@ var ColorPicker = (function () {
       colorInput,
       colorOutputs;
 
+  function setColor(color) {
+  }
+
+  function parseColorInput() {
+    var s = colorInput.value.replace(/\s+/g, '');
+    console.log('s = "' + s + '"');
+  }
+
   function load(wrapper) {
     containers = {};
     containers.wrapper = wrapper;
@@ -14,6 +22,8 @@ var ColorPicker = (function () {
     // vlBar
     // namePanel
     colorInput = M.make('input', { parent: containers.namePanel });
+    M.listen(colorInput, parseColorInput, 'keydown', 'keyup',
+        'mousedown', 'mouseup');
     containers.colorOutputs = M.make('div', { parent: containers.namePanel });
     colorOutputs = {};
     colorOutputs.hex = M.make('div', { parent: containers.colorOutputs });

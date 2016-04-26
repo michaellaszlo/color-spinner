@@ -98,3 +98,10 @@ M.getMousePosition = function (event) {
   };
 }
 
+M.listen = function (element, handler) {
+  var i;
+  for (i = 2; i < arguments.length; ++i) {
+    element.addEventListener(arguments[i], handler);
+  }
+};
+
