@@ -4,7 +4,7 @@ var ColorPicker = (function () {
       colorOutputs;
 
   function setColor(color) {
-    console.log(JSON.stringify(color));
+    console.log([ color, color.rgbString(1), color.rgbString(100) ].join('  '));
   }
 
   function Color(r, g, b) {
@@ -13,6 +13,43 @@ var ColorPicker = (function () {
     this.g = g;
     this.b = b;
   }
+  Color.prototype.componentString = function (x, format) {
+    // Render RGB component to a string with up to three significant digits.
+    var value = this[x],
+        s;
+    if (format == 1 || format == 'decimal' || format == 'fractional') {
+      if (value == 255) {
+        return '1';
+      }
+      if (value == 0) {
+        return '0';
+      }
+      return ('' + value / 255).substring(0, 5);
+    }
+    if (format == 100 || format == '%' || format == 'percent' ||
+        format == 'percentage') {
+      if (value == 255) {
+        return '100%';
+      }
+      if (value == 0) {
+        return '0%';
+      }
+      s = '' + value / 2.55;
+      if (value < 3) {  // 0.nnn
+        return s.substring(0, 5) + '%';
+      }
+      return s.substring(0, 4) + '%';
+    }
+    return value;
+  };
+  Color.prototype.toString = function () {
+    return this.rgbString(255);
+  };
+  Color.prototype.rgbString = function (format) {
+    return 'rgb(' + this.componentString('r', format) + ', ' +
+        this.componentString('g', format) + ', ' +
+        this.componentString('b', format) + ')';
+  };
 
   function parseColor(s) {
     var groups,
