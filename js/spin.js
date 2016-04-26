@@ -6,9 +6,31 @@ var ColorPicker = (function () {
   function setColor(color) {
   }
 
-  function parseColorInput() {
-    var s = colorInput.value.replace(/\s+/g, '');
-    console.log('s = "' + s + '"');
+  function Color(r, g, b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+  Color.prototype.toString = function(kind) {
+  };
+
+  function parseColor(s) {
+    var groups;
+    s = s.replace(/\s+/g, '');
+    // Hex value.
+    groups = s.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (groups !== null) {
+      console.log('hex color "' + groups[1] + '"');
+    }
+  }
+
+  function handleColorInput() {
+    var color = parseColor(colorInput.value);
+    if (color !== null) {
+      setColor(color);
+    } else {
+      console.log('invalid color "' + s + '"');
+    }
   }
 
   function load(wrapper) {
@@ -22,7 +44,7 @@ var ColorPicker = (function () {
     // vlBar
     // namePanel
     colorInput = M.make('input', { parent: containers.namePanel });
-    M.listen(colorInput, parseColorInput, 'keydown', 'keyup',
+    M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
     containers.colorOutputs = M.make('div', { parent: containers.namePanel });
     colorOutputs = {};
