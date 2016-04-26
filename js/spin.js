@@ -4,33 +4,46 @@ var ColorPicker = (function () {
       colorOutputs;
 
   function setColor(color) {
+    console.log(JSON.stringify(color));
   }
 
   function Color(r, g, b) {
+    // Each color component is stored as an 8-bit integer.
     this.r = r;
     this.g = g;
     this.b = b;
   }
-  Color.prototype.toString = function(kind) {
-  };
 
   function parseColor(s) {
-    var groups;
+    var groups,
+        i, x,
+        rgb = [];
     s = s.replace(/\s+/g, '');
     // Hex value.
     groups = s.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
     if (groups !== null) {
-      console.log('hex color "' + groups[1] + '"');
+      s = groups[1];
+      if (s.length == 3) {
+        for (i = 0; i < 3; ++i) {
+          x = parseInt(s.charAt(i), 16);
+          rgb.push(16 * x + x);
+        }
+      } else {
+        for (i = 0; i < 3; ++i) {
+          rgb.push(parseInt(s.substring(2 * i, 2 * i + 2), 16));
+        }
+      }
+      return new Color(rgb[0], rgb[1], rgb[2]);
     }
+    return null;
   }
 
   function handleColorInput() {
     var color = parseColor(colorInput.value);
-    if (color !== null) {
-      setColor(color);
-    } else {
-      console.log('invalid color "' + s + '"');
+    if (color === null) {
+      return;
     }
+    setColor(color);
   }
 
   function load(wrapper) {
