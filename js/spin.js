@@ -1,24 +1,39 @@
 var ColorPicker = (function () {
+  'use strict';
   var containers,
       colorInput,
       colorOutputs,
-      currentColor;
+      currentColor,
+      liveSwatch;
 
   function setColor() {
     var color;
+    // You can pass an argument with rgb properties, such as a color object,
+    // or you can pass three arguments that are the rgb values.
     if (arguments.length == 1) {
       color = Color(arguments[0].r, arguments[0].g, arguments[0].b);
     } else {
       color = Color(arguments[0], arguments[1], arguments[2]);
     }
     console.log(JSON.stringify(color));
-    updateConverter(color);
+    updateGraphicalPicker(color);
+    updateNameConverter(color);
+    updateSwatchManager(color);
     currentColor = color;
   }
 
-  function updateConverter(color) {
+  function updateNameConverter(color) {
     colorOutputs.hex.innerHTML = color.hexString();
     colorOutputs.rgb.innerHTML = color.rgbString();
+  }
+
+  function updateGraphicalPicker(color) {
+  }
+
+  function updateSwatchManager(color) {
+    var fill = liveSwatch.getElementsByClassName('fill')[0];
+    console.log(fill);
+    fill.style.backgroundColor = color.rgbString();
   }
 
   function Color(r, g, b) {
@@ -115,24 +130,31 @@ var ColorPicker = (function () {
   }
 
   function load(wrapper) {
+    var names;
     containers = {};
     containers.wrapper = wrapper;
-    [ 'macroHex', 'microHex', 'vlBar', 'namePanel' ].forEach(function (name) {
+    names = [ 'graphicalPicker', 'nameConverter', 'swatchManager' ];
+    names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
-    // macroHex
-    // microHex
-    // vlBar
-    // namePanel
-    colorInput = M.make('input', { parent: containers.namePanel });
+
+    // nameConverter
+    colorInput = M.make('input', { parent: containers.nameConverter });
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
-    containers.colorOutputs = M.make('div', { parent: containers.namePanel });
+    containers.colorOutputs = M.make('div', {
+        parent: containers.nameConverter });
     colorOutputs = {};
-    colorOutputs.hex = M.make('div', { parent: containers.colorOutputs,
-        className: 'output' });
-    colorOutputs.rgb = M.make('div', { parent: containers.colorOutputs,
-        className: 'output' });
+    colorOutputs.hex = M.make('div', { className: 'output',
+        parent: containers.colorOutputs });
+    colorOutputs.rgb = M.make('div', { className: 'output',
+        parent: containers.colorOutputs });
+
+    // swatchManager
+    liveSwatch = M.make('div', { className: 'swatch', id: 'liveSwatch',
+        parent: containers.swatchManager });
+    M.make('div', { className: 'fill', parent: liveSwatch });
+
     setColor(0, 0, 0);
   }
   

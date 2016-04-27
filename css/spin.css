@@ -8,14 +8,14 @@ body {
   font-family: sans-serif;
 }
 
-#namePanel {
+#nameConverter {
   display: inline-block;
-  margin: 10px;
+  margin: 10px 10px 0;
   padding: 10px;
   background: #efefef;
   border: 2px solid #eee;
 }
-#namePanel input, #namePanel .output {
+#nameConverter input, #nameConverter .output {
   width: 350px;
   font-size: 24px;
   outline: none;
@@ -23,12 +23,37 @@ body {
   color: #666;
   padding: 2px 8px 4px;
 }
-#namePanel input {
+#nameConverter input {
   margin-bottom: 4px;
 }
-#namePanel .output {
+#nameConverter .output {
   padding: 0 9px;
   border: 0;
   color: #333;
+}
+
+#swatchManager {
+  width: 800px;
+  margin: 10px 10px 0;
+  padding: 10px;
+  border: 2px solid #eee;
+}
+.swatch {
+  display: inline-block;
+  margin: 1px;
+  padding: 5px;
+  border: 1px solid #bbb;
+}
+.swatch .fill {
+  width: 45px;
+  height: 50px;
+}
+#liveSwatch {
+  margin: 5px;
+  border: 1px dotted #bbb;
+}
+#liveSwatch .fill {
+  width: 50px;
+  height: 55px;
 }
 
