@@ -15,11 +15,14 @@ var ColorPicker = (function () {
     } else {
       color = Color(arguments[0], arguments[1], arguments[2]);
     }
-    console.log(JSON.stringify(color));
+    if (color.equal(currentColor)) {
+      return;
+    }
+    currentColor = color;
+    console.log('setting current color: ' + currentColor.hexString());
     updateGraphicalPicker(color);
     updateNameConverter(color);
     updateSwatchManager(color);
-    currentColor = color;
   }
 
   function updateNameConverter(color) {
@@ -32,7 +35,6 @@ var ColorPicker = (function () {
 
   function updateSwatchManager(color) {
     var fill = liveSwatch.getElementsByClassName('fill')[0];
-    console.log(fill);
     fill.style.backgroundColor = color.rgbString();
   }
 
@@ -45,6 +47,12 @@ var ColorPicker = (function () {
     this.g = g;
     this.b = b;
   }
+  Color.prototype.equal = function (color) {
+    if (!(color instanceof Color)) {
+      return false;
+    }
+    return this.r === color.r && this.g === color.g && this.b === color.b;
+  };
   Color.prototype.componentString = function (x, format) {
     // Render RGB component to a string with up to three significant digits.
     var value = this[x],
