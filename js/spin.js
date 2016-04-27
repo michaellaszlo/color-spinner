@@ -4,10 +4,13 @@ var ColorPicker = (function () {
       colorOutputs;
 
   function setColor(color) {
-    console.log([ color, color.rgbString(1), color.rgbString(100) ].join('  '));
+    console.log([ color, color.hexString() ].join('  '));
   }
 
   function Color(r, g, b) {
+    if (!(this instanceof Color)) {
+      return new Color(r, g, b);
+    }
     // Each color component is stored as an 8-bit integer.
     this.r = r;
     this.g = g;
@@ -50,6 +53,19 @@ var ColorPicker = (function () {
         this.componentString('g', format) + ', ' +
         this.componentString('b', format) + ')';
   };
+  Color.prototype.hexString = function () {
+    var parts = [],
+        i, s;
+    for (i = 0; i < 3; ++i) {
+      s = (new Number(this['rgb'.charAt(i)])).toString(16);
+      parts.push(s.length == 1 ? '0' + s : s);
+    }
+    return '#' + parts.join('');
+  };
+  Color.prototype.hslString = function (format) {
+  };
+  Color.prototype.hsvString = function (format) {
+  };
 
   function parseColor(s) {
     var groups,
@@ -70,7 +86,7 @@ var ColorPicker = (function () {
           rgb.push(parseInt(s.substring(2 * i, 2 * i + 2), 16));
         }
       }
-      return new Color(rgb[0], rgb[1], rgb[2]);
+      return Color(rgb[0], rgb[1], rgb[2]);
     }
     return null;
   }
