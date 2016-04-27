@@ -1,10 +1,24 @@
 var ColorPicker = (function () {
   var containers,
       colorInput,
-      colorOutputs;
+      colorOutputs,
+      currentColor;
 
-  function setColor(color) {
-    console.log([ color, color.hexString() ].join('  '));
+  function setColor() {
+    var color;
+    if (arguments.length == 1) {
+      color = Color(arguments[0].r, arguments[0].g, arguments[0].b);
+    } else {
+      color = Color(arguments[0], arguments[1], arguments[2]);
+    }
+    console.log(JSON.stringify(color));
+    updateConverter(color);
+    currentColor = color;
+  }
+
+  function updateConverter(color) {
+    colorOutputs.hex.innerHTML = color.hexString();
+    colorOutputs.rgb.innerHTML = color.rgbString();
   }
 
   function Color(r, g, b) {
@@ -68,6 +82,7 @@ var ColorPicker = (function () {
   };
 
   function parseColor(s) {
+    // Color string formats: https://www.w3.org/wiki/CSS/Properties/color
     var groups,
         i, x,
         rgb = [];
@@ -114,8 +129,11 @@ var ColorPicker = (function () {
         'mousedown', 'mouseup');
     containers.colorOutputs = M.make('div', { parent: containers.namePanel });
     colorOutputs = {};
-    colorOutputs.hex = M.make('div', { parent: containers.colorOutputs });
-    colorOutputs.rgb256 = M.make('div', { parent: containers.colorOutputs });
+    colorOutputs.hex = M.make('div', { parent: containers.colorOutputs,
+        className: 'output' });
+    colorOutputs.rgb = M.make('div', { parent: containers.colorOutputs,
+        className: 'output' });
+    setColor(0, 0, 0);
   }
   
   return {

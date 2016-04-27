@@ -8,3 +8,27 @@ body {
   font-family: sans-serif;
 }
 
+#namePanel {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px;
+  background: #efefef;
+  border: 2px solid #eee;
+}
+#namePanel input, #namePanel .output {
+  width: 350px;
+  font-size: 24px;
+  outline: none;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 2px 8px 4px;
+}
+#namePanel input {
+  margin-bottom: 4px;
+}
+#namePanel .output {
+  padding: 0 9px;
+  border: 0;
+  color: #333;
+}
+
