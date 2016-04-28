@@ -188,7 +188,16 @@ NameWriter = (function () {
 SwatchManager = (function () {
   var containers,
       liveSwatch,
+      firstClone,
       parentSetColor;
+  
+  function setColor(color) {
+    liveSwatch.color = color;
+    liveSwatch.fill.style.backgroundColor = color.rgbString();
+    if (parentSetColor) {
+      parentSetColor(color);
+    }
+  }
 
   function makeSwatch(options) {
     var swatch;
@@ -199,17 +208,25 @@ SwatchManager = (function () {
     swatch.fill = M.make('div', { className: 'fill', parent: swatch });
     return swatch;
   }
-  
-  function setColor(color) {
-    liveSwatch.fill.style.backgroundColor = color.rgbString();
-    if (parentSetColor) {
-      parentSetColor(color);
+
+  function cloneLiveSwatch() {
+    var swatch;
+    if (!('color' in liveSwatch)) {
+      return;
     }
+    swatch = makeSwatch();
+    swatch.color = new Color(liveSwatch.color);
+    swatch.fill.style.backgroundColor = swatch.color.rgbString();
+    if (firstClone) {
+      containers.wrapper.insertBefore(swatch, firstClone);
+    }
+    firstClone = swatch;
   }
 
   function load(wrapper, options) {
     containers = { wrapper: wrapper };
     liveSwatch = makeSwatch({ id: 'liveSwatch' });
+    M.listen(liveSwatch, cloneLiveSwatch, 'click');
     if (!options) {
       return;
     }
@@ -220,7 +237,8 @@ SwatchManager = (function () {
 
   return {
     load: load,
-    setColor: setColor
+    setColor: setColor,
+    cloneLiveSwatch: cloneLiveSwatch
   };
 })();
 
@@ -230,7 +248,8 @@ SwatchManager = (function () {
 
 ColorPicker = (function () {
   var containers,
-      currentColor;
+      currentColor,
+      i;
 
   function setColor(color) {
     if (color.rgbEquals(currentColor)) {
@@ -250,8 +269,11 @@ ColorPicker = (function () {
     });
     NameWriter.load(containers.nameWriter, { parentSetColor: setColor });
     SwatchManager.load(containers.swatchManager, { parentSetColor: setColor });
-    setColor(new Color(Math.floor(256 * Math.random()),
-        Math.floor(256 * Math.random()), Math.floor(256 * Math.random())));
+    for (i = 0; i < 4; ++i) { 
+      SwatchManager.cloneLiveSwatch();
+      setColor(new Color(Math.floor(256 * Math.random()),
+          Math.floor(256 * Math.random()), Math.floor(256 * Math.random())));
+    }
   }
   
   return {

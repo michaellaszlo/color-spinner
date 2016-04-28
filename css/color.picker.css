@@ -33,27 +33,31 @@ body {
 }
 
 #swatchManager {
-  width: 800px;
+  width: 374px;
   margin: 10px 10px 0;
   padding: 10px;
   border: 2px solid #eee;
 }
 .swatch {
   display: inline-block;
-  margin: 1px;
-  padding: 5px;
-  border: 1px solid #bbb;
+  padding: 10px 0 10px 4px;
+  border: 1px solid transparent;
 }
 .swatch .fill {
   width: 45px;
   height: 50px;
 }
 #liveSwatch {
-  margin: 5px;
+  padding: 5px;
   border: 1px solid #ccc;
+  cursor: pointer;
+}
+#liveSwatch:hover {
+  border: 2px dotted #ccc;
+  padding: 4px;
 }
 #liveSwatch .fill {
-  width: 50px;
-  height: 55px;
+  width: 55px;
+  height: 60px;
 }
 
