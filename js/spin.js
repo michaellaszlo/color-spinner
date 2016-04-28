@@ -1,3 +1,82 @@
+
+//==== Color
+
+var Color = function (r, g, b) {
+  if (!(this instanceof Color)) {
+    return new Color(r, g, b);
+  }
+  // Each color component is stored as an 8-bit integer.
+  this.r = r;
+  this.g = g;
+  this.b = b;
+}
+
+Color.prototype.equal = function (color) {
+  if (!(color instanceof Color)) {
+    return false;
+  }
+  return this.r === color.r && this.g === color.g && this.b === color.b;
+};
+
+Color.prototype.componentString = function (x, format) {
+  // Render RGB component to a string with up to three significant digits.
+  var value = this[x],
+      s;
+  if (format == 1 || format == 'decimal' || format == 'fractional') {
+    if (value == 255) {
+      return '1';
+    }
+    if (value == 0) {
+      return '0';
+    }
+    return ('' + value / 255).substring(0, 5);
+  }
+  if (format == 100 || format == '%' || format == 'percent' ||
+      format == 'percentage') {
+    if (value == 255) {
+      return '100%';
+    }
+    if (value == 0) {
+      return '0%';
+    }
+    s = '' + value / 2.55;
+    if (value < 3) {  // 0.nnn
+      return s.substring(0, 5) + '%';
+    }
+    return s.substring(0, 4) + '%';
+  }
+  return value;
+};
+
+Color.prototype.toString = function () {
+  return this.rgbString(255);
+};
+
+Color.prototype.rgbString = function (format) {
+  return 'rgb(' + this.componentString('r', format) + ', ' +
+      this.componentString('g', format) + ', ' +
+      this.componentString('b', format) + ')';
+};
+
+Color.prototype.hexString = function () {
+  var parts = [],
+      i, s;
+  for (i = 0; i < 3; ++i) {
+    s = (new Number(this['rgb'.charAt(i)])).toString(16);
+    parts.push(s.length == 1 ? '0' + s : s);
+  }
+  return '#' + parts.join('');
+};
+
+Color.prototype.hslString = function (format) {
+};
+
+Color.prototype.hsvString = function (format) {
+};
+
+
+//==== ColorPicker
+
 var ColorPicker = (function () {
   'use strict';
   var containers,
@@ -19,7 +98,6 @@ var ColorPicker = (function () {
       return;
     }
     currentColor = color;
-    console.log('setting current color: ' + currentColor.hexString());
     updateGraphicalPicker(color);
     updateNameConverter(color);
     updateSwatchManager(color);
@@ -37,72 +115,6 @@ var ColorPicker = (function () {
     var fill = liveSwatch.getElementsByClassName('fill')[0];
     fill.style.backgroundColor = color.rgbString();
   }
-
-  function Color(r, g, b) {
-    if (!(this instanceof Color)) {
-      return new Color(r, g, b);
-    }
-    // Each color component is stored as an 8-bit integer.
-    this.r = r;
-    this.g = g;
-    this.b = b;
-  }
-  Color.prototype.equal = function (color) {
-    if (!(color instanceof Color)) {
-      return false;
-    }
-    return this.r === color.r && this.g === color.g && this.b === color.b;
-  };
-  Color.prototype.componentString = function (x, format) {
-    // Render RGB component to a string with up to three significant digits.
-    var value = this[x],
-        s;
-    if (format == 1 || format == 'decimal' || format == 'fractional') {
-      if (value == 255) {
-        return '1';
-      }
-      if (value == 0) {
-        return '0';
-      }
-      return ('' + value / 255).substring(0, 5);
-    }
-    if (format == 100 || format == '%' || format == 'percent' ||
-        format == 'percentage') {
-      if (value == 255) {
-        return '100%';
-      }
-      if (value == 0) {
-        return '0%';
-      }
-      s = '' + value / 2.55;
-      if (value < 3) {  // 0.nnn
-        return s.substring(0, 5) + '%';
-      }
-      return s.substring(0, 4) + '%';
-    }
-    return value;
-  };
-  Color.prototype.toString = function () {
-    return this.rgbString(255);
-  };
-  Color.prototype.rgbString = function (format) {
-    return 'rgb(' + this.componentString('r', format) + ', ' +
-        this.componentString('g', format) + ', ' +
-        this.componentString('b', format) + ')';
-  };
-  Color.prototype.hexString = function () {
-    var parts = [],
-        i, s;
-    for (i = 0; i < 3; ++i) {
-      s = (new Number(this['rgb'.charAt(i)])).toString(16);
-      parts.push(s.length == 1 ? '0' + s : s);
-    }
-    return '#' + parts.join('');
-  };
-  Color.prototype.hslString = function (format) {
-  };
-  Color.prototype.hsvString = function (format) {
-  };
 
   function parseColor(s) {
     // Color string formats: https://www.w3.org/wiki/CSS/Properties/color
@@ -163,7 +175,9 @@ var ColorPicker = (function () {
         parent: containers.swatchManager });
     M.make('div', { className: 'fill', parent: liveSwatch });
 
-    setColor(0, 0, 0);
+    setColor(Math.floor(256 * Math.random()),
+             Math.floor(256 * Math.random()),
+             Math.floor(256 * Math.random()));
   }
   
   return {

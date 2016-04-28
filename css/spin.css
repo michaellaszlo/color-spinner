@@ -21,7 +21,7 @@ body {
   outline: none;
   border: 1px solid #ddd;
   color: #666;
-  padding: 2px 8px 4px;
+  padding: 3px 8px;
 }
 #nameConverter input {
   margin-bottom: 4px;
