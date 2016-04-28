@@ -186,21 +186,30 @@ NameWriter = (function () {
 // uses M, Color
 
 SwatchManager = (function () {
-  var liveSwatch,
+  var containers,
+      liveSwatch,
       parentSetColor;
+
+  function makeSwatch(options) {
+    var swatch;
+    options = options || {};
+    options.parent = containers.wrapper;
+    swatch = M.make('div', options);
+    M.classAdd(swatch, 'swatch');
+    swatch.fill = M.make('div', { className: 'fill', parent: swatch });
+    return swatch;
+  }
   
   function setColor(color) {
-    var fill = liveSwatch.getElementsByClassName('fill')[0];
-    fill.style.backgroundColor = color.rgbString();
+    liveSwatch.fill.style.backgroundColor = color.rgbString();
     if (parentSetColor) {
       parentSetColor(color);
     }
   }
 
   function load(wrapper, options) {
-    liveSwatch = M.make('div', { className: 'swatch', id: 'liveSwatch',
-        parent: wrapper });
-    M.make('div', { className: 'fill', parent: liveSwatch });
+    containers = { wrapper: wrapper };
+    liveSwatch = makeSwatch({ id: 'liveSwatch' });
     if (!options) {
       return;
     }

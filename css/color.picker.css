@@ -50,7 +50,7 @@ body {
 }
 #liveSwatch {
   margin: 5px;
-  border: 1px dotted #bbb;
+  border: 1px solid #ccc;
 }
 #liveSwatch .fill {
   width: 50px;
