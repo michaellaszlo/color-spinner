@@ -8,14 +8,14 @@ body {
   font-family: sans-serif;
 }
 
-#nameConverter {
+#nameWriter {
   display: inline-block;
   margin: 10px 10px 0;
   padding: 10px;
   background: #efefef;
   border: 2px solid #eee;
 }
-#nameConverter input, #nameConverter .output {
+#nameWriter input, #nameWriter .output {
   width: 350px;
   font-size: 24px;
   outline: none;
@@ -23,10 +23,10 @@ body {
   color: #666;
   padding: 3px 8px;
 }
-#nameConverter input {
+#nameWriter input {
   margin-bottom: 4px;
 }
-#nameConverter .output {
+#nameWriter .output {
   padding: 0 9px;
   border: 0;
   color: #333;
