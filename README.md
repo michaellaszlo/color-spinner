@@ -1,15 +1,59 @@
 # Color Spinner
 
-This is a color picker for the web. It works sort of like a turntable.
 
-The main interface consists of three discs that stand for the colors red, green, and blue. Move the sliders around each disc to change how much of the disc color gets mixed into the overall color.
+## What is this supposed to be?
 
-The amount of each basic color varies from a minimum of 0 to a maximum of 255, which amounts to 256 possible values per color. The overall color can be represented by a set of three numbers, like this:
+It's a web-based color picker. The visual color selector is not
+present in the current version because I am concentrating on name
+conversion and palette management. You can check out an earlier
+version to see my implementation of the classic hexagonal color
+layout. The new visual selector will be an improved version of the
+hexagonal approach.
 
-  rgb(255, 0, 127)
+I'm working on a swatch manager that lets you group colors and move
+them around a grid so that you can more easily compare and refine
+shades. I also have a direct input box that parses colors in hex
+format. I'll work on parsing other name formats once the swatch
+manager is in serviceable shape.
 
-An alternative representation which is often seen in HTML styling uses hexadecimal numbers to say the same thing. Instead of three decimal numbers separated by commas, you'll see three hexadecimal numbers of two digits each, all crammed together like this:
 
-  #ff007f
+## What's working right now?
 
-Color Spinner displays both representations.
+Currently you can input a 32-bit RGB color as a three-character or
+six-character hex code with or without a leading [hash
+character](https://en.wikipedia.org/wiki/Number_sign).
+
+For example, any of the following can be entered to specify the
+color that is also known as rgb(255, 170, 187):
+
+fab
+#fab
+ffaabb
+#ffaabb
+
+
+## What else can I do?
+
+You can enter a hex code and edit it in the input box. You'll see
+instant updates to the active color swatch, which is in the top
+left corner of the swatch manager. If you click on the active color,
+it gets cloned as a new swatch.
+
+The only other thing you can do is reload the page to see four new
+random colors, which might be interesting if you're trying to come
+up with a new color palette for a design project.
+
+
+## What's coming next?
+
+I'm going to refine the swatch manager by adding the ability to
+hover over any swatch and choose one of the following actions:
+
+- copy this color to the active editing area
+- delete this color
+- grab and move this color
+
+After that the next priority is the visual color selector. I'm going
+to bring back the hex layout and add a zooming feature to enable
+fine-grained color exploration.
+
