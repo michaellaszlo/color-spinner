@@ -42,9 +42,9 @@ body {
   position: relative;
   display: inline-block;
   margin: 1.5px;
-  border-radius: 5px 5px 0 0;
+  border-radius: 5px;
   border: 1px solid #ccc;
-  padding: 4px 4px 20px;
+  padding: 4px;
 }
 .swatch .fill {
   border-radius: 3px 3px 0 0;
@@ -54,7 +54,10 @@ body {
 }
 #liveSwatch {
   border: 2px solid #aaa;
-  padding: 3px 3px 19px;
+  padding: 3px;
+  border-radius: 0;
+  position: relative;
+  bottom: 10px;
 }
 .swatch .controlPanel {
   position: absolute;
