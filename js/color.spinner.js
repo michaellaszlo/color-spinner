@@ -199,11 +199,35 @@ SwatchManager = (function () {
     }
   }
 
+  function ControlPanel(tile) {
+    var buttons,
+        panel;
+    this.tile = tile;
+    panel = M.make('div', { className: 'controlPanel', parent: tile });
+    M.listen(M.make('div', { className: 'button delete', parent: panel }),
+        this.delete, 'mousedown');
+    M.listen(M.make('div', { className: 'button edit', parent: panel }),
+        this.edit, 'mousedown');
+    M.listen(M.make('div', { className: 'button clone', parent: panel }),
+        this.clone, 'mousedown');
+  }
+  ControlPanel.prototype.delete = function () {
+    console.log('delete');
+  };
+  ControlPanel.prototype.edit = function () {
+    console.log('edit');
+  };
+  ControlPanel.prototype.clone = function () {
+    console.log('clone');
+  };
+
   function makeTile() {
     var tile = M.make('div', { className: 'tile', parent: containers.wrapper }),
-        swatch = M.make('div', { className: 'swatch', parent: tile });
+        swatch = M.make('div', { className: 'swatch', parent: tile }),
+        controlPanel;
     tile.swatch = swatch;
     swatch.fill = M.make('div', { className: 'fill', parent: swatch });
+    controlPanel = new ControlPanel(tile);
     return tile;
   }
 
