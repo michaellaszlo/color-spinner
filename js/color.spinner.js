@@ -9,22 +9,29 @@ var Color,
 //==== constructor: Color
 
 Color = function () {
-  var argument,
-      i,
-      keys = [ 'r', 'g', 'b' ];
+  this.set.apply(this, arguments);
+};
+
+Color.prototype.set = function () {
+  var argument;
+
+  if (arguments.length == 0) {
+    this.r = this.g = this.b = 0;
+    return;
+  }
 
   if (arguments.length == 1) {
     argument = arguments[0];
     if (typeof argument == 'string' || argument instanceof String) {
-      if (!this.parseColor(argument)) {
+      if (!this.parse(argument)) {
         this.error = 'Unable to parse "' + argument + '"';
       }
       return;
     }
     if (argument instanceof Object) {
-      for (i = 0; i < 3; ++i) {
-        this[keys[i]] = argument[keys[i]];
-      }
+      this.r = argument.r;
+      this.g = argument.g;
+      this.b = argument.b;
       return;
     }
     this.error = 'Invalid argument';
@@ -32,13 +39,19 @@ Color = function () {
   }
 
   if (arguments.length == 3) {
-    for (i = 0; i < 3; ++i) {
-      this[keys[i]] = arguments[i];
-    }
+    this.r = arguments[0];
+    this.g = arguments[1];
+    this.b = arguments[2];
     return;
   }
 
   this.error = 'Incorrect number of arguments';
+};
+
+Color.prototype.setRandom = function () {
+  this.set(Math.floor(256 * Math.random()),
+           Math.floor(256 * Math.random()),
+           Math.floor(256 * Math.random()));
 };
 
 Color.prototype.rgbEquals = function (color) {
@@ -48,7 +61,7 @@ Color.prototype.rgbEquals = function (color) {
   return this.r === color.r && this.g === color.g && this.b === color.b;
 };
 
-Color.prototype.parseColor = function (s) {
+Color.prototype.parse = function (s) {
   // Color string formats: https://www.w3.org/wiki/CSS/Properties/color
   var groups,
       i, x,
@@ -190,14 +203,6 @@ SwatchManager = (function () {
       liveTile,
       firstClone,
       parentSetColor;
-  
-  function setColor(color) {
-    liveTile.swatch.color = color;
-    liveTile.swatch.fill.style.backgroundColor = color.rgbString();
-    if (parentSetColor) {
-      parentSetColor(color);
-    }
-  }
 
   function ControlPanel(tile) {
     var buttons,
@@ -221,36 +226,49 @@ SwatchManager = (function () {
     console.log('clone');
   };
 
-  function makeTile() {
-    var tile = M.make('div', { className: 'tile', parent: containers.wrapper }),
-        swatch = M.make('div', { className: 'swatch', parent: tile }),
-        controlPanel;
-    tile.swatch = swatch;
-    swatch.fill = M.make('div', { className: 'fill', parent: swatch });
-    controlPanel = new ControlPanel(tile);
-    return tile;
+  function Swatch(parent) {
+    this.container = M.make('div', { className: 'swatch', parent: parent });
+    this.fill = M.make('div', { className: 'fill', parent: this.container });
+    this.color = new Color();
+    this.setColor(this.color);
+  };
+  Swatch.prototype.setColor = function (color) {
+    this.color.set(color);
+    this.fill.style.background = this.color.rgbString();
+  };
+
+  function Tile(parent) {
+    parent = parent || containers.wrapper;
+    this.container = M.make('div', { className: 'tile', parent: parent });
+    this.swatch = new Swatch(this.container);
+    new ControlPanel(this.container);
+  }
+  Tile.prototype.setColor = function (color) {
+    this.swatch.setColor(color);
+  };
+
+  function cloneTile(baseTile) {
+    var tile = new Tile();
+    tile.setColor(baseTile.swatch.color);
+    containers.wrapper.insertBefore(tile.container,
+        baseTile.container.nextSibling);
   }
 
   function cloneLiveTile() {
-    var tile,
-        swatch;
-    if (!('color' in liveTile.swatch)) {
-      return;
+    cloneTile(liveTile);
+  }
+  
+  function setColor(color) {
+    liveTile.setColor(color);
+    if (parentSetColor) {
+      parentSetColor(color);
     }
-    tile = makeTile();
-    swatch = tile.swatch;
-    swatch.color = new Color(liveTile.swatch.color);
-    swatch.fill.style.backgroundColor = swatch.color.rgbString();
-    if (firstClone) {
-      containers.wrapper.insertBefore(tile, firstClone);
-    }
-    firstClone = tile;
   }
 
   function load(wrapper, options) {
     containers = { wrapper: wrapper };
-    liveTile = makeTile();
-    liveTile.id = 'liveTile';
+    liveTile = new Tile();
+    liveTile.container.id = 'liveTile';
     if (!options) {
       return;
     }
@@ -276,27 +294,33 @@ ColorSpinner = (function () {
       i;
 
   function setColor(color) {
-    if (color.rgbEquals(currentColor)) {
+    if (currentColor === undefined) {
+      currentColor = new Color();
+    } else if (color.rgbEquals(currentColor)) {
       return;
     }
-    console.log('setting new color ' + color);
-    currentColor = color;
+    console.log('ColorSpinner setting color ' + color);
+    currentColor.set(color);
     NameWriter.setColor(color);
     SwatchManager.setColor(color);
   }
 
   function load(wrapper) {
-    var names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
+    var color,
+        names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
     NameWriter.load(containers.nameWriter, { parentSetColor: setColor });
     SwatchManager.load(containers.swatchManager, { parentSetColor: setColor });
-    for (i = 0; i < 4; ++i) { 
+    color = new Color();
+    color.setRandom();
+    setColor(color);
+    for (i = 0; i < 3; ++i) { 
       SwatchManager.cloneLiveTile();
-      setColor(new Color(Math.floor(256 * Math.random()),
-          Math.floor(256 * Math.random()), Math.floor(256 * Math.random())));
+      color.setRandom();
+      setColor(color);
     }
   }
   
