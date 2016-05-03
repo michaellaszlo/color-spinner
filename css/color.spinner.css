@@ -38,26 +38,33 @@ body {
   padding: 10px;
   border: 2px solid #eee;
 }
-.swatch {
+.tile {
   position: relative;
   display: inline-block;
-  margin: 1.5px;
+  margin-right: 5px;
+  width: 62px;
+  height: 75px;
+}
+.swatch {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: inline-block;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   padding: 4px;
 }
 .swatch .fill {
-  border-radius: 3px 3px 0 0;
+  border-radius: 3px;
   width: 52px;
   height: 50px;
   cursor: move;
 }
-#liveSwatch {
-  border: 2px solid #aaa;
-  padding: 3px;
-  border-radius: 0;
-  position: relative;
-  bottom: 10px;
+.tile:hover .swatch {
+  bottom: 15px;
+}
+#liveTile .swatch {
+  bottom: 15px;
 }
 .swatch .controlPanel {
   position: absolute;
@@ -67,7 +74,7 @@ body {
   height: 17px;
   background: transparent;
 }
-#liveSwatch .controlPanel {
+#liveTile .controlPanel {
   width: 58px;
   height: 16px;
   background: #aaa;

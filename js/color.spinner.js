@@ -1,9 +1,9 @@
-// color.picker.js
+// color.spinner.js
 'use strict';
 var Color,
     NameWriter,
     SwatchManager,
-    ColorPicker;
+    ColorSpinner;
 
 
 //==== constructor: Color
@@ -187,46 +187,46 @@ NameWriter = (function () {
 
 SwatchManager = (function () {
   var containers,
-      liveSwatch,
+      liveTile,
       firstClone,
       parentSetColor;
   
   function setColor(color) {
-    liveSwatch.color = color;
-    liveSwatch.fill.style.backgroundColor = color.rgbString();
+    liveTile.swatch.color = color;
+    liveTile.swatch.fill.style.backgroundColor = color.rgbString();
     if (parentSetColor) {
       parentSetColor(color);
     }
   }
 
-  function makeSwatch(options) {
-    var swatch;
-    options = options || {};
-    options.parent = containers.wrapper;
-    swatch = M.make('div', options);
-    M.classAdd(swatch, 'swatch');
+  function makeTile() {
+    var tile = M.make('div', { className: 'tile', parent: containers.wrapper }),
+        swatch = M.make('div', { className: 'swatch', parent: tile });
+    tile.swatch = swatch;
     swatch.fill = M.make('div', { className: 'fill', parent: swatch });
-    return swatch;
+    return tile;
   }
 
-  function cloneLiveSwatch() {
-    var swatch;
-    if (!('color' in liveSwatch)) {
+  function cloneLiveTile() {
+    var tile,
+        swatch;
+    if (!('color' in liveTile.swatch)) {
       return;
     }
-    swatch = makeSwatch();
-    swatch.color = new Color(liveSwatch.color);
+    tile = makeTile();
+    swatch = tile.swatch;
+    swatch.color = new Color(liveTile.swatch.color);
     swatch.fill.style.backgroundColor = swatch.color.rgbString();
     if (firstClone) {
-      containers.wrapper.insertBefore(swatch, firstClone);
+      containers.wrapper.insertBefore(tile, firstClone);
     }
-    firstClone = swatch;
+    firstClone = tile;
   }
 
   function load(wrapper, options) {
     containers = { wrapper: wrapper };
-    liveSwatch = makeSwatch({ id: 'liveSwatch' });
-    M.listen(liveSwatch, cloneLiveSwatch, 'click');
+    liveTile = makeTile();
+    liveTile.id = 'liveTile';
     if (!options) {
       return;
     }
@@ -238,15 +238,15 @@ SwatchManager = (function () {
   return {
     load: load,
     setColor: setColor,
-    cloneLiveSwatch: cloneLiveSwatch
+    cloneLiveTile: cloneLiveTile
   };
 })();
 
 
-//==== module: ColorPicker
+//==== module: ColorSpinner
 // uses M, Color, NameWriter, SwatchManager
 
-ColorPicker = (function () {
+ColorSpinner = (function () {
   var containers,
       currentColor,
       i;
@@ -262,7 +262,7 @@ ColorPicker = (function () {
   }
 
   function load(wrapper) {
-    var names = [ 'visualPicker', 'nameWriter', 'swatchManager' ];
+    var names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
@@ -270,7 +270,7 @@ ColorPicker = (function () {
     NameWriter.load(containers.nameWriter, { parentSetColor: setColor });
     SwatchManager.load(containers.swatchManager, { parentSetColor: setColor });
     for (i = 0; i < 4; ++i) { 
-      SwatchManager.cloneLiveSwatch();
+      SwatchManager.cloneLiveTile();
       setColor(new Color(Math.floor(256 * Math.random()),
           Math.floor(256 * Math.random()), Math.floor(256 * Math.random())));
     }
@@ -282,5 +282,5 @@ ColorPicker = (function () {
 })();
 
 onload = function () {
-  ColorPicker.load(document.getElementById('colorPicker'));
+  ColorSpinner.load(document.getElementById('colorSpinner'));
 };
