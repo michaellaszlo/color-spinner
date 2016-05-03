@@ -205,25 +205,31 @@ SwatchManager = (function () {
       parentSetColor;
 
   function ControlPanel(tile) {
-    var buttons,
-        panel;
-    this.tile = tile;
-    panel = M.make('div', { className: 'controlPanel', parent: tile });
-    M.listen(M.make('div', { className: 'button delete', parent: panel }),
-        this.delete, 'mousedown');
-    M.listen(M.make('div', { className: 'button edit', parent: panel }),
-        this.edit, 'mousedown');
-    M.listen(M.make('div', { className: 'button clone', parent: panel }),
-        this.clone, 'mousedown');
+    var panel,
+        parent = tile.container;
+    panel = M.make('div', { className: 'controlPanel', parent: parent });
+    M.listen(M.make('div', { className: 'button delete', parent: panel,
+        tile: tile }), this.delete, 'mousedown');
+    M.listen(M.make('div', { className: 'button edit', parent: panel,
+        tile: tile }), this.edit, 'mousedown');
+    M.listen(M.make('div', { className: 'button clone', parent: panel,
+        tile: tile }), this.clone, 'mousedown');
   }
   ControlPanel.prototype.delete = function () {
-    console.log('delete');
+    var tile = this.tile;
+    tile.container.parentNode.removeChild(tile.container);
+    if (tile === liveTile) {
+      liveTile = null;
+    }
   };
   ControlPanel.prototype.edit = function () {
-    console.log('edit');
+    var tile = this.tile;
+    tile.setLive();
+    setColor(tile.swatch.color);
   };
   ControlPanel.prototype.clone = function () {
-    console.log('clone');
+    var tile = this.tile;
+    cloneTile(tile);
   };
 
   function Swatch(parent) {
@@ -241,10 +247,17 @@ SwatchManager = (function () {
     parent = parent || containers.wrapper;
     this.container = M.make('div', { className: 'tile', parent: parent });
     this.swatch = new Swatch(this.container);
-    new ControlPanel(this.container);
+    new ControlPanel(this);
   }
   Tile.prototype.setColor = function (color) {
     this.swatch.setColor(color);
+  };
+  Tile.prototype.setLive = function () {
+    if (liveTile) {
+      liveTile.container.id = '';
+    }
+    liveTile = this;
+    liveTile.container.id = 'liveTile';
   };
 
   function cloneTile(baseTile) {
@@ -268,7 +281,7 @@ SwatchManager = (function () {
   function load(wrapper, options) {
     containers = { wrapper: wrapper };
     liveTile = new Tile();
-    liveTile.container.id = 'liveTile';
+    liveTile.setLive();
     if (!options) {
       return;
     }
