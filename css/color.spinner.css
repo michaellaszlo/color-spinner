@@ -61,7 +61,6 @@ body {
   border-radius: 3px;
   width: 52px;
   height: 50px;
-  cursor: move;
 }
 .tile:hover .swatch {
   top: 0;
@@ -98,13 +97,6 @@ body {
 .controlPanel .button.delete {
   background: url('../i/Delete-15.png');
   left: 0;
-}
-.controlPanel .button.edit {
-  background: url('../i/Settings-15.png');
-  left: 23px;
-}
-#liveTile .controlPanel .button.edit {
-  display: none;
 }
 .controlPanel .button.clone {
   background: url('../i/Arrow-15.png');
