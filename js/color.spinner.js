@@ -210,15 +210,19 @@ SwatchManager = (function () {
     panel = M.make('div', { className: 'controlPanel', parent: parent });
     M.listen(M.make('div', { className: 'button delete', parent: panel,
         tile: tile }),
-        function () {
+        function (event) {
+          event = event || window.event;
           tile.delete();
-          return false;
+          event.stopPropagation();
+          event.cancelBubble = true;
         }, 'mousedown');
     M.listen(M.make('div', { className: 'button clone', parent: panel,
         tile: tile }),
-        function () {
+        function (event) {
+          event = event || window.event;
           tile.clone();
-          return false;
+          event.stopPropagation();
+          event.cancelBubble = true;
         }, 'mousedown');
   }
 
