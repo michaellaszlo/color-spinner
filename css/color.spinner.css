@@ -45,42 +45,44 @@ body {
   width: 62px;
   height: 80px;
   background: #fff;
+  border-bottom: 10px solid transparent;
+}
+#liveTile {
+  border-bottom: 10px solid #ccc;
+  border-radius: 4px;
 }
 .swatch {
   display: inline-block;
   border-radius: 5px;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  background: #fff;
   padding: 4px;
   position: absolute;
-  top: 15px;
   left: 0;
+  bottom: -5px;
   -webkit-transition: top 0.15s;
   transition: top 0.15s;
+  z-index: 100;
 }
 .swatch .fill {
   border-radius: 3px;
   width: 52px;
   height: 50px;
 }
-.tile:hover .swatch {
-  top: 0;
-}
-#liveTile .swatch {
-  top: 0;
+.tile:hover {
 }
 .tile .controlPanel {
   position: absolute;
   left: 0;
-  bottom: 2px;
+  top: 15px;
   width: 62px;
-  height: 25px;
-  border: 1px solid transparent;
-  opacity: 0;
-  -webkit-transition: opacity 0.15s;
-  transition: opacity 0.15s;
-}
-#liveTile .controlPanel, .tile:hover .controlPanel {
+  height: 15px;
   opacity: 1;
+  -webkit-transition: top 0.15s;
+  transition: top 0.15s;
+}
+.tile:hover .controlPanel {
+  top: 0;
 }
 .controlPanel .button {
   display: inline;

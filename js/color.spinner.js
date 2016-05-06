@@ -260,8 +260,6 @@ SwatchManager = (function () {
   };
   Tile.prototype.delete = function () {
     this.container.parentNode.removeChild(this.container);
-    console.log(liveTile);
-    console.log(this);
     if (liveTile === this) {
       liveTile = null;
     }
