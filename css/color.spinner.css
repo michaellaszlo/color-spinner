@@ -83,14 +83,15 @@ body {
 .tile .controlPanel {
   position: absolute;
   left: 0;
-  top: 15px;
+  top: 0;
+  opacity: 0;
   width: 62px;
   height: 15px;
-  -webkit-transition: top 0.166s;
-  transition: top 0.166s;
+  -webkit-transition: opacity 0.166s;
+  transition: opacity 0.166s;
 }
 .tile:hover .controlPanel {
-  top: 0;
+  opacity: 1;
 }
 .controlPanel .button {
   display: inline;
@@ -114,7 +115,7 @@ body {
 }
 
 .tile.entering .fill {
-  animation-duration: 0.333s;
+  animation-duration: 0.250s;
   animation-name: grow-fill;
   animation-timing-function: ease-out;
 }
@@ -130,7 +131,7 @@ body {
   display: none;
 }
 .tile.leaving .fill {
-  animation-duration: 0.250s;
+  animation-duration: 0.166s;
   animation-name: shrink-fill;
   animation-timing-function: ease-in;
 }

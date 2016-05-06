@@ -273,7 +273,7 @@ SwatchManager = (function () {
       if (liveTile === this) {
         liveTile = null;
       }
-    }, 250);
+    }, 166);
   };
   Tile.prototype.clone = function (options) {
     var newTile = new Tile(options);
