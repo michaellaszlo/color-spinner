@@ -61,6 +61,8 @@ body {
 }
 .swatch {
   display: inline-block;
+  width: 62px;
+  height: 60px;
   border-radius: 5px;
   border: 1px solid #ccc;
   background: #fff;
@@ -68,15 +70,13 @@ body {
   position: absolute;
   left: 0;
   bottom: -5px;
-  -webkit-transition: top 0.15s;
-  transition: top 0.15s;
   z-index: 100;
   cursor: pointer;
 }
 .swatch .fill {
   border-radius: 3px;
-  width: 52px;
-  height: 50px;
+  width: 100%;
+  height: 100%;
 }
 .tile:hover {
 }
@@ -86,9 +86,8 @@ body {
   top: 15px;
   width: 62px;
   height: 15px;
-  opacity: 1;
-  -webkit-transition: top 0.15s;
-  transition: top 0.15s;
+  -webkit-transition: top 0.166s;
+  transition: top 0.166s;
 }
 .tile:hover .controlPanel {
   top: 0;
@@ -112,5 +111,19 @@ body {
 .controlPanel .button.clone {
   background: url('../i/Arrow-15.png');
   right: 0;
+}
+
+.tile.newborn .fill {
+  animation-duration: 0.333s;
+  animation-name: expand-fill;
+  animation-timing-function: ease-out;
+}
+@keyframes expand-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 

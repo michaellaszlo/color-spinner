@@ -240,7 +240,8 @@ SwatchManager = (function () {
   function Tile(parent) {
     var tile = this;
     parent = parent || containers.wrapper;
-    this.container = M.make('div', { className: 'tile', parent: parent });
+    this.container = M.make('div', { className: 'tile newborn',
+        parent: parent });
     M.make('div', { className: 'marker', parent: this.container,
         innerHTML: '&#x2b24;' });
     this.swatch = new Swatch(this.container);
@@ -266,7 +267,6 @@ SwatchManager = (function () {
       liveTile = null;
     }
   };
-  //function cloneTile(baseTile) {
   Tile.prototype.clone = function () {
     var newTile = new Tile();
     newTile.setColor(this.swatch.color);
