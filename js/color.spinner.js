@@ -220,7 +220,7 @@ SwatchManager = (function () {
         tile: tile }),
         function (event) {
           event = event || window.event;
-          tile.clone();
+          tile.clone({ animate: true });
           event.stopPropagation();
           event.cancelBubble = true;
         }, 'mousedown');
@@ -237,11 +237,12 @@ SwatchManager = (function () {
     this.fill.style.background = this.color.rgbString();
   };
 
-  function Tile(parent) {
-    var tile = this;
-    parent = parent || containers.wrapper;
-    this.container = M.make('div', { className: 'tile newborn',
-        parent: parent });
+  function Tile(options) {
+    var tile = this
+        parent;
+    options = options || {};
+    parent = options.parent || containers.wrapper;
+    this.container = M.make('div', { className: 'tile', parent: parent });
     M.make('div', { className: 'marker', parent: this.container,
         innerHTML: '&#x2b24;' });
     this.swatch = new Swatch(this.container);
@@ -249,6 +250,9 @@ SwatchManager = (function () {
     M.listen(this.container, function () {
       tile.setLive();
     }, 'mousedown');
+    if (options.animate) {
+      M.classAdd(this.container, 'newborn');
+    }
   }
   Tile.prototype.setColor = function (color) {
     this.swatch.setColor(color);
@@ -267,8 +271,8 @@ SwatchManager = (function () {
       liveTile = null;
     }
   };
-  Tile.prototype.clone = function () {
-    var newTile = new Tile();
+  Tile.prototype.clone = function (options) {
+    var newTile = new Tile(options);
     newTile.setColor(this.swatch.color);
     containers.wrapper.insertBefore(newTile.container,
         this.container.nextSibling);
@@ -281,8 +285,8 @@ SwatchManager = (function () {
     }
   }
 
-  function cloneLiveTile() {
-    liveTile.clone();
+  function cloneLiveTile(options) {
+    liveTile.clone(options);
   }
 
   function load(wrapper, options) {
