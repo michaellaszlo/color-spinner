@@ -51,13 +51,13 @@ body {
   width: 62px;
   position: absolute;
   left: 0;
-  top: 1px;
+  top: 2px;
   text-align: center;
-  font-size: 9px;
+  font-size: 10px;
   color: #fff;
 }
 #liveTile .marker {
-  color: #999;
+  color: #444;
 }
 .swatch {
   display: inline-block;
@@ -113,17 +113,33 @@ body {
   right: 0;
 }
 
-.tile.newborn .fill {
+.tile.entering .fill {
   animation-duration: 0.333s;
-  animation-name: expand-fill;
+  animation-name: grow-fill;
   animation-timing-function: ease-out;
 }
-@keyframes expand-fill {
+@keyframes grow-fill {
   from {
     width: 0;
   }
   to {
     width: 100%;
+  }
+}
+.tile.leaving .controlPanel {
+  display: none;
+}
+.tile.leaving .fill {
+  animation-duration: 0.250s;
+  animation-name: shrink-fill;
+  animation-timing-function: ease-in;
+}
+@keyframes shrink-fill {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
   }
 }
 

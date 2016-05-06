@@ -244,14 +244,14 @@ SwatchManager = (function () {
     parent = options.parent || containers.wrapper;
     this.container = M.make('div', { className: 'tile', parent: parent });
     M.make('div', { className: 'marker', parent: this.container,
-        innerHTML: '&#x2b24;' });
+        innerHTML: '&#x25bc;' });
     this.swatch = new Swatch(this.container);
     new ControlPanel(this);
     M.listen(this.container, function () {
       tile.setLive();
     }, 'mousedown');
     if (options.animate) {
-      M.classAdd(this.container, 'newborn');
+      M.classAdd(this.container, 'entering');
     }
   }
   Tile.prototype.setColor = function (color) {
@@ -266,10 +266,14 @@ SwatchManager = (function () {
     setColor(this.swatch.color);
   };
   Tile.prototype.delete = function () {
-    this.container.parentNode.removeChild(this.container);
-    if (liveTile === this) {
-      liveTile = null;
-    }
+    var element = this.container;
+    M.classAdd(element, 'leaving');
+    setTimeout(function () {
+      element.parentNode.removeChild(element);
+      if (liveTile === this) {
+        liveTile = null;
+      }
+    }, 250);
   };
   Tile.prototype.clone = function (options) {
     var newTile = new Tile(options);
