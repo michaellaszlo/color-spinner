@@ -241,6 +241,8 @@ SwatchManager = (function () {
     var tile = this;
     parent = parent || containers.wrapper;
     this.container = M.make('div', { className: 'tile', parent: parent });
+    M.make('div', { className: 'marker', parent: this.container,
+        innerHTML: '&#x2b24;' });
     this.swatch = new Swatch(this.container);
     new ControlPanel(this);
     M.listen(this.container, function () {

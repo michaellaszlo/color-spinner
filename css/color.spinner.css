@@ -47,14 +47,22 @@ body {
   background: #fff;
   border-bottom: 10px solid transparent;
 }
-#liveTile {
-  border-bottom: 10px solid #ccc;
-  border-radius: 4px;
+.tile .marker {
+  width: 62px;
+  position: absolute;
+  left: 0;
+  top: 1px;
+  text-align: center;
+  font-size: 9px;
+  color: #fff;
+}
+#liveTile .marker {
+  color: #999;
 }
 .swatch {
   display: inline-block;
   border-radius: 5px;
-  border: 1px solid #bbb;
+  border: 1px solid #ccc;
   background: #fff;
   padding: 4px;
   position: absolute;
@@ -63,6 +71,7 @@ body {
   -webkit-transition: top 0.15s;
   transition: top 0.15s;
   z-index: 100;
+  cursor: pointer;
 }
 .swatch .fill {
   border-radius: 3px;
@@ -90,7 +99,7 @@ body {
   width: 15px;
   height: 15px;
   cursor: pointer;
-  opacity: 0.5;
+  opacity: 0.33;
   bottom: 0px;
 }
 .controlPanel .button:hover {
