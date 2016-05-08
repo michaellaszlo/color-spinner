@@ -161,11 +161,13 @@ NameConverter = (function () {
   }
 
   function setColor(color) {
-    colorOutputs.hex.innerHTML = color.hexString();
-    colorOutputs.rgb.innerHTML = color.rgbString();
-    if (owner) {
+    if (color === null) {
+      color = new Color('fff');
+    } else if (owner) {
       owner.setColor(color);
     }
+    colorOutputs.hex.innerHTML = color.hexString();
+    colorOutputs.rgb.innerHTML = color.rgbString();
   }
 
   function load(wrapper, options) {
@@ -266,12 +268,14 @@ SwatchManager = (function () {
     setColor(this.swatch.color);
   };
   Tile.prototype.delete = function () {
+    var tile = this;
     var element = this.container;
     M.classAdd(element, 'leaving');
     setTimeout(function () {
       element.parentNode.removeChild(element);
-      if (liveTile === this) {
+      if (liveTile === tile) {
         liveTile = null;
+        owner.setColor(null);
       }
     }, 166);
   };
@@ -283,6 +287,15 @@ SwatchManager = (function () {
   }
   
   function setColor(color) {
+    console.log('SwatchManager.setColor(' + color + ')');
+    if (color === null) {
+      liveTile = null;
+      return;
+    }
+    if (liveTile === null) {
+      liveTile = new Tile();
+      liveTile.setLive();
+    }
     liveTile.setColor(color);
     if (owner) {
       owner.setColor(color);
@@ -322,12 +335,13 @@ ColorSpinner = (function () {
       i;
 
   function setColor(color) {
-    if (currentColor === undefined) {
-      currentColor = new Color();
-    } else if (color.rgbEquals(currentColor)) {
+    if (color !== null && color.rgbEquals(currentColor)) {
       return;
     }
-    console.log('ColorSpinner setting color ' + color);
+    if (currentColor === undefined) {
+      currentColor = new Color();
+    }
+    console.log('ColorSpinner.setColor(' + color + ')');
     currentColor.set(color);
     NameConverter.setColor(color);
     SwatchManager.setColor(color);
