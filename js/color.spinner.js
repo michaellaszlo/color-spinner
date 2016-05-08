@@ -1,7 +1,7 @@
 // color.spinner.js
 'use strict';
 var Color,
-    NameWriter,
+    NameConverter,
     SwatchManager,
     ColorSpinner;
 
@@ -143,14 +143,14 @@ Color.prototype.hsvString = function (format) {
 };
 
 
-//==== module: NameWriter
+//==== module: NameConverter
 // uses M, Color
 
-NameWriter = (function () {
+NameConverter = (function () {
   var colorInput,
       colorOutputs,
       containers,
-      parentSetColor;
+      owner;
 
   function handleColorInput() {
     var color = new Color(colorInput.value);
@@ -163,8 +163,8 @@ NameWriter = (function () {
   function setColor(color) {
     colorOutputs.hex.innerHTML = color.hexString();
     colorOutputs.rgb.innerHTML = color.rgbString();
-    if (parentSetColor) {
-      parentSetColor(color);
+    if (owner) {
+      owner.setColor(color);
     }
   }
 
@@ -183,8 +183,8 @@ NameWriter = (function () {
     if (!options) {
       return;
     }
-    if ('parentSetColor' in options) {
-      parentSetColor = options.parentSetColor;
+    if ('owner' in options) {
+      owner = options.owner;
     }
   }
 
@@ -202,7 +202,7 @@ SwatchManager = (function () {
   var containers,
       liveTile,
       firstClone,
-      parentSetColor;
+      owner;
 
   function ControlPanel(tile) {
     var panel,
@@ -284,8 +284,8 @@ SwatchManager = (function () {
   
   function setColor(color) {
     liveTile.setColor(color);
-    if (parentSetColor) {
-      parentSetColor(color);
+    if (owner) {
+      owner.setColor(color);
     }
   }
 
@@ -300,8 +300,8 @@ SwatchManager = (function () {
     if (!options) {
       return;
     }
-    if ('parentSetColor' in options) {
-      parentSetColor = options.parentSetColor;
+    if ('owner' in options) {
+      owner = options.owner;
     }
   }
 
@@ -314,7 +314,7 @@ SwatchManager = (function () {
 
 
 //==== module: ColorSpinner
-// uses M, Color, NameWriter, SwatchManager
+// uses M, Color, NameConverter, SwatchManager
 
 ColorSpinner = (function () {
   var containers,
@@ -329,7 +329,7 @@ ColorSpinner = (function () {
     }
     console.log('ColorSpinner setting color ' + color);
     currentColor.set(color);
-    NameWriter.setColor(color);
+    NameConverter.setColor(color);
     SwatchManager.setColor(color);
   }
 
@@ -340,8 +340,8 @@ ColorSpinner = (function () {
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
-    NameWriter.load(containers.nameWriter, { parentSetColor: setColor });
-    SwatchManager.load(containers.swatchManager, { parentSetColor: setColor });
+    NameConverter.load(containers.nameWriter, { owner: this });
+    SwatchManager.load(containers.swatchManager, { owner: this });
     color = new Color();
     color.setRandom();
     setColor(color);
@@ -353,7 +353,8 @@ ColorSpinner = (function () {
   }
   
   return {
-    load: load
+    load: load,
+    setColor: setColor
   };
 })();
 
