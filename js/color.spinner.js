@@ -331,18 +331,20 @@ SwatchManager = (function () {
 
 ColorSpinner = (function () {
   var containers,
-      currentColor,
+      currentColor = null,
       i;
 
   function setColor(color) {
-    if (color !== null && color.rgbEquals(currentColor)) {
-      return;
-    }
-    if (currentColor === undefined) {
-      currentColor = new Color();
-    }
     console.log('ColorSpinner.setColor(' + color + ')');
-    currentColor.set(color);
+    if (color === null) {
+      currentColor = null;
+    } else if (color.rgbEquals(currentColor)) {
+      return;
+    } else if (currentColor === null) {
+      currentColor = new Color();
+    } else {
+      currentColor.set(color);
+    }
     NameConverter.setColor(color);
     SwatchManager.setColor(color);
   }
