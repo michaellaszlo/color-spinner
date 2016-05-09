@@ -150,10 +150,16 @@ NameConverter = (function () {
   var colorInput,
       colorOutputs,
       containers,
-      owner;
+      owner,
+      lastValue;
 
   function handleColorInput() {
-    var color = new Color(colorInput.value);
+    var color;
+    if (colorInput.value === lastValue) {
+      return;
+    }
+    lastValue = colorInput.value;
+    color = new Color(colorInput.value);
     if ('error' in color) {
       return;
     }
@@ -163,6 +169,7 @@ NameConverter = (function () {
   function setColor(color) {
     if (color === null) {
       color = new Color('fff');
+      lastValue = colorInput.value = 'fff';
     } else if (owner) {
       owner.setColor(color);
     }
@@ -174,6 +181,7 @@ NameConverter = (function () {
     colorInput = M.make('input', { parent: wrapper });
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
+    lastValue = colorInput.value = '';
     containers = {};
     containers.colorOutputs = M.make('div', {
         parent: wrapper });
