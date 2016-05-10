@@ -8,22 +8,21 @@ messages to SwatchManager
     no return value
 - countSwatches()
     returns the number of swatches
-- activateSwatchAt(position, forceOwnerMessage)
+- activateSwatchAt(position, forceCallback)
     returns null if the position is invalid
     otherwise returns the color of the activated swatch
-    the manager sends an activatedColor message only
-    if forceOwnerMessage is true, owner.activatedSwatchWithColor gets called
-- setActiveSwatchColor(color, forceMessage)
-    changes the color of the active swatch
+    if forceCallback is true, owner.activatedSwatchWithColor gets called
+- setColorOfActiveSwatch(color, forceCallback)
     returns false if no swatch is active
     otherwise returns true
-    if forceOwnerMessage is true, owner.activatedSwatchWithColor gets called
-- deactivateSwatch(forceOwnerMessage)
-    if forceOwnerMessage is true, owner.deactivatedSwatch gets called
+    by default there is no callback 
+    if forceCallback is true, owner.activatedColor gets called
+- deactivateSwatch(forceCallback)
+    if forceCallback is true, owner.deactivated gets called
 
 messages from SwatchManager to owner
-- owner.activatedSwatchWithColor(color)
-    gets called when a swatch receives a user click
-- owner.deactivatedSwatch()
+- owner.activatedColor(color)
+    gets called when a swatch is activated by a user click
+- owner.deactivated()
     gets called when a swatch is deleted
 
