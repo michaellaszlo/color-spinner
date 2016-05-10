@@ -168,13 +168,15 @@ NameConverter = (function () {
 
   function setColor(color) {
     if (color === null) {
-      color = new Color('fff');
-      lastValue = colorInput.value = 'fff';
-    } else if (owner) {
+      M.classAdd(containers.wrapper, 'dormant');
+    } else {
+      M.classRemove(containers.wrapper, 'dormant');
+      colorOutputs.hex.innerHTML = color.hexString();
+      colorOutputs.rgb.innerHTML = color.rgbString();
+    }
+    if (owner) {
       owner.setColor(color);
     }
-    colorOutputs.hex.innerHTML = color.hexString();
-    colorOutputs.rgb.innerHTML = color.rgbString();
   }
 
   function load(wrapper, options) {
@@ -182,7 +184,7 @@ NameConverter = (function () {
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
     lastValue = colorInput.value = '';
-    containers = {};
+    containers = { wrapper: wrapper };
     containers.colorOutputs = M.make('div', {
         parent: wrapper });
     colorOutputs = {};
@@ -345,6 +347,9 @@ ColorSpinner = (function () {
   function setColor(color) {
     console.log('ColorSpinner.setColor(' + color + ')');
     if (color === null) {
+      if (currentColor === null) {
+        return;
+      }
       currentColor = null;
     } else if (color.rgbEquals(currentColor)) {
       return;

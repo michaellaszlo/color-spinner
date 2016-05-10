@@ -1,0 +1,29 @@
+
+messages to SwatchManager
+- insertColor(color, position)
+    a valid color is required
+    position defaults to 0
+    causes a new swatch to be created
+    does not activate a swatch
+    no return value
+- countSwatches()
+    returns the number of swatches
+- activateSwatchAt(position, forceOwnerMessage)
+    returns null if the position is invalid
+    otherwise returns the color of the activated swatch
+    the manager sends an activatedColor message only
+    if forceOwnerMessage is true, owner.activatedSwatchWithColor gets called
+- setActiveSwatchColor(color, forceMessage)
+    changes the color of the active swatch
+    returns false if no swatch is active
+    otherwise returns true
+    if forceOwnerMessage is true, owner.activatedSwatchWithColor gets called
+- deactivateSwatch(forceOwnerMessage)
+    if forceOwnerMessage is true, owner.deactivatedSwatch gets called
+
+messages from SwatchManager to owner
+- owner.activatedSwatchWithColor(color)
+    gets called when a swatch receives a user click
+- owner.deactivatedSwatch()
+    gets called when a swatch is deleted
+
