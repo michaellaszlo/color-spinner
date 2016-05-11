@@ -17,12 +17,12 @@ messages to SwatchManager
     otherwise returns true
     by default there is no callback 
     if forceCallback is true, owner.activatedColor gets called
-- deactivateSwatch(forceCallback)
+- deactivate(forceCallback)
     if forceCallback is true, owner.deactivated gets called
 
 messages from SwatchManager to owner
-- owner.activatedColor(color)
+- owner.activatedColor(caller, color)
     gets called when a swatch is activated by a user click
-- owner.deactivated()
+- owner.deactivated(caller)
     gets called when a swatch is deleted
 

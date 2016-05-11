@@ -244,49 +244,49 @@ SwatchManager = (function () {
     this.color = new Color();
     this.setColor(this.color);
   };
+  Swatch.prototype.getColor = function (color) {
+    return this.color;
+  };
   Swatch.prototype.setColor = function (color) {
     this.color.set(color);
     this.fill.style.background = this.color.rgbString();
   };
 
   function Tile(options) {
-    var tile = this
+    var tile = this,
         parent;
     options = options || {};
     parent = options.parent || containers.wrapper;
     this.container = M.make('div', { className: 'tile', parent: parent });
+    this.container.tile = this;
     M.make('div', { className: 'marker', parent: this.container,
         innerHTML: '&#x25bc;' });
     this.swatch = new Swatch(this.container);
+    if (options.color) {
+      this.swatch.setColor(options.color);
+    }
     new ControlPanel(this);
     M.listen(this.container, function () {
-      tile.setLive();
+      setLive(tile);
     }, 'mousedown');
     if (options.animate) {
       M.classAdd(this.container, 'entering');
     }
   }
+  Tile.prototype.getColor = function (color) {
+    return this.swatch.getColor();
+  };
   Tile.prototype.setColor = function (color) {
     this.swatch.setColor(color);
   };
-  Tile.prototype.setLive = function () {
-    if (liveTile) {
-      liveTile.container.id = '';
-    }
-    liveTile = this;
-    liveTile.container.id = 'liveTile';
-    setColor(this.swatch.color);
-  };
   Tile.prototype.delete = function () {
-    var tile = this;
-    var element = this.container;
-    M.classAdd(element, 'leaving');
+    var container = this.container;
+    if (liveTile === this) {
+      deactivate(true);
+    }
+    M.classAdd(container, 'leaving');
     setTimeout(function () {
-      element.parentNode.removeChild(element);
-      if (liveTile === tile) {
-        liveTile = null;
-        owner.setColor(null);
-      }
+      container.parentNode.removeChild(container);
     }, 166);
   };
   Tile.prototype.clone = function (options) {
@@ -295,43 +295,79 @@ SwatchManager = (function () {
     containers.wrapper.insertBefore(newTile.container,
         this.container.nextSibling);
   }
-  
-  function setColor(color) {
-    console.log('SwatchManager.setColor(' + color + ')');
-    if (color === null) {
-      liveTile = null;
-      return;
+
+  function setLive(tile) {
+    if (liveTile) {
+      liveTile.container.id = '';
     }
-    if (liveTile === null) {
-      liveTile = new Tile();
-      liveTile.setLive();
+    liveTile = tile;
+    if (tile) {
+      tile.container.id = 'liveTile';
+    }
+  };
+
+  function insertColor(color, position) {
+    var tile = new Tile({ color: color }),
+        wrapper = containers.wrapper,
+        tileContainers = wrapper.getElementsByClassName('tile'),
+        beforeContainer = null;
+    position = position || 0;
+    position = Math.max(0, position);
+    if (position < tileContainers.length) {
+      beforeContainer = tileContainers[position];
+    }
+    wrapper.insertBefore(tile.container, beforeContainer);
+  }
+
+  function countSwatches() {
+    return containers.wrapper.getElementsByClassName('tile').length;
+  }
+
+  function activateSwatchAt(position, forceCallback) {
+    var color,
+        tileContainers = containers.wrapper.getElementsByClassName('tile');
+    if (position < 0 || position >= tileContainers.length) {
+      return null;
+    }
+    setLive(tileContainers[position].tile);
+    color = liveTile.getColor();
+    if (forceCallback === true) {
+      owner.activatedColor(this, color);
+    }
+    return color;
+  }
+
+  function setColorOfActiveSwatch(color, forceCallback) {
+    if (!liveTile) {
+      return false;
     }
     liveTile.setColor(color);
-    if (owner) {
-      owner.setColor(color);
+    if (forceCallback === true) {
+      owner.activatedColor(this, color);
+    }
+    return true;
+  }
+
+  function deactivate(forceCallback) {
+    setLive(null);
+    console.log(this);
+    if (forceCallback === true) {
+      owner.deactivated(this);
     }
   }
 
-  function cloneLiveTile(options) {
-    liveTile.clone(options);
-  }
-
-  function load(wrapper, options) {
+  function load(owner, wrapper) {
     containers = { wrapper: wrapper };
-    liveTile = new Tile();
-    liveTile.setLive();
-    if (!options) {
-      return;
-    }
-    if ('owner' in options) {
-      owner = options.owner;
-    }
+    this.owner = owner;
   }
 
   return {
-    load: load,
-    setColor: setColor,
-    cloneLiveTile: cloneLiveTile
+    insertColor: insertColor,
+    countSwatches: countSwatches,
+    activateSwatchAt: activateSwatchAt,
+    setColorOfActiveSwatch: setColorOfActiveSwatch,
+    deactivate: deactivate,
+    load: load
   };
 })();
 
@@ -344,22 +380,16 @@ ColorSpinner = (function () {
       currentColor = null,
       i;
 
-  function setColor(color) {
-    console.log('ColorSpinner.setColor(' + color + ')');
-    if (color === null) {
-      if (currentColor === null) {
-        return;
-      }
-      currentColor = null;
-    } else if (color.rgbEquals(currentColor)) {
-      return;
-    } else if (currentColor === null) {
-      currentColor = new Color();
-    } else {
-      currentColor.set(color);
+  function activatedColor(caller, color) {
+    if (caller === SwatchManager) {
+    } else if (caller === NameConverter) {
     }
-    NameConverter.setColor(color);
-    SwatchManager.setColor(color);
+  }
+
+  function deactivated(caller) {
+    if (caller === SwatchManager) {
+    } else if (caller === NameConverter) {
+    }
   }
 
   function load(wrapper) {
@@ -370,20 +400,19 @@ ColorSpinner = (function () {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
     NameConverter.load(containers.nameWriter, { owner: this });
-    SwatchManager.load(containers.swatchManager, { owner: this });
+    SwatchManager.load(this, containers.swatchManager, { owner: this });
     color = new Color();
-    color.setRandom();
-    setColor(color);
-    for (i = 0; i < 3; ++i) { 
-      SwatchManager.cloneLiveTile();
+    for (i = 0; i < 4; ++i) { 
       color.setRandom();
-      setColor(color);
+      SwatchManager.insertColor(color);
     }
+    SwatchManager.activateSwatchAt(0);
   }
   
   return {
     load: load,
-    setColor: setColor
+    activatedColor: activatedColor,
+    deactivated: deactivated
   };
 })();
 
