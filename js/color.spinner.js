@@ -332,7 +332,7 @@ SwatchManager = (function () {
     setLive(tileContainers[position].tile);
     color = liveTile.getColor();
     if (forceCallback === true) {
-      owner.activatedColor(this, color);
+      owner.activatedColor(SwatchManager, color);
     }
     return color;
   }
@@ -343,22 +343,21 @@ SwatchManager = (function () {
     }
     liveTile.setColor(color);
     if (forceCallback === true) {
-      owner.activatedColor(this, color);
+      owner.activatedColor(SwatchManager, color);
     }
     return true;
   }
 
   function deactivate(forceCallback) {
     setLive(null);
-    console.log(this);
     if (forceCallback === true) {
-      owner.deactivated(this);
+      owner.deactivated(SwatchManager);
     }
   }
 
-  function load(owner, wrapper) {
+  function load(theOwner, wrapper) {
     containers = { wrapper: wrapper };
-    this.owner = owner;
+    owner = theOwner;
   }
 
   return {
