@@ -347,6 +347,17 @@ SwatchManager = (function () {
     }
     return true;
   }
+  
+  function getActiveColor() {
+    if (!liveTile) {
+      return null;
+    }
+    return liveTile.getColor();
+  }
+
+  function isActive() {
+    return liveTile === null;
+  }
 
   function deactivate(forceCallback) {
     setLive(null);
@@ -365,6 +376,8 @@ SwatchManager = (function () {
     countSwatches: countSwatches,
     activateSwatchAt: activateSwatchAt,
     setColorOfActiveSwatch: setColorOfActiveSwatch,
+    getActiveColor: getActiveColor,
+    isActive: isActive,
     deactivate: deactivate,
     load: load
   };
