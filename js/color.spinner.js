@@ -175,7 +175,7 @@ NameConverter = (function () {
       colorOutputs.rgb.innerHTML = color.rgbString();
     }
     if (owner) {
-      owner.setColor(color);
+      owner.activatedColor(NameConverter, color);
     }
   }
 
@@ -356,7 +356,7 @@ SwatchManager = (function () {
   }
 
   function isActive() {
-    return liveTile === null;
+    return liveTile !== null;
   }
 
   function deactivate(forceCallback) {
@@ -395,6 +395,11 @@ ColorSpinner = (function () {
   function activatedColor(caller, color) {
     if (caller === SwatchManager) {
     } else if (caller === NameConverter) {
+      if (SwatchManager.isActive()) {
+        SwatchManager.setColorOfActiveSwatch(color);
+      } else {
+        SwatchManager.insertColor(color, 0);
+      }
     }
   }
 
