@@ -31,3 +31,7 @@ messages from SwatchManager to owner
 - owner.deactivated(caller)
     when a swatch is deleted
 
+messages to NameConverter
+- setColor(color, forceCallback)
+    if forceCallback is true, owner.activatedColor gets called
+

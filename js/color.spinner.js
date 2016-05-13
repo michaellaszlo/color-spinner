@@ -150,8 +150,8 @@ NameConverter = (function () {
   var colorInput,
       colorOutputs,
       containers,
-      owner,
-      lastValue;
+      lastValue,
+      owner = null;
 
   function handleColorInput() {
     var color;
@@ -166,7 +166,8 @@ NameConverter = (function () {
     setColor(color);
   }
 
-  function setColor(color) {
+  function setColor(color, forceCallback) {
+    console.log(color);
     if (color === null) {
       M.classAdd(containers.wrapper, 'dormant');
     } else {
@@ -174,7 +175,7 @@ NameConverter = (function () {
       colorOutputs.hex.innerHTML = color.hexString();
       colorOutputs.rgb.innerHTML = color.rgbString();
     }
-    if (owner) {
+    if (forceCallback === true) {
       owner.activatedColor(NameConverter, color);
     }
   }
@@ -214,7 +215,7 @@ SwatchManager = (function () {
   var containers,
       liveTile,
       firstClone,
-      owner;
+      owner = null;
 
   function ControlPanel(tile) {
     var panel,
@@ -304,6 +305,9 @@ SwatchManager = (function () {
     if (tile) {
       tile.container.id = 'liveTile';
     }
+    if (owner !== null) {
+      owner.activatedColor(SwatchManager, liveTile.getColor());
+    }
   };
 
   function insertColor(color, position) {
@@ -366,9 +370,11 @@ SwatchManager = (function () {
     }
   }
 
-  function load(theOwner, wrapper) {
+  function load(wrapper, options) {
     containers = { wrapper: wrapper };
-    owner = theOwner;
+    if (options !== undefined && 'owner' in options) {
+      owner = options.owner;
+    }
   }
 
   return {
@@ -394,6 +400,7 @@ ColorSpinner = (function () {
 
   function activatedColor(caller, color) {
     if (caller === SwatchManager) {
+      NameConverter.setColor(color);
     } else if (caller === NameConverter) {
       if (SwatchManager.isActive()) {
         SwatchManager.setColorOfActiveSwatch(color);
@@ -417,7 +424,7 @@ ColorSpinner = (function () {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
     NameConverter.load(containers.nameWriter, { owner: this });
-    SwatchManager.load(this, containers.swatchManager, { owner: this });
+    SwatchManager.load(containers.swatchManager, { owner: this });
     color = new Color();
     for (i = 0; i < 4; ++i) { 
       color.setRandom();
