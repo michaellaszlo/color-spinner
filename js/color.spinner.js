@@ -302,11 +302,12 @@ SwatchManager = (function () {
       liveTile.container.id = '';
     }
     liveTile = tile;
-    if (tile) {
-      tile.container.id = 'liveTile';
+    if (tile === null) {
+      return;
     }
+    tile.container.id = 'liveTile';
     if (owner !== null) {
-      owner.activatedColor(SwatchManager, liveTile.getColor());
+      owner.activatedColor(SwatchManager, tile.getColor());
     }
   };
 
