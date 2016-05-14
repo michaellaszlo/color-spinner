@@ -150,20 +150,20 @@ NameConverter = (function () {
   var colorInput,
       colorOutputs,
       containers,
-      lastValue,
+      lastColor,
       owner = null;
 
   function handleColorInput() {
     var color;
-    if (colorInput.value === lastValue) {
-      return;
-    }
-    lastValue = colorInput.value;
     color = new Color(colorInput.value);
     if ('error' in color) {
       return;
     }
-    setColor(color);
+    if (color.rgbEquals(lastColor)) {
+      return;
+    }
+    lastColor = color;
+    setColor(color, true);
   }
 
   function setColor(color, forceCallback) {
@@ -184,7 +184,6 @@ NameConverter = (function () {
     colorInput = M.make('input', { parent: wrapper });
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
-    lastValue = colorInput.value = '';
     containers = { wrapper: wrapper };
     containers.colorOutputs = M.make('div', {
         parent: wrapper });
