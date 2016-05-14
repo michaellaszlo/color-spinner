@@ -9,14 +9,12 @@ var Color,
 //==== constructor: Color
 
 Color = function () {
-  this.set.apply(this, arguments);
-};
-
-Color.prototype.set = function () {
   var argument;
 
   if (arguments.length == 0) {
-    this.r = this.g = this.b = 0;
+    this.r = Math.floor(256 * Math.random());
+    this.g = Math.floor(256 * Math.random());
+    this.b = Math.floor(256 * Math.random());
     return;
   }
 
@@ -48,13 +46,7 @@ Color.prototype.set = function () {
   this.error = 'Incorrect number of arguments';
 };
 
-Color.prototype.setRandom = function () {
-  this.set(Math.floor(256 * Math.random()),
-           Math.floor(256 * Math.random()),
-           Math.floor(256 * Math.random()));
-};
-
-Color.prototype.rgbEquals = function (color) {
+Color.prototype.equals = function (color) {
   if (!(color instanceof Object)) {
     return false;
   }
@@ -159,7 +151,7 @@ NameConverter = (function () {
     if ('error' in color) {
       return;
     }
-    if (color.rgbEquals(lastColor)) {
+    if (color.equals(lastColor)) {
       return;
     }
     lastColor = color;
@@ -167,7 +159,6 @@ NameConverter = (function () {
   }
 
   function setColor(color, forceCallback) {
-    console.log(color);
     if (color === null) {
       M.classAdd(containers.wrapper, 'dormant');
     } else {
@@ -248,7 +239,7 @@ SwatchManager = (function () {
     return this.color;
   };
   Swatch.prototype.setColor = function (color) {
-    this.color.set(color);
+    this.color = color;
     this.fill.style.background = this.color.rgbString();
   };
 
@@ -417,18 +408,15 @@ ColorSpinner = (function () {
   }
 
   function load(wrapper) {
-    var color,
-        names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
+    var names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
     NameConverter.load(containers.nameWriter, { owner: this });
     SwatchManager.load(containers.swatchManager, { owner: this });
-    color = new Color();
     for (i = 0; i < 4; ++i) { 
-      color.setRandom();
-      SwatchManager.insertColor(color);
+      SwatchManager.insertColor(new Color());
     }
     SwatchManager.activateSwatchAt(0);
   }
