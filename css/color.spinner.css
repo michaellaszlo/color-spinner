@@ -47,20 +47,6 @@ body {
   background: #fff;
   border-bottom: 10px solid transparent;
 }
-.tile .marker {
-  width: 62px;
-  position: absolute;
-  left: 0;
-  top: 2px;
-  text-align: center;
-  font-size: 10px;
-}
-.marker .button {
-  display: none;
-}
-#liveTile .marker .button {
-  display: inline;
-}
 .swatch {
   display: inline-block;
   width: 62px;
@@ -86,13 +72,26 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  opacity: 0;
   width: 62px;
   height: 15px;
+  text-align: center;
+}
+.tile .controlPanel .marker {
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+  bottom: 1px;
+  display: none;
+}
+#liveTile .controlPanel .marker {
+  display: inline;
+}
+.tile .controlPanel .button {
+  opacity: 0;
   -webkit-transition: opacity 0.166s;
   transition: opacity 0.166s;
 }
-.tile:hover .controlPanel {
+.tile:hover .controlPanel .button {
   opacity: 1;
 }
 .controlPanel .button {

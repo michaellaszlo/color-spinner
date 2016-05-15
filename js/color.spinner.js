@@ -219,6 +219,15 @@ SwatchManager = (function () {
           event.stopPropagation();
           event.cancelBubble = true;
         }, 'mousedown');
+    M.listen(M.make('span', { className: 'marker', parent: panel,
+        tile: tile, innerHTML: '&#x25bc;' }),
+        function (event) {
+          event = event || window.event;
+          console.log('hello');
+          deactivate(true);
+          event.stopPropagation();
+          event.cancelBubble = true;
+        }, 'mousedown');
     M.listen(M.make('div', { className: 'button clone', parent: panel,
         tile: tile }),
         function (event) {
@@ -245,22 +254,11 @@ SwatchManager = (function () {
 
   function Tile(options) {
     var tile = this,
-        marker,
         parent;
     options = options || {};
     parent = options.parent || containers.wrapper;
     this.container = M.make('div', { className: 'tile', parent: parent });
     this.container.tile = this;
-    marker = M.make('div', { className: 'marker', parent: this.container });
-    M.listen(M.make('span', { className: 'button', parent: marker,
-        innerHTML: '&#x25bc;' }),
-        function (event) {
-          event = event || window.event;
-          console.log('hello');
-          deactivate(true);
-          event.stopPropagation();
-          event.cancelBubble = true;
-        }, 'mousedown');
     this.swatch = new Swatch(this.container);
     if (options.color) {
       this.swatch.setColor(options.color);
