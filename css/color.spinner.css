@@ -54,10 +54,12 @@ body {
   top: 2px;
   text-align: center;
   font-size: 10px;
-  color: #fff;
 }
-#liveTile .marker {
-  color: #444;
+.marker .button {
+  display: none;
+}
+#liveTile .marker .button {
+  display: inline;
 }
 .swatch {
   display: inline-block;
