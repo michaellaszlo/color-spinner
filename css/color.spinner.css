@@ -88,11 +88,11 @@ body {
 }
 .tile .controlPanel .button {
   opacity: 0;
-  -webkit-transition: opacity 0.166s;
-  transition: opacity 0.166s;
+  -webkit-transition: opacity 0.25s;
+  transition: opacity 0.25s;
 }
 .tile:hover .controlPanel .button {
-  opacity: 1;
+  opacity: 0.33;
 }
 .controlPanel .button {
   display: inline;
@@ -103,7 +103,7 @@ body {
   opacity: 0.33;
   bottom: 0px;
 }
-.controlPanel .button:hover {
+.tile .controlPanel .button:hover {
   opacity: 1;
 }
 .controlPanel .button.delete {

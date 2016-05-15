@@ -223,7 +223,6 @@ SwatchManager = (function () {
         tile: tile, innerHTML: '&#x25bc;' }),
         function (event) {
           event = event || window.event;
-          console.log('hello');
           deactivate(true);
           event.stopPropagation();
           event.cancelBubble = true;
