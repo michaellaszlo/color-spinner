@@ -154,16 +154,16 @@ NameConverter = (function () {
     lastText = text;
     color = new Color(text);
     if ('error' in color) {
+      M.classRemove(containers.wrapper, 'parsed');
       return;
     }
+    M.classAdd(containers.wrapper, 'parsed');
     setColor(color, true);
   }
 
   function setColor(color, forceCallback) {
     if (color === null) {
-      M.classAdd(containers.wrapper, 'dormant');
     } else {
-      M.classRemove(containers.wrapper, 'dormant');
       colorOutputs.hex.innerHTML = color.hexString();
       colorOutputs.rgb.innerHTML = color.rgbString();
     }
@@ -415,12 +415,12 @@ ColorSpinner = (function () {
   }
 
   function load(wrapper) {
-    var names = [ 'visualSpinner', 'nameWriter', 'swatchManager' ];
+    var names = [ 'visualSpinner', 'nameConverter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
-    NameConverter.load(containers.nameWriter, { owner: this });
+    NameConverter.load(containers.nameConverter, { owner: this });
     SwatchManager.load(containers.swatchManager, { owner: this });
     for (i = 0; i < 4; ++i) { 
       SwatchManager.insertColor(new Color());
