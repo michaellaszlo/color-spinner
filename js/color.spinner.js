@@ -142,19 +142,20 @@ NameConverter = (function () {
   var colorInput,
       colorOutputs,
       containers,
-      lastColor,
+      lastText,
       owner = null;
 
   function handleColorInput() {
-    var color;
-    color = new Color(colorInput.value);
+    var color,
+        text = colorInput.value.replace(/\s+/, '').toLowerCase();
+    if (text === lastText) {
+      return;
+    }
+    lastText = text;
+    color = new Color(text);
     if ('error' in color) {
       return;
     }
-    if (color.equals(lastColor)) {
-      return;
-    }
-    lastColor = color;
     setColor(color, true);
   }
 
