@@ -11,9 +11,7 @@ body {
 #nameConverter {
   display: inline-block;
   margin: 10px 10px 0;
-  padding: 10px;
-  background: #efefef;
-  border: 2px solid #eee;
+  padding: 10px 10px 0;
 }
 #nameConverter input, #nameConverter .output {
   width: 350px;
@@ -24,7 +22,12 @@ body {
   padding: 3px 8px;
 }
 #nameConverter input {
+  border: 2px solid #888;
   margin-bottom: 4px;
+}
+#nameConverter .outputs {
+  margin-top: 10px;
+  line-height: 32px;
 }
 #nameConverter .output {
   padding: 0 9px;
@@ -37,9 +40,8 @@ body {
 
 #swatchManager {
   width: 374px;
-  margin: 10px 10px 0;
+  margin: 0 10px;
   padding: 10px;
-  border: 2px solid #eee;
 }
 .tile {
   position: relative;

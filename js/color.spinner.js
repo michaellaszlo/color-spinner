@@ -173,11 +173,11 @@ NameConverter = (function () {
   }
 
   function load(wrapper, options) {
+    containers = { wrapper: wrapper };
     colorInput = M.make('input', { parent: wrapper });
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
-    containers = { wrapper: wrapper };
-    containers.colorOutputs = M.make('div', {
+    containers.colorOutputs = M.make('div', { className: 'outputs',
         parent: wrapper });
     colorOutputs = {};
     colorOutputs.hex = M.make('div', { className: 'output',
