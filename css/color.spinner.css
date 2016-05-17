@@ -13,6 +13,21 @@ body {
   margin: 10px 10px 0;
   padding: 10px 10px 0;
 }
+.option {
+  border: 2px solid #bbb;
+  color: #999;
+  border-radius: 3px;
+  padding: 2px 6px 2px 25px;
+  margin-right: 10px;
+  cursor: pointer;
+  background: #eee url('../i/Unchecked-15.png') 5px 3px no-repeat;
+}
+.option:hover {
+  border-color: #888;
+}
+.option.active {
+  background: #fff url('../i/Checked-15.png') 5px 3px no-repeat;
+}
 #nameConverter input, #nameConverter .output {
   width: 350px;
   font-size: 24px;
@@ -39,7 +54,7 @@ body {
 }
 
 #swatchManager {
-  width: 374px;
+  width: 500px;
   margin: 0 10px;
   padding: 10px;
 }

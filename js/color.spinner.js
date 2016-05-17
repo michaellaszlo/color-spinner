@@ -140,6 +140,8 @@ Color.prototype.hsvString = function (format) {
 
 NameConverter = (function () {
   var colorInput,
+      alertOption,
+      doAlert,
       colorOutputs,
       containers,
       lastText,
@@ -167,13 +169,26 @@ NameConverter = (function () {
       colorOutputs.hex.innerHTML = color.hexString();
       colorOutputs.rgb.innerHTML = color.rgbString();
     }
-    if (forceCallback === true) {
+    if (doAlert === true && forceCallback === true) {
       owner.activatedColor(NameConverter, color);
     }
   }
 
   function load(wrapper, options) {
     containers = { wrapper: wrapper };
+    doAlert = true;
+    alertOption = M.make('span', { className: 'option active',
+        innerHTML: 'to swatch', parent: wrapper });
+    M.listen(alertOption, function () {
+      doAlert = !doAlert;
+      if (doAlert) {
+        lastText = '';
+        handleColorInput();
+        M.classAdd(alertOption, 'active');
+      } else {
+        M.classRemove(alertOption, 'active');
+      }
+    }, 'mousedown');
     colorInput = M.make('input', { parent: wrapper });
     M.listen(colorInput, handleColorInput, 'keydown', 'keyup',
         'mousedown', 'mouseup');
