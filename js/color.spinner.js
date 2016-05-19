@@ -1,6 +1,7 @@
 // color.spinner.js
 'use strict';
 var Color,
+    HexPicker,
     NameConverter,
     SwatchManager,
     ColorSpinner;
@@ -133,6 +134,25 @@ Color.prototype.hslString = function (format) {
 
 Color.prototype.hsvString = function (format) {
 };
+
+
+//==== module: HexPicker
+// uses M, Color
+
+HexPicker = (function () {
+  var dimensions = {};
+
+  function load(wrapper) {
+    dimensions.wrapper = {
+      width: wrapper.offsetWidth,
+      height: wrapper.offsetHeight
+    };
+  }
+
+  return {
+    load: load
+  };
+})();
 
 
 //==== module: NameConverter
@@ -430,11 +450,12 @@ ColorSpinner = (function () {
   }
 
   function load(wrapper) {
-    var names = [ 'visualSpinner', 'nameConverter', 'swatchManager' ];
+    var names = [ 'hexPicker', 'nameConverter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
+    HexPicker.load(containers.hexPicker, { owner: this });
     NameConverter.load(containers.nameConverter, { owner: this });
     SwatchManager.load(containers.swatchManager, { owner: this });
     for (i = 0; i < 4; ++i) { 

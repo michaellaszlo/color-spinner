@@ -8,6 +8,13 @@ body {
   font-family: sans-serif;
 }
 
+#hexPicker {
+  width: 480px;
+  height: 220px;
+  margin: 10px 10px 0;
+  background: #eee;
+}
+
 #nameConverter {
   display: inline-block;
   margin: 10px 10px 0;
