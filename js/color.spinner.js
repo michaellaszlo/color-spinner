@@ -143,6 +143,27 @@ HexagonPicker = (function () {
   var dimensions = {},
       canvases = {};
 
+  function paintHexagonFrame(canvas) {
+    var context = canvas.getContext('2d'),
+        width = canvas.width,
+        height = canvas.height,
+        radius = width / 2,
+        x0 = width / 2,
+        y0 = height / 2,
+        i, angle, x, y;
+    context.beginPath();
+    context.moveTo(width, y0);
+    for (i = 1; i <= 6; ++i) {
+      angle = i * Math.PI / 3,
+      x = x0 + Math.cos(angle) * radius,
+      y = y0 + Math.sin(angle) * radius;
+      context.lineTo(x, y);
+    }
+    context.lineWidth = 3;
+    context.strokeStyle = '#888';
+    context.stroke();
+  }
+
   function load(wrapper) {
     var width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
@@ -155,6 +176,7 @@ HexagonPicker = (function () {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hexagonSize, height: hexagonSize })
     };
+    paintHexagonFrame(canvases.macroHexagon.frame);
   }
 
   return {
