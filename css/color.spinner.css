@@ -8,11 +8,14 @@ body {
   font-family: sans-serif;
 }
 
-#hexPicker {
+#hexagonPicker {
   width: 480px;
   height: 220px;
   margin: 10px 10px 0;
   background: #eee;
+}
+#hexagonPicker canvas.hex {
+  background: #ffd;
 }
 
 #nameConverter {

@@ -1,7 +1,7 @@
 // color.spinner.js
 'use strict';
 var Color,
-    HexPicker,
+    HexagonPicker,
     NameConverter,
     SwatchManager,
     ColorSpinner;
@@ -60,7 +60,7 @@ Color.prototype.parse = function (s) {
       i, x,
       keys = [ 'r', 'g', 'b' ];
   s = s.replace(/\s+/g, '');
-  // Hex value.
+  // Hexagon value.
   groups = s.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
   if (groups !== null) {
     s = groups[1];
@@ -136,16 +136,24 @@ Color.prototype.hsvString = function (format) {
 };
 
 
-//==== module: HexPicker
+//==== module: HexagonPicker
 // uses M, Color
 
-HexPicker = (function () {
-  var dimensions = {};
+HexagonPicker = (function () {
+  var dimensions = {},
+      canvases = {};
 
   function load(wrapper) {
+    var width = wrapper.offsetWidth,
+        height = wrapper.offsetHeight,
+        hexagonSize = Math.min(height, Math.floor(width / 2));
     dimensions.wrapper = {
       width: wrapper.offsetWidth,
       height: wrapper.offsetHeight
+    };
+    canvases.macroHexagon = {
+      frame: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hexagonSize, height: hexagonSize })
     };
   }
 
@@ -450,12 +458,12 @@ ColorSpinner = (function () {
   }
 
   function load(wrapper) {
-    var names = [ 'hexPicker', 'nameConverter', 'swatchManager' ];
+    var names = [ 'hexagonPicker', 'nameConverter', 'swatchManager' ];
     containers = { wrapper: wrapper };
     names.forEach(function (name) {
       containers[name] = M.make('div', { parent: wrapper, id: name });
     });
-    HexPicker.load(containers.hexPicker, { owner: this });
+    HexagonPicker.load(containers.hexagonPicker, { owner: this });
     NameConverter.load(containers.nameConverter, { owner: this });
     SwatchManager.load(containers.swatchManager, { owner: this });
     for (i = 0; i < 4; ++i) { 
