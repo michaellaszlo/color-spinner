@@ -77,12 +77,25 @@ M.make = function (tag, options) {
 M.getOffset = function (element, ancestor) {
   var left = 0,
       top = 0;
-  while (element != ancestor) {
+  ancestor = ancestor || document.body;
+  while (element != ancestor && element != document.body) {
     left += element.offsetLeft;
     top += element.offsetTop;
-    element = element.parentNode;
+    element = element.offsetParent;
+  }
+  if (element != ancestor) {
+    return null;
   }
   return { left: left, top: top };
+};
+
+M.getRelativeOffset = function (elementA, elementB) {
+  var offsetA = M.getOffset(elementA, document.body),
+      offsetB = M.getOffset(elementB, document.body);
+  return {
+    left: offsetA.left - offsetB.left,
+    top: offsetA.top - offsetB.top
+  };
 };
 
 M.getMousePosition = function (event) {

@@ -165,10 +165,10 @@ HexagonPicker = (function () {
   }
 
   function macroMouse(event) {
-    var offset = M.getOffset(this, document);
-    var position = M.getMousePosition(event);
-    console.log(position.x, position.y, offset.left, offset.top,
-        this.offset.left, this.offset.top);
+    var position = M.getMousePosition(event),
+        offset = this.offset,
+        x = position.x - offset.left,
+        y = position.y - offset.top;
   }
 
   function load(wrapper) {
