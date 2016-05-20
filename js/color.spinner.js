@@ -164,8 +164,16 @@ HexagonPicker = (function () {
     context.stroke();
   }
 
+  function macroMouse(event) {
+    var offset = M.getOffset(this, document);
+    var position = M.getMousePosition(event);
+    console.log(position.x, position.y, offset.left, offset.top,
+        this.offset.left, this.offset.top);
+  }
+
   function load(wrapper) {
-    var width = wrapper.offsetWidth,
+    var canvas,
+        width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hexagonSize = Math.min(height, Math.floor(width / 2));
     dimensions.wrapper = {
@@ -176,7 +184,10 @@ HexagonPicker = (function () {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hexagonSize, height: hexagonSize })
     };
-    paintHexagonFrame(canvases.macroHexagon.frame);
+    canvas = canvases.macroHexagon.frame;
+    canvas.offset = M.getOffset(canvas, document.body);
+    paintHexagonFrame(canvas);
+    M.listen(canvas, macroMouse, 'mouseover', 'mousemove');
   }
 
   return {
