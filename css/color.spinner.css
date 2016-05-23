@@ -13,9 +13,10 @@ body {
   height: 220px;
   margin: 10px 10px 0;
   background: #eee;
+  position: relative;
 }
 #hexagonPicker canvas.hex {
-  background: #ffd;
+  position: absolute;
 }
 
 #nameConverter {

@@ -146,16 +146,17 @@ HexagonPicker = (function () {
   function paintHexagon(canvas, x0, y0, radius, thickness, color) {
     var context = canvas.getContext('2d'),
         i, angle, x, y;
-    context.beginPath();
     context.moveTo(canvas.width, y0);
+    context.beginPath();
     for (i = 1; i <= 6; ++i) {
       angle = i * Math.PI / 3,
       x = x0 + Math.cos(angle) * radius,
       y = y0 + Math.sin(angle) * radius;
       context.lineTo(x, y);
     }
+    context.closePath();
     context.lineWidth = 3;
-    context.strokeStyle = '#888';
+    context.strokeStyle = color;
     context.stroke();
   }
 
@@ -172,7 +173,11 @@ HexagonPicker = (function () {
     var position = M.getMousePosition(event),
         offset = this.offset,
         x = position.x - offset.left,
-        y = position.y - offset.top;
+        y = position.y - offset.top,
+        canvas = canvases.macroHexagon.slider,
+        context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    paintHexagon(canvas, x, y, 10, 1, '#bbb');
   }
 
   function load(wrapper) {
@@ -185,6 +190,8 @@ HexagonPicker = (function () {
       height: wrapper.offsetHeight
     };
     canvases.macroHexagon = {
+      slider: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hexagonSize, height: hexagonSize }),
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hexagonSize, height: hexagonSize })
     };
