@@ -180,6 +180,11 @@ HexagonPicker = (function () {
     paintHexagon(canvas, x, y, 10, 1, '#bbb');
   }
 
+  function clearCanvas(canvas) {
+    var context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
   function load(wrapper) {
     var canvas,
         width = wrapper.offsetWidth,
@@ -199,6 +204,9 @@ HexagonPicker = (function () {
     canvas.offset = M.getOffset(canvas, document.body);
     paintHexagonFrame(canvas);
     M.listen(canvas, macroMouse, 'mouseover', 'mousemove');
+    M.listen(canvas, function () {
+      clearCanvas(canvases.macroHexagon.slider);
+    }, 'mouseout');
   }
 
   return {
