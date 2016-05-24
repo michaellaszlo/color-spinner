@@ -175,9 +175,13 @@ HexagonPicker = (function () {
         x = position.x - offset.left,
         y = position.y - offset.top,
         canvas = canvases.macroHexagon.slider,
+        x0 = canvas.width / 2,
+        y0 = x0,
+        angle = Math.atan2(y - y0, x - x0),
         context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
     paintHexagon(canvas, x, y, 10, 1, '#bbb');
+    console.log(angle);
   }
 
   function clearCanvas(canvas) {
