@@ -178,10 +178,13 @@ HexagonPicker = (function () {
         x0 = canvas.width / 2,
         y0 = x0,
         angle = Math.atan2(y - y0, x - x0),
+        sectorReal = (angle + Math.PI) * 3 / Math.PI,
+        sector = Math.floor(sectorReal),
+        sectorAngle = (sectorReal - sector) * Math.PI / 3,
         context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
     paintHexagon(canvas, x, y, 10, 1, '#bbb');
-    console.log(angle);
+    console.log(sector, (sectorReal - sector), sectorAngle);
   }
 
   function clearCanvas(canvas) {
