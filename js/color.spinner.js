@@ -178,24 +178,27 @@ HexagonPicker = (function () {
         y = position.y - offset.top,
         x0 = canvas.width / 2,
         y0 = x0,
-        angle = Math.atan2(y0 - y, x - x0),
-        sectorReal = (angle + Math.PI) * 3 / Math.PI,
-        sector = Math.floor(sectorReal),
-        sectorAngle = (sectorReal - Math.floor(sector)) * Math.PI / 3,
+        circle = 2 * Math.PI,
+        sixth = Math.PI / 3,
+        fatAngle = Math.atan2(y0 - y, x - x0) + circle,
+        angle = (fatAngle < circle ? fatAngle : fatAngle - circle),
+        sectorReal = angle / sixth,
+        sectorIndex = Math.floor(sectorReal),
+        sectorAngle = (sectorReal - sectorIndex) * sixth,
         macroRadius = x0,
         microRadius = 15,
         s = macroRadius - microRadius,
-        m0 = -Math.tan(Math.PI / 3),
-        c0 = s * Math.tan(Math.PI / 3),
+        c0 = s * Math.tan(sixth),
         m1 = Math.tan(sectorAngle),
-        x1 = c0 / (m1 - m0),
-        y1 = m1 * x1,
-        x2 = x0 + x1,
-        y2 = y0 - y1;
+        x1 = c0 / (m1 + Math.tan(sixth)),
+        y1 = m1 * x1,  // (x1, y1) are in the sector's coordinate space
+        d = Math.hypot(x1, y1),  // distance from hexagon center to edge
+        x2 = x0 + d * Math.cos(angle),  // (x2, y2) are canvas coordinates
+        y2 = y0 - d * Math.sin(angle);
     context.clearRect(0, 0, canvas.width, canvas.height);
     paintHexagon(canvas, x, y, microRadius, 1, '#bbb');
     context.beginPath();
-    context.arc(x2, y2, microRadius / 3, 0, 2 * Math.PI);
+    context.arc(x2, y2, microRadius / 3, 0, circle);
     context.closePath();
     context.fill();
   }
