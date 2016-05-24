@@ -172,19 +172,32 @@ HexagonPicker = (function () {
   function macroMouse(event) {
     var position = M.getMousePosition(event),
         offset = this.offset,
+        canvas = canvases.macroHexagon.slider,
+        context = canvas.getContext('2d'),
         x = position.x - offset.left,
         y = position.y - offset.top,
-        canvas = canvases.macroHexagon.slider,
         x0 = canvas.width / 2,
         y0 = x0,
-        angle = Math.atan2(y - y0, x - x0),
+        angle = Math.atan2(y0 - y, x - x0),
         sectorReal = (angle + Math.PI) * 3 / Math.PI,
         sector = Math.floor(sectorReal),
-        sectorAngle = (sectorReal - sector) * Math.PI / 3,
-        context = canvas.getContext('2d');
+        sectorAngle = (sectorReal - Math.floor(sector)) * Math.PI / 3,
+        macroRadius = x0,
+        microRadius = 15,
+        s = macroRadius - microRadius,
+        m0 = -Math.tan(Math.PI / 3),
+        c0 = s * Math.tan(Math.PI / 3),
+        m1 = Math.tan(sectorAngle),
+        x1 = c0 / (m1 - m0),
+        y1 = m1 * x1,
+        x2 = x0 + x1,
+        y2 = y0 - y1;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    paintHexagon(canvas, x, y, 10, 1, '#bbb');
-    console.log(sector, (sectorReal - sector), sectorAngle);
+    paintHexagon(canvas, x, y, microRadius, 1, '#bbb');
+    context.beginPath();
+    context.arc(x2, y2, microRadius / 3, 0, 2 * Math.PI);
+    context.closePath();
+    context.fill();
   }
 
   function clearCanvas(canvas) {
