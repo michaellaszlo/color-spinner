@@ -144,6 +144,7 @@ HexagonPicker = (function () {
       circle = 2 * pi,
       sixth = pi / 3,
       dimensions = {},
+      zoom = {},
       canvases = {};
 
   function paintHexagon(canvas, x0, y0, radius, thickness, color) {
@@ -165,7 +166,6 @@ HexagonPicker = (function () {
 
   function paintHexagonFrame(canvas) {
     var hex = dimensions.hexagon;
-    console.log(hex.x0, hex.y0, hex.macroRadius + hex.border / 2, hex.border);
     paintHexagon(canvas, hex.x0, hex.y0,
         hex.macroRadius + hex.border / 2, hex.border, '#888');
   }
@@ -202,7 +202,8 @@ HexagonPicker = (function () {
       y = y2;
     }
     clearCanvas(canvas);
-    paintHexagon(canvas, x, y, hex.microRadius - 1, 2, '#444');
+    paintHexagon(canvas, zoom.x = x, zoom.y = y,
+        hex.microRadius - hex.microBorder / 2, hex.microBorder, '#444');
   }
 
   function clearCanvas(canvas) {
@@ -221,6 +222,7 @@ HexagonPicker = (function () {
     hex.border = Math.ceil(hex.canvasSize / 80);
     hex.macroRadius = hex.x0 - 2 * hex.border;
     hex.microRadius = hex.macroRadius / 10;
+    hex.microBorder = 2;
     canvases.macroHexagon = {
       slider: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
@@ -229,6 +231,8 @@ HexagonPicker = (function () {
     };
     canvas = canvases.macroHexagon.frame;
     canvas.offset = M.getOffset(canvas, document.body);
+    paintHexagon(canvases.macroHexagon.slider, zoom.x = hex.x0, zoom.y = hex.y0,
+        hex.microRadius - hex.microBorder / 2, hex.microBorder, '#444');
     paintHexagonFrame(canvas);
     M.listen(canvas, macroMouse, 'mouseover', 'mousemove');
   }
