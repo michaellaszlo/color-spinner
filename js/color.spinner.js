@@ -143,7 +143,10 @@ HexagonPicker = (function () {
   var pi = Math.PI,
       circle = 2 * pi,
       sixth = pi / 3,
+      dx = [ 0, 1, 0, -1 ],
+      dy = [ -1, 0, 1, 0 ],
       dimensions = {},
+      masks = {},
       zoom = {},
       canvases = {};
 
@@ -173,7 +176,7 @@ HexagonPicker = (function () {
   function macroMouse(event) {
     var position = M.getMousePosition(event),
         offset = this.offset,
-        canvas = canvases.macroHexagon.slider,
+        canvas = canvases.macro.slider,
         context = canvas.getContext('2d'),
         x = position.x - offset.left,
         y = position.y - offset.top,
@@ -212,6 +215,75 @@ HexagonPicker = (function () {
     context.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  function getMask(canvas, x0, y0) {
+    var context = canvas.getContext('2d'),
+        width = canvas.width,
+        height = canvas.height,
+        data = context.getImageData(0, 0, width, height).data,
+        mask = new Array(width),
+        queue = [],
+        tail = 0,
+        count = 1,
+        i, x, y, X, Y, pos;
+    for (x = 0; x < width; ++x) {
+      mask[x] = new Array(height);
+    }
+    mask[x0][y0] = true;
+    queue.push([ x0, y0 ]);
+    while (tail < queue.length) {
+      x = queue[tail][0];
+      y = queue[tail][1];
+      ++tail;
+      pos = 4 * (y * width + x);
+      if (data[pos + 3] > 0) {
+        continue;
+      }
+      for (i = 0; i < 4; ++i) {
+        X = x + dx[i];
+        if (X < 0 || X >= width) {
+          continue;
+        }
+        Y = y + dy[i];
+        if (Y < 0 || Y >= height || mask[X][Y]) {
+          continue;
+        }
+        mask[X][Y] = true;
+        ++count;
+        queue.push([ X, Y ]);
+      }
+    }
+    console.log(count);
+    return mask;
+  }
+
+  function fillMask(mask, canvas, rgb) {
+    var context = canvas.getContext('2d'),
+        width = canvas.width,
+        height = canvas.height,
+        imageData = context.createImageData(width, height),
+        data = imageData.data,
+        r = rgb.r,
+        g = rgb.g,
+        b = rgb.b,
+        count = 0,
+        pos = 0,
+        x, y;
+    for (y = 0; y < height; ++y) {
+      for (x = 0; x < width; ++x) {
+        if (mask[x][y]) {
+          data[pos] = r;
+          data[pos + 1] = g;
+          data[pos + 2] = b;
+          data[pos + 3] = 255;
+          ++count;
+        }
+        pos += 4;
+      }
+    }
+    console.log(count, r, g, b, data.length, pos);
+    context.putImageData(imageData, 0, 0);
+  }
+
   function load(wrapper) {
     var canvas,
         width = wrapper.offsetWidth,
@@ -224,17 +296,24 @@ HexagonPicker = (function () {
     hex.macroBorder = Math.max(hex.microBorder + 1, hex.canvasSize / 80);
     hex.macroRadius = hex.x0 - 2 * hex.macroBorder;
     hex.microRadius = hex.macroRadius / 10;
-    canvases.macroHexagon = {
+    canvases.macro = {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hex.canvasSize, height: hex.canvasSize }),
+      colors: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
       slider: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize })
     };
-    canvas = canvases.macroHexagon.slider;
+    // Frame.
+    paintHexagonFrame(canvases.macro.frame);
+    // Colors.
+    masks.colors = getMask(canvases.macro.frame, hex.x0, hex.y0);
+    fillMask(masks.colors, canvases.macro.colors, { r: 211, g: 210, b: 180  });
+    // Slider.
+    canvas = canvases.macro.slider;
     canvas.offset = M.getOffset(canvas, document.body);
     paintHexagon(canvas, zoom.x = hex.x0, zoom.y = hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
-    paintHexagonFrame(canvases.macroHexagon.frame);
     M.listen(canvas, macroMouse, 'mousemove');
   }
 
