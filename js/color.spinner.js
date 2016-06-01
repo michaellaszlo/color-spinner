@@ -143,6 +143,7 @@ HexagonPicker = (function () {
   var pi = Math.PI,
       circle = 2 * pi,
       sixth = pi / 3,
+      sqrt3 = Math.sqrt(3),
       dx = [ 0, 1, 0, -1 ],
       dy = [ -1, 0, 1, 0 ],
       dimensions = {},
@@ -168,9 +169,21 @@ HexagonPicker = (function () {
   }
 
   function paintHexagonFrame(canvas) {
-    var hex = dimensions.hexagon;
-    paintHexagon(canvas, hex.x0, hex.y0,
-        hex.macroRadius + hex.macroBorder / 2, hex.macroBorder, '#aaa');
+    var hex = dimensions.hexagon,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        b = hex.macroBorder,
+        r = hex.macroRadius;
+    paintHexagon(canvas, x0, y0, r + b / 2, b, '#999');
+    paintHexagon(canvas, x0, y0, r + b + b / 2, b, '#e8e8e8');
+  }
+
+  function sectorAngleAtPoint(x, y) {
+    var fatAngle = Math.atan2(y, x) + circle,
+        angle = (fatAngle < circle ? fatAngle : fatAngle - circle),
+        sectorReal = angle / sixth,
+        sectorIndex = Math.floor(sectorReal);
+    return (sectorReal - sectorIndex) * sixth;
   }
 
   function macroMouse(event) {
@@ -178,36 +191,42 @@ HexagonPicker = (function () {
         offset = this.offset,
         canvas = canvases.macro.slider,
         context = canvas.getContext('2d'),
-        x = position.x - offset.left,
-        y = position.y - offset.top,
         hex = dimensions.hexagon,
+        microRadius = hex.microRadius,
+        microBorder = hex.microBorder,
+        macroRadius = hex.macroRadius,
+        macroBorder = hex.macroBorder,
+        x = position.x - offset.left,  // (x, y) is in the canvas
+        y = position.y - offset.top,
+        angle,
         x0 = hex.x0,
         y0 = hex.y0,
-        fatAngle = Math.atan2(y0 - y, x - x0) + circle,
-        angle = (fatAngle < circle ? fatAngle : fatAngle - circle),
-        sectorReal = angle / sixth,
-        sectorIndex = Math.floor(sectorReal),
-        sectorAngle = (sectorReal - sectorIndex) * sixth,
-        s = hex.macroRadius - hex.microRadius +
-            hex.macroBorder - hex.microBorder,
-        c0 = s * Math.tan(sixth),
-        m1 = Math.tan(sectorAngle),
-        x1 = c0 / (m1 + Math.tan(sixth)),
-        y1 = m1 * x1,  // (x1, y1) is in the sector's coordinate space
-        d1 = Math.hypot(x1, y1),  // distance from hexagon center
-        x2 = x0 + d1 * Math.cos(angle),  // (x2, y2) is on the canvas
-        y2 = y0 - d1 * Math.sin(angle),
-        d = Math.hypot(x - x0, y - y0);
-    if (d > d1 + hex.microRadius + 2 * hex.macroBorder) {
+        x1 = x - x0,  // (x1, y1) is in the sector's coordinate space
+        y1 = y0 - y,
+        d1 = Math.hypot(x1, y1),
+        slope = Math.tan(sectorAngleAtPoint(x1, y1)),
+        factor = 1 / (1 + slope / sqrt3),
+        r2 = macroRadius + 2 * macroBorder,
+        x2 = factor * r2,  // fence for the cursor
+        y2 = slope * x2,
+        d2 = Math.hypot(x2, y2);
+    if (d1 > d2) {
       return;
     }
-    if (d > d1) {
-      x = x2;
-      y = y2;
+    r2 = macroRadius + macroBorder - microRadius - microBorder;
+    x2 = factor * r2;  // fence for the microhexagon's center
+    y2 = slope * x2;
+    d2 = Math.hypot(x2, y2);
+    if (d1 > d2) {
+      angle = Math.atan2(y1, x1);
+      x1 = d2 * Math.cos(angle);
+      y1 = d2 * Math.sin(angle);
     }
+    zoom.x = x0 + x1;
+    zoom.y = y0 - y1;
     clearCanvas(canvas);
-    paintHexagon(canvas, zoom.x = x, zoom.y = y,
-        hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
+    paintHexagon(canvas, zoom.x, zoom.y,
+        microRadius + microBorder / 2, microBorder, '#444');
   }
 
   function clearCanvas(canvas) {
@@ -257,9 +276,8 @@ HexagonPicker = (function () {
 
   function radiusAtHue(H) {
     var slope = Math.tan((H % 60) * pi / 180),
-        x = 1 / (slope / Math.sqrt(3) + 1),
-        y = x * slope;
-    return Math.hypot(x, y);
+        x = 1 / (1 + slope / sqrt3);
+    return Math.hypot(x, x * slope);
   }
 
   function xyToRgb(x, y) {  // hexagon center is 0, 0
@@ -339,9 +357,9 @@ HexagonPicker = (function () {
     hex.canvasSize = Math.min(height, Math.floor(width / 2));
     hex.x0 = hex.y0 = hex.canvasSize / 2;
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
-    hex.macroBorder = Math.max(hex.microBorder + 1, hex.canvasSize / 80);
+    hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
     hex.macroRadius = hex.x0 - 2 * hex.macroBorder;
-    hex.microRadius = hex.macroRadius / 10;
+    hex.microRadius = hex.macroRadius / 6;
     canvases.macro = {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
