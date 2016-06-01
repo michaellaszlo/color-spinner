@@ -252,35 +252,80 @@ HexagonPicker = (function () {
         queue.push([ X, Y ]);
       }
     }
-    console.log(count);
     return mask;
   }
 
-  function fillMask(mask, canvas, rgb) {
+  function radiusAtHue(H) {
+    var slope = Math.tan((H % 60) * pi / 180),
+        x = 1 / (slope / Math.sqrt(3) + 1),
+        y = x * slope;
+    return Math.hypot(x, y);
+  }
+
+  function xyToRgb(x, y) {  // hexagon center is 0, 0
+    var value = 1,
+        radius = Math.hypot(x, y),
+        angle = (radius == 0 ? 0 : (y >= 0 ? Math.acos(x / radius) :
+                                    circle - Math.acos(x / radius))),
+        H = Math.floor(angle * 180 / pi),
+        R = radiusAtHue(H) * dimensions.hexagon.x0,
+        saturation = Math.min(1, radius / R),
+        C = saturation * value,
+        h = H / 60,
+        X = C * (1 - Math.abs(h % 2 - 1)),
+        m = value - C,
+        rgb, i;
+    if (h < 1) {
+      rgb = [ C, X, 0 ];
+    } else if (h < 2) {
+      rgb = [ X, C, 0 ];
+    } else if (h < 3) {
+      rgb = [ 0, C, X ];
+    } else if (h < 4) {
+      rgb = [ 0, X, C ];
+    } else if (h < 5) {
+      rgb = [ X, 0, C ];
+    } else {
+      rgb = [ C, 0, X ];
+    }
+    for (i = 0; i < 3; ++i) {
+      rgb[i] = Math.round(255 * (rgb[i] + m));
+    }
+    rgb.r = rgb[0];
+    rgb.g = rgb[1];
+    rgb.b = rgb[2];
+    return rgb;
+  }
+
+  function fillMask(mask, canvas, color) {
     var context = canvas.getContext('2d'),
         width = canvas.width,
         height = canvas.height,
         imageData = context.createImageData(width, height),
         data = imageData.data,
-        r = rgb.r,
-        g = rgb.g,
-        b = rgb.b,
         count = 0,
         pos = 0,
-        x, y;
+        hex = dimensions.hexagon,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x, y, rgb;
     for (y = 0; y < height; ++y) {
       for (x = 0; x < width; ++x) {
         if (mask[x][y]) {
-          data[pos] = r;
-          data[pos + 1] = g;
-          data[pos + 2] = b;
+          if (color) {
+            rgb = color;
+          } else {
+            rgb = xyToRgb(x - x0, y0 - y);
+          }
+          data[pos] = rgb.r;
+          data[pos + 1] = rgb.g;
+          data[pos + 2] = rgb.b;
           data[pos + 3] = 255;
           ++count;
         }
         pos += 4;
       }
     }
-    console.log(count, r, g, b, data.length, pos);
     context.putImageData(imageData, 0, 0);
   }
 
@@ -288,7 +333,8 @@ HexagonPicker = (function () {
     var canvas,
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
-        hex = dimensions.hexagon = {};
+        hex = dimensions.hexagon = {},
+        startTime;
     dimensions.wrapper = { width: width, height: height };
     hex.canvasSize = Math.min(height, Math.floor(width / 2));
     hex.x0 = hex.y0 = hex.canvasSize / 2;
@@ -308,7 +354,10 @@ HexagonPicker = (function () {
     paintHexagonFrame(canvases.macro.frame);
     // Colors.
     masks.colors = getMask(canvases.macro.frame, hex.x0, hex.y0);
-    fillMask(masks.colors, canvases.macro.colors, { r: 211, g: 210, b: 180  });
+    //fillMask(masks.colors, canvases.macro.colors, { r: 211, g: 210, b: 180 });
+    startTime = Date.now();
+    fillMask(masks.colors, canvases.macro.colors);
+    console.log((Date.now() - startTime) / 1000);
     // Slider.
     canvas = canvases.macro.slider;
     canvas.offset = M.getOffset(canvas, document.body);
