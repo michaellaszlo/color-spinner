@@ -149,6 +149,7 @@ HexagonPicker = (function () {
       dimensions = {},
       masks = {},
       zoom = {},
+      state = {},
       canvases = {};
 
   function paintHexagon(canvas, x0, y0, radius, thickness, color) {
@@ -186,7 +187,13 @@ HexagonPicker = (function () {
     return (sectorReal - sectorIndex) * sixth;
   }
 
-  function macroMouse(event) {
+  function macroMouseDown(event) {
+  }
+
+  function macroMouseUp(event) {
+  }
+
+  function macroMouseMove(event) {
     var position = M.getMousePosition(event),
         offset = this.offset,
         canvas = canvases.macro.slider,
@@ -210,6 +217,9 @@ HexagonPicker = (function () {
         x2 = factor * r2,  // fence for the cursor
         y2 = slope * x2,
         d2 = Math.hypot(x2, y2);
+    if (!('zooming' in state)) {
+      return;
+    }
     if (d1 > d2) {
       return;
     }
@@ -381,7 +391,9 @@ HexagonPicker = (function () {
     canvas.offset = M.getOffset(canvas, document.body);
     paintHexagon(canvas, zoom.x = hex.x0, zoom.y = hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
-    M.listen(canvas, macroMouse, 'mousemove');
+    M.listen(canvas, macroMouseDown, 'mousedown');
+    M.listen(canvas, macroMouseUp, 'mousedown');
+    M.listen(canvas, macroMouseMove, 'mousemove');
   }
 
   return {
