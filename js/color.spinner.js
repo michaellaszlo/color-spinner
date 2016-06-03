@@ -146,10 +146,10 @@ HexagonPicker = (function () {
       sqrt3 = Math.sqrt(3),
       dx = [ 0, 1, 0, -1 ],
       dy = [ -1, 0, 1, 0 ],
+      state = { zooming: false },
+      zoom = {},
       dimensions = {},
       masks = {},
-      zoom = {},
-      state = {},
       canvases = {};
 
   function paintHexagon(canvas, x0, y0, radius, thickness, color) {
@@ -176,7 +176,6 @@ HexagonPicker = (function () {
         b = hex.macroBorder,
         r = hex.macroRadius;
     paintHexagon(canvas, x0, y0, r + b / 2, b, '#999');
-    paintHexagon(canvas, x0, y0, r + b + b / 2, b, '#e8e8e8');
   }
 
   function sectorAngleAtPoint(x, y) {
@@ -187,13 +186,20 @@ HexagonPicker = (function () {
     return (sectorReal - sectorIndex) * sixth;
   }
 
-  function macroMouseDown(event) {
+  function macroGrab(event) {
+    state.zooming = true;
+    state.justGrabbed = true;
+    macroDrag.call(this, event);
   }
 
-  function macroMouseUp(event) {
+  function macroRelease(event) {
+    state.zooming = false;
   }
 
-  function macroMouseMove(event) {
+  function macroDrag(event) {
+    if (!state.zooming) {
+      return;
+    }
     var position = M.getMousePosition(event),
         offset = this.offset,
         canvas = canvases.macro.slider,
@@ -213,15 +219,16 @@ HexagonPicker = (function () {
         d1 = Math.hypot(x1, y1),
         slope = Math.tan(sectorAngleAtPoint(x1, y1)),
         factor = 1 / (1 + slope / sqrt3),
-        r2 = macroRadius + 2 * macroBorder,
-        x2 = factor * r2,  // fence for the cursor
+        r2 = macroRadius + macroBorder,
+        x2 = factor * r2,  // fence for the initial click
         y2 = slope * x2,
         d2 = Math.hypot(x2, y2);
-    if (!('zooming' in state)) {
-      return;
-    }
-    if (d1 > d2) {
-      return;
+    if (state.justGrabbed) {
+      state.justGrabbed = false;
+      if (d1 > d2) {
+        state.zooming = false;
+        return;
+      }
     }
     r2 = macroRadius + macroBorder - microRadius - microBorder;
     x2 = factor * r2;  // fence for the microhexagon's center
@@ -368,7 +375,7 @@ HexagonPicker = (function () {
     hex.x0 = hex.y0 = hex.canvasSize / 2;
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
     hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
-    hex.macroRadius = hex.x0 - 2 * hex.macroBorder;
+    hex.macroRadius = hex.x0 - hex.macroBorder;
     hex.microRadius = hex.macroRadius / 6;
     canvases.macro = {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
@@ -388,12 +395,13 @@ HexagonPicker = (function () {
     console.log((Date.now() - startTime) / 1000);
     // Slider.
     canvas = canvases.macro.slider;
+    M.makeUnselectable(canvas);
     canvas.offset = M.getOffset(canvas, document.body);
     paintHexagon(canvas, zoom.x = hex.x0, zoom.y = hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
-    M.listen(canvas, macroMouseDown, 'mousedown');
-    M.listen(canvas, macroMouseUp, 'mousedown');
-    M.listen(canvas, macroMouseMove, 'mousemove');
+    M.listen(canvas, macroGrab, 'mousedown');
+    M.listen(window, macroRelease, 'mouseup');
+    M.listen(window, macroDrag.bind(canvas), 'mousemove');
   }
 
   return {
