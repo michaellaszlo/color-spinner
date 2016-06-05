@@ -369,6 +369,7 @@ HexagonPicker = (function () {
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hex = dimensions.hexagon = {},
+        macroWidth,
         startTime;
     dimensions.wrapper = { width: width, height: height };
     hex.canvasSize = Math.min(height, Math.floor(width / 2));
@@ -402,6 +403,18 @@ HexagonPicker = (function () {
     M.listen(canvas, macroGrab, 'mousedown');
     M.listen(window, macroRelease, 'mouseup');
     M.listen(window, macroDrag.bind(canvas), 'mousemove');
+    macroWidth = canvas.offsetWidth;
+    console.log(macroWidth);
+    canvases.micro = {
+      frame: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hex.canvasSize, height: hex.canvasSize }),
+      colors: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hex.canvasSize, height: hex.canvasSize })
+    };
+    Object.keys(canvases.micro).forEach(function (name) {
+      var canvas = canvases.micro[name];
+      canvas.style.left = macroWidth + 'px';
+    });
   }
 
   return {
