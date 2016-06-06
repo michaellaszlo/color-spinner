@@ -239,11 +239,22 @@ HexagonPicker = (function () {
       x1 = d2 * Math.cos(angle);
       y1 = d2 * Math.sin(angle);
     }
-    zoom.x = x0 + x1;
-    zoom.y = y0 - y1;
+    zoom.x = x1;
+    zoom.y = y1;
     clearCanvas(canvas);
-    paintHexagon(canvas, zoom.x, zoom.y,
+    paintHexagon(canvas, x0 + zoom.x, y0 - zoom.y,
         microRadius + microBorder / 2, microBorder, '#444');
+    paintMicro();
+  }
+
+  function paintMicro() {
+    var hex = dimensions.hexagon,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x1 = zoom.x,
+        y1 = zoom.y,
+        microRadius = hex.microRadius,
+        macroRadius = hex.macroRadius;
   }
 
   function clearCanvas(canvas) {
@@ -369,7 +380,6 @@ HexagonPicker = (function () {
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hex = dimensions.hexagon = {},
-        macroWidth,
         startTime;
     dimensions.wrapper = { width: width, height: height };
     hex.canvasSize = Math.min(height, Math.floor(width / 2));
@@ -398,13 +408,11 @@ HexagonPicker = (function () {
     canvas = canvases.macro.slider;
     M.makeUnselectable(canvas);
     canvas.offset = M.getOffset(canvas, document.body);
-    paintHexagon(canvas, zoom.x = hex.x0, zoom.y = hex.y0,
+    paintHexagon(canvas, hex.x0, hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
     M.listen(canvas, macroGrab, 'mousedown');
     M.listen(window, macroRelease, 'mouseup');
     M.listen(window, macroDrag.bind(canvas), 'mousemove');
-    macroWidth = canvas.offsetWidth;
-    console.log(macroWidth);
     canvases.micro = {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
@@ -413,8 +421,11 @@ HexagonPicker = (function () {
     };
     Object.keys(canvases.micro).forEach(function (name) {
       var canvas = canvases.micro[name];
-      canvas.style.left = macroWidth + 'px';
+      canvas.style.right = '0';
     });
+    paintHexagonFrame(canvases.micro.frame);
+    zoom.x = zoom.y = 0;
+    paintMicro();
   }
 
   return {
