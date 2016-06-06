@@ -239,22 +239,11 @@ HexagonPicker = (function () {
       x1 = d2 * Math.cos(angle);
       y1 = d2 * Math.sin(angle);
     }
-    zoom.x = x1;
-    zoom.y = y1;
     clearCanvas(canvas);
-    paintHexagon(canvas, x0 + zoom.x, y0 - zoom.y,
+    paintHexagon(canvas, zoom.x = x0 + x1, zoom.y = y0 - y1,
         microRadius + microBorder / 2, microBorder, '#444');
-    paintMicro();
-  }
-
-  function paintMicro() {
-    var hex = dimensions.hexagon,
-        x0 = hex.x0,
-        y0 = hex.y0,
-        x1 = zoom.x,
-        y1 = zoom.y,
-        microRadius = hex.microRadius,
-        macroRadius = hex.macroRadius;
+    fillMacro(masks.colors, canvases.macro.colors);
+    fillZoom(masks.colors, canvases.micro.colors);
   }
 
   function clearCanvas(canvas) {
@@ -343,7 +332,45 @@ HexagonPicker = (function () {
     return rgb;
   }
 
-  function fillMask(mask, canvas, color) {
+  function fillZoom(mask, canvas) {
+    var hex = dimensions.hexagon,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x1 = zoom.x,
+        y1 = zoom.y,
+        microRadius = hex.microRadius,
+        macroRadius = hex.macroRadius,
+        zoomFactor = microRadius / macroRadius,
+        context = canvas.getContext('2d'),
+        width = canvas.width,
+        height = canvas.height,
+        imageData = context.createImageData(width, height),
+        data = imageData.data,
+        count = 0,
+        pos = 0,
+        hex = dimensions.hexagon,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x, y, x2, y2, rgb;
+    for (y = 0; y < height; ++y) {
+      for (x = 0; x < width; ++x) {
+        if (mask[x][y]) {
+          x2 = x1 + (x - x0) * zoomFactor;
+          y2 = y1 - (y0 - y) * zoomFactor;
+          rgb = xyToRgb(x2 - x0, y0 - y2);
+          data[pos] = rgb.r;
+          data[pos + 1] = rgb.g;
+          data[pos + 2] = rgb.b;
+          data[pos + 3] = 255;
+          ++count;
+        }
+        pos += 4;
+      }
+    }
+    context.putImageData(imageData, 0, 0);
+  }
+
+  function fillMacro(mask, canvas) {
     var context = canvas.getContext('2d'),
         width = canvas.width,
         height = canvas.height,
@@ -358,11 +385,7 @@ HexagonPicker = (function () {
     for (y = 0; y < height; ++y) {
       for (x = 0; x < width; ++x) {
         if (mask[x][y]) {
-          if (color) {
-            rgb = color;
-          } else {
-            rgb = xyToRgb(x - x0, y0 - y);
-          }
+          rgb = xyToRgb(x - x0, y0 - y);
           data[pos] = rgb.r;
           data[pos + 1] = rgb.g;
           data[pos + 2] = rgb.b;
@@ -387,7 +410,7 @@ HexagonPicker = (function () {
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
     hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
     hex.macroRadius = hex.x0 - hex.macroBorder;
-    hex.microRadius = hex.macroRadius / 6;
+    hex.microRadius = hex.macroRadius / 4;
     canvases.macro = {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
@@ -400,9 +423,7 @@ HexagonPicker = (function () {
     paintHexagonFrame(canvases.macro.frame);
     // Colors.
     masks.colors = getMask(canvases.macro.frame, hex.x0, hex.y0);
-    //fillMask(masks.colors, canvases.macro.colors, { r: 211, g: 210, b: 180 });
     startTime = Date.now();
-    fillMask(masks.colors, canvases.macro.colors);
     console.log((Date.now() - startTime) / 1000);
     // Slider.
     canvas = canvases.macro.slider;
@@ -424,8 +445,10 @@ HexagonPicker = (function () {
       canvas.style.right = '0';
     });
     paintHexagonFrame(canvases.micro.frame);
-    zoom.x = zoom.y = 0;
-    paintMicro();
+    zoom.x = hex.x0;
+    zoom.y = hex.y0;
+    fillMacro(masks.colors, canvases.macro.colors);
+    fillZoom(masks.colors, canvases.micro.colors);
   }
 
   return {
