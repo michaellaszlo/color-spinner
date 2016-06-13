@@ -186,6 +186,15 @@ HexagonPicker = (function () {
     return (sectorReal - sectorIndex) * sixth;
   }
 
+  function microGrab(event) {
+  }
+
+  function microRelease(event) {
+  }
+
+  function microDrag(event) {
+  }
+
   function macroGrab(event) {
     state.zooming = true;
     state.justGrabbed = true;
@@ -352,6 +361,7 @@ HexagonPicker = (function () {
         x0 = hex.x0,
         y0 = hex.y0,
         x, y, x2, y2, rgb;
+    console.log('fillZoom', x0, y0);
     for (y = 0; y < height; ++y) {
       for (x = 0; x < width; ++x) {
         if (mask[x][y]) {
@@ -429,6 +439,7 @@ HexagonPicker = (function () {
     canvas = canvases.macro.slider;
     M.makeUnselectable(canvas);
     canvas.offset = M.getOffset(canvas, document.body);
+    fillMacro(masks.colors, canvas);
     paintHexagon(canvas, hex.x0, hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
     M.listen(canvas, macroGrab, 'mousedown');
@@ -438,6 +449,8 @@ HexagonPicker = (function () {
       frame: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
       colors: M.make('canvas', { className: 'hex', parent: wrapper,
+        width: hex.canvasSize, height: hex.canvasSize }),
+      slider: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize })
     };
     Object.keys(canvases.micro).forEach(function (name) {
@@ -447,8 +460,11 @@ HexagonPicker = (function () {
     paintHexagonFrame(canvases.micro.frame);
     zoom.x = hex.x0;
     zoom.y = hex.y0;
-    fillMacro(masks.colors, canvases.macro.colors);
-    fillZoom(masks.colors, canvases.micro.colors);
+    canvas = canvases.micro.slider;
+    fillZoom(masks.colors, canvas);
+    M.listen(canvas, microGrab, 'mousedown');
+    M.listen(canvas, microRelease, 'mouseup');
+    M.listen(canvas, microDrag, 'mousemove');
   }
 
   return {
