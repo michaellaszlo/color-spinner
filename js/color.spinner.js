@@ -146,7 +146,10 @@ HexagonPicker = (function () {
       sqrt3 = Math.sqrt(3),
       dx = [ 0, 1, 0, -1 ],
       dy = [ -1, 0, 1, 0 ],
-      state = { zooming: false },
+      state = {
+        macro: { dragging: false },
+        micro: {}
+      },
       zoom = {},
       dimensions = {},
       masks = {},
@@ -187,32 +190,84 @@ HexagonPicker = (function () {
   }
 
   function microGrab(event) {
+    state.micro.dragging = true;
+    state.micro.justGrabbed = true;
+    microDrag.call(this, event);
+    document.body.style.cursor = 'crosshair';
   }
 
   function microRelease(event) {
+    state.micro.dragging = false;
+    document.body.style.cursor = 'default';
   }
 
   function microDrag(event) {
+    if (!state.micro.dragging) {
+      return;
+    }
+    var position = M.getMousePosition(event),
+        offset = this.offset,
+        canvas = canvases.micro.slider,
+        context = canvas.getContext('2d'),
+        hex = dimensions.hexagon,
+        macroRadius = hex.macroRadius,
+        macroBorder = hex.macroBorder,
+        x = position.x - offset.left,  // (x, y) is in the canvas
+        y = position.y - offset.top,
+        angle,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x1 = x - x0,  // (x1, y1) is in the sector's coordinate space
+        y1 = y0 - y,
+        d1 = Math.hypot(x1, y1),
+        slope = Math.tan(sectorAngleAtPoint(x1, y1)),
+        factor = 1 / (1 + slope / sqrt3),
+        r2 = macroRadius + macroBorder,
+        x2 = factor * r2,  // fence for the initial click
+        y2 = slope * x2,
+        d2 = Math.hypot(x2, y2);
+    if (state.micro.justGrabbed) {
+      state.micro.justGrabbed = false;
+      if (d1 > d2) {
+        state.micro.dragging = false;
+        return;
+      }
+    }
+    r2 = macroRadius;
+    x2 = factor * r2;  // fence for the microhexagon's center
+    y2 = slope * x2;
+    d2 = Math.hypot(x2, y2);
+    if (d1 > d2) {
+      angle = Math.atan2(y1, x1);
+      x1 = d2 * Math.cos(angle);
+      y1 = d2 * Math.sin(angle);
+    }
+    clearCanvas(canvas);
+    context.beginPath();
+    context.arc(x0 + x1, y0 - y1, 5, 0, circle);
+    context.closePath();
+    context.stroke();
   }
 
   function macroGrab(event) {
-    state.zooming = true;
-    state.justGrabbed = true;
+    state.macro.dragging = true;
+    state.macro.justGrabbed = true;
     macroDrag.call(this, event);
+    document.body.style.cursor = 'crosshair';
   }
 
   function macroRelease(event) {
-    state.zooming = false;
+    state.macro.dragging = false;
+    document.body.style.cursor = 'default';
   }
 
   function macroDrag(event) {
-    if (!state.zooming) {
+    if (!state.macro.dragging) {
       return;
     }
     var position = M.getMousePosition(event),
         offset = this.offset,
         canvas = canvases.macro.slider,
-        context = canvas.getContext('2d'),
         hex = dimensions.hexagon,
         microRadius = hex.microRadius,
         microBorder = hex.microBorder,
@@ -232,10 +287,10 @@ HexagonPicker = (function () {
         x2 = factor * r2,  // fence for the initial click
         y2 = slope * x2,
         d2 = Math.hypot(x2, y2);
-    if (state.justGrabbed) {
-      state.justGrabbed = false;
+    if (state.macro.justGrabbed) {
+      state.macro.justGrabbed = false;
       if (d1 > d2) {
-        state.zooming = false;
+        state.macro.dragging = false;
         return;
       }
     }
@@ -361,7 +416,6 @@ HexagonPicker = (function () {
         x0 = hex.x0,
         y0 = hex.y0,
         x, y, x2, y2, rgb;
-    console.log('fillZoom', x0, y0);
     for (y = 0; y < height; ++y) {
       for (x = 0; x < width; ++x) {
         if (mask[x][y]) {
@@ -429,17 +483,16 @@ HexagonPicker = (function () {
       slider: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize })
     };
-    // Frame.
+    // Frame and mask.
     paintHexagonFrame(canvases.macro.frame);
-    // Colors.
     masks.colors = getMask(canvases.macro.frame, hex.x0, hex.y0);
-    startTime = Date.now();
-    console.log((Date.now() - startTime) / 1000);
     // Slider.
     canvas = canvases.macro.slider;
     M.makeUnselectable(canvas);
     canvas.offset = M.getOffset(canvas, document.body);
+    startTime = Date.now();
     fillMacro(masks.colors, canvas);
+    console.log((Date.now() - startTime) / 1000 + ' s');
     paintHexagon(canvas, hex.x0, hex.y0,
         hex.microRadius + hex.microBorder / 2, hex.microBorder, '#444');
     M.listen(canvas, macroGrab, 'mousedown');
@@ -460,11 +513,16 @@ HexagonPicker = (function () {
     paintHexagonFrame(canvases.micro.frame);
     zoom.x = hex.x0;
     zoom.y = hex.y0;
+    startTime = Date.now();
+    fillZoom(masks.colors, canvases.micro.colors);
+    console.log((Date.now() - startTime) / 1000 + ' s');
     canvas = canvases.micro.slider;
-    fillZoom(masks.colors, canvas);
+    canvas.style.opacity = 0.650;
+    M.makeUnselectable(canvas);
+    canvas.offset = M.getOffset(canvas, document.body);
     M.listen(canvas, microGrab, 'mousedown');
-    M.listen(canvas, microRelease, 'mouseup');
-    M.listen(canvas, microDrag, 'mousemove');
+    M.listen(window, microRelease, 'mouseup');
+    M.listen(window, microDrag.bind(canvas), 'mousemove');
   }
 
   return {
