@@ -152,8 +152,6 @@ HexagonPicker = (function () {
       },
       zoomPoint = {},  // center of slider in main hexagon
       refinePoint = {},  // center of slider in zoomed view
-      pickPoint = {},  // point in main hexagon
-      pickColor = null,  // color corresponding to pickPoint
       dimensions = {},
       masks = {},
       canvases = {};
@@ -210,8 +208,6 @@ HexagonPicker = (function () {
     }
     var position = M.getMousePosition(event),
         offset = this.offset,
-        canvas = canvases.macro.pick,
-        context = canvas.getContext('2d'),
         hex = dimensions.hexagon,
         macroRadius = hex.macroRadius,
         microRadius = hex.microRadius,
@@ -220,6 +216,7 @@ HexagonPicker = (function () {
         x = position.x - offset.left,  // (x, y) is in the canvas
         y = position.y - offset.top,
         angle,
+        pickX, pickY, pickColor, showPoint,
         x0 = hex.x0,
         y0 = hex.y0,
         x1 = x - x0,  // (x1, y1) is in the sector's coordinate space
@@ -249,12 +246,20 @@ HexagonPicker = (function () {
     }
     refinePoint.x = x0 + x1;
     refinePoint.y = y0 - y1;
-    pickPoint.x = zoomPoint.x + x1 / scale;
-    pickPoint.y = zoomPoint.y - y1 / scale;
-    pickColor = xyToRgb(pickPoint.x - x0, y0 - pickPoint.y);
+    pickX = zoomPoint.x + x1 / scale;
+    pickY = zoomPoint.y - y1 / scale;
+    pickColor = xyToRgb(pickX - x0, y0 - pickY);
+    showPoint = rgbToXy(pickColor);
+    macroShowPoint(showPoint.x, showPoint.y);
+  }
+
+  function macroShowPoint(x, y) {
+    var canvas = canvases.macro.pick,
+        context = canvas.getContext('2d'),
+        hex = dimensions.hexagon;
     clearCanvas(canvas);
     context.beginPath();
-    context.arc(pickPoint.x, pickPoint.y, 2, 0, circle);
+    context.arc(hex.x0 + x, hex.y0 - y, 2, 0, circle);
     context.closePath();
     context.fill();
   }
@@ -371,6 +376,35 @@ HexagonPicker = (function () {
     return Math.hypot(x, x * slope);
   }
 
+  function rgbToXy(rgb) {
+    var R = rgb.r, G = rgb.g, B = rgb.b,
+        max = Math.max(R, G, B),
+        min = Math.min(R, G, B),
+        C = max - min,
+        h, H, angle, value, saturation, r;
+    if (max == min) {
+      h = 0;
+    } else if (max == R) {
+      h = ((G - B) / C) % 6;
+    } else if (max == G) {
+      h = (B - R) / C + 2;
+    } else {
+      h = (R - G) / C + 4;
+    }
+    if (h < 0) {
+      h += 6;
+    }
+    H = Math.floor(60 * h);
+    angle = h * pi / 3;
+    value = max;
+    saturation = (value == 0 ? 0 : C / value);
+    r = saturation * radiusAtHue(H) * dimensions.hexagon.x0;
+    return {
+      x: r * Math.cos(angle),
+      y: r * Math.sin(angle)
+    };
+  }
+
   function xyToRgb(x, y) {  // hexagon center is 0, 0
     var value = 1,
         radius = Math.hypot(x, y),
@@ -472,6 +506,11 @@ HexagonPicker = (function () {
     context.putImageData(imageData, 0, 0);
   }
 
+  function setColor(color) {
+    var point = rgbToXy(color);
+    macroShowPoint(point.x, point.y);
+  }
+
   function load(wrapper) {
     var canvas,
         width = wrapper.offsetWidth,
@@ -538,6 +577,7 @@ HexagonPicker = (function () {
   }
 
   return {
+    setColor: setColor,
     load: load
   };
 })();
@@ -616,8 +656,8 @@ NameConverter = (function () {
   }
 
   return {
-    load: load,
-    setColor: setColor
+    setColor: setColor,
+    load: load
   };
 })();
 
@@ -820,9 +860,13 @@ ColorSpinner = (function () {
       i;
 
   function activatedColor(caller, color) {
+    if (caller !== HexagonPicker) {
+      HexagonPicker.setColor(color);
+    }
     if (caller === SwatchManager) {
       NameConverter.setColor(color);
-    } else if (caller === NameConverter) {
+    }
+    if (caller === NameConverter) {
       if (SwatchManager.isActive()) {
         SwatchManager.setColorOfActiveSwatch(color);
       } else {
@@ -853,9 +897,9 @@ ColorSpinner = (function () {
   }
   
   return {
-    load: load,
     activatedColor: activatedColor,
-    deactivated: deactivated
+    deactivated: deactivated,
+    load: load
   };
 })();
 
