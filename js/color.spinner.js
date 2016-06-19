@@ -216,7 +216,7 @@ HexagonPicker = (function () {
         x = position.x - offset.left,  // (x, y) is in the canvas
         y = position.y - offset.top,
         angle,
-        pickX, pickY, pickColor, showPoint,
+        pickX, pickY, pickColor,
         x0 = hex.x0,
         y0 = hex.y0,
         x1 = x - x0,  // (x1, y1) is in the sector's coordinate space
@@ -249,19 +249,66 @@ HexagonPicker = (function () {
     pickX = zoomPoint.x + x1 / scale;
     pickY = zoomPoint.y - y1 / scale;
     pickColor = xyToRgb(pickX - x0, y0 - pickY);
-    showPoint = rgbToXy(pickColor);
-    macroShowPoint(showPoint.x, showPoint.y);
+    setColor(pickColor);
   }
 
-  function macroShowPoint(x, y) {
+  function setColor(color) {
+    var point = rgbToXy(color);
+    showPoint(point.x, point.y);
+  }
+
+  function showPoint(x, y) {
     var canvas = canvases.macro.pick,
         context = canvas.getContext('2d'),
-        hex = dimensions.hexagon;
+        hex = dimensions.hexagon,
+        macroRadius = hex.macroRadius,
+        microRadius = hex.microRadius,
+        scale = macroRadius / microRadius,
+        macroBorder = hex.macroBorder,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x1 = x - zoomPoint.x,  // displacement from the micro area's center
+        y1 = y - zoomPoint.y,
+        d1 = Math.hypot(x1, y1),
+        angle,
+        slope = Math.tan(sectorAngleAtPoint(x1, y1)),
+        factor = 1 / (1 + slope / sqrt3),
+        r2 = macroRadius,
+        x2 = factor * r2,
+        y2 = slope * x2,
+        d2 = Math.hypot(x2, y2),  // fence
+        angle;
+    // Calculate and draw point in macro area.
     clearCanvas(canvas);
     context.beginPath();
     context.arc(hex.x0 + x, hex.y0 - y, 2, 0, circle);
     context.closePath();
     context.fill();
+    return;
+    // Calculate point in micro area. Draw if visible.
+    canvas = canvases.macro.pick;
+    context = canvas.getContext('2d');
+    if (state.micro.justGrabbed) {
+      state.micro.justGrabbed = false;
+      if (d1 > d2) {
+        state.micro.dragging = false;
+        return;
+      }
+    }
+    r2 = macroRadius;
+    x2 = factor * r2;
+    y2 = slope * x2;
+    d2 = Math.hypot(x2, y2);  // fence for zoom pixels
+    if (d1 > d2) {
+      angle = Math.atan2(y1, x1);
+      x1 = d2 * Math.cos(angle);
+      y1 = d2 * Math.sin(angle);
+    }
+    refinePoint.x = x0 + x1;
+    refinePoint.y = y0 - y1;
+    pickX = zoomPoint.x + x1 / scale;
+    pickY = zoomPoint.y - y1 / scale;
+    pickColor = xyToRgb(pickX - x0, y0 - pickY);
   }
 
   function macroGrab(event) {
@@ -504,11 +551,6 @@ HexagonPicker = (function () {
       }
     }
     context.putImageData(imageData, 0, 0);
-  }
-
-  function setColor(color) {
-    var point = rgbToXy(color);
-    macroShowPoint(point.x, point.y);
   }
 
   function load(wrapper) {
