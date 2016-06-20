@@ -150,8 +150,9 @@ HexagonPicker = (function () {
         macro: { dragging: false },
         micro: {}
       },
-      zoomPoint = {},  // center of slider in main hexagon
-      refinePoint = {},  // center of slider in zoomed view
+      zoomPoint = {},  // slider's center (physical) in macro view
+      pickPoint = {},  // active point (physical) in macro view
+      refinePoint = {},  // slider's center (physical) in micro (zoomed) view
       dimensions = {},
       masks = {},
       canvases = {};
@@ -267,43 +268,33 @@ HexagonPicker = (function () {
         macroBorder = hex.macroBorder,
         x0 = hex.x0,
         y0 = hex.y0,
-        x1 = x - zoomPoint.x,  // displacement from the micro area's center
-        y1 = y - zoomPoint.y,
+        x1 = x + x0 - zoomPoint.x,  // displacement from the slider's center
+        y1 = y - y0 + zoomPoint.y,
         d1 = Math.hypot(x1, y1),
         angle,
         slope = Math.tan(sectorAngleAtPoint(x1, y1)),
         factor = 1 / (1 + slope / sqrt3),
-        r2 = macroRadius,
+        r2 = microRadius,
         x2 = factor * r2,
         y2 = slope * x2,
-        d2 = Math.hypot(x2, y2),  // fence
-        angle;
-    // Calculate and draw point in macro area.
+        d2 = Math.hypot(x2, y2),  // fence for point within slider
+        x3 = x0 + x1 * scale,
+        y3 = y0 - y1 * scale;
+    // Point in macro area (overall color hexagon).
     clearCanvas(canvas);
     context.beginPath();
     context.arc(hex.x0 + x, hex.y0 - y, 2, 0, circle);
     context.closePath();
     context.fill();
-    return;
-    // Calculate point in micro area. Draw if visible.
-    canvas = canvases.macro.pick;
+    // Point in micro area (zoomed view).
+    canvas = canvases.micro.slider;
+    clearCanvas(canvas);
     context = canvas.getContext('2d');
-    if (state.micro.justGrabbed) {
-      state.micro.justGrabbed = false;
-      if (d1 > d2) {
-        state.micro.dragging = false;
-        return;
-      }
-    }
-    r2 = macroRadius;
-    x2 = factor * r2;
-    y2 = slope * x2;
-    d2 = Math.hypot(x2, y2);  // fence for zoom pixels
-    if (d1 > d2) {
-      angle = Math.atan2(y1, x1);
-      x1 = d2 * Math.cos(angle);
-      y1 = d2 * Math.sin(angle);
-    }
+    context.beginPath();
+    context.arc(x3, y3, 5, 0, circle);
+    context.closePath();
+    context.fill();
+    return;
     refinePoint.x = x0 + x1;
     refinePoint.y = y0 - y1;
     pickX = zoomPoint.x + x1 / scale;
@@ -489,13 +480,13 @@ HexagonPicker = (function () {
 
   function fillZoom(mask, canvas) {
     var hex = dimensions.hexagon,
-        x0 = hex.x0,
-        y0 = hex.y0,
-        x1 = zoomPoint.x,
-        y1 = zoomPoint.y,
         microRadius = hex.microRadius,
         macroRadius = hex.macroRadius,
         zoomFactor = microRadius / macroRadius,
+        x0 = hex.x0,
+        y0 = hex.y0,
+        x1 = zoomPoint.x - x0 * zoomFactor,
+        y1 = zoomPoint.y - y0 * zoomFactor,
         context = canvas.getContext('2d'),
         width = canvas.width,
         height = canvas.height,
@@ -510,8 +501,8 @@ HexagonPicker = (function () {
     for (y = 0; y < height; ++y) {
       for (x = 0; x < width; ++x) {
         if (mask[x][y]) {
-          x2 = x1 + (x - x0) * zoomFactor;
-          y2 = y1 - (y0 - y) * zoomFactor;
+          x2 = x1 + x * zoomFactor;
+          y2 = y1 + y * zoomFactor;
           rgb = xyToRgb(x2 - x0, y0 - y2);
           data[pos] = rgb.r;
           data[pos + 1] = rgb.g;
