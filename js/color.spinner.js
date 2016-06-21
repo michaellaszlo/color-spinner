@@ -150,6 +150,10 @@ HexagonPicker = (function () {
         macro: { dragging: false },
         micro: {}
       },
+      picked = {
+        color: null,
+        point: null
+      },
       zoomPoint = {},  // slider's center (physical) in macro view
       pickPoint = {},  // active point (physical) in macro view
       refinePoint = {},  // slider's center (physical) in micro (zoomed) view
@@ -255,6 +259,8 @@ HexagonPicker = (function () {
 
   function setColor(color) {
     var point = rgbToXy(color);
+    picked.color = color;
+    picked.point = point;
     showPoint(point.x, point.y);
   }
 
@@ -279,27 +285,26 @@ HexagonPicker = (function () {
         y2 = slope * x2,
         d2 = Math.hypot(x2, y2),  // fence for point within slider
         x3 = x0 + x1 * scale,
-        y3 = y0 - y1 * scale;
-    // Point in macro area (overall color hexagon).
+        y3 = y0 - y1 * scale,
+        macroPointRadius = 2,
+        microPointRadius = scale * macroPointRadius;
+    // Draw point in macro area (overall color hexagon).
     clearCanvas(canvas);
     context.beginPath();
     context.arc(hex.x0 + x, hex.y0 - y, 2, 0, circle);
     context.closePath();
     context.fill();
-    // Point in micro area (zoomed view).
+    // Draw point in micro area (zoomed view).
     canvas = canvases.micro.slider;
     clearCanvas(canvas);
+    if (d1 > d2 + macroPointRadius) {
+      return;
+    }
     context = canvas.getContext('2d');
     context.beginPath();
     context.arc(x3, y3, 5, 0, circle);
     context.closePath();
     context.fill();
-    return;
-    refinePoint.x = x0 + x1;
-    refinePoint.y = y0 - y1;
-    pickX = zoomPoint.x + x1 / scale;
-    pickY = zoomPoint.y - y1 / scale;
-    pickColor = xyToRgb(pickX - x0, y0 - pickY);
   }
 
   function macroGrab(event) {
@@ -361,6 +366,7 @@ HexagonPicker = (function () {
         microRadius + microBorder / 2, microBorder, '#444');
     fillMacro(masks.colors, canvases.macro.colors);
     fillZoom(masks.colors, canvases.micro.colors);
+    showPoint(picked.point.x, picked.point.y);
   }
 
   function clearCanvas(canvas) {
