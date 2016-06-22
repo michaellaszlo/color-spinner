@@ -292,19 +292,28 @@ HexagonPicker = (function () {
         y2 = slope * x2,
         d2 = Math.hypot(x2, y2),  // fence for point within slider
         x3 = x0 + x1 * scale,
-        y3 = y0 - y1 * scale;
+        y3 = y0 - y1 * scale,
+        d, r4, x4, y4, d4;
     // Draw point in macro area (overall color hexagon).
     clearCanvas(canvas);
     context.beginPath();
     context.arc(hex.x0 + x, hex.y0 - y, 2, 0, circle);
     context.closePath();
     context.fill();
+    // Snap slider to point
+    if (d1 > d2 + macroPointRadius) {
+      d = Math.hypot(x, y);  // distance from center of main view
+      slope = Math.tan(sectorAngleAtPoint(x, y));
+      factor = 1 / (1 + slope / sqrt3);
+      r4 = macroRadius;
+      x4 = factor * r4;
+      y4 = slope * x4;
+      d4 = Math.hypot(x4, y4);  // fence for main view
+      console.log(d, d4);
+    }
     // Draw point in micro area (zoomed view).
     canvas = canvases.micro.pick;
     clearCanvas(canvas);
-    if (d1 > d2 + macroPointRadius) {
-      return;
-    }
     context = canvas.getContext('2d');
     context.strokeStyle = '#000';
     context.lineWidth = 1;
@@ -950,6 +959,7 @@ ColorSpinner = (function () {
     for (i = 0; i < 4; ++i) { 
       SwatchManager.insertColor(new Color());
     }
+    SwatchManager.insertColor(new Color('#aa0202'));
     SwatchManager.activateSwatchAt(0);
   }
   
