@@ -266,10 +266,10 @@ HexagonPicker = (function () {
     var point = rgbToXy(color);
     picked.color = color;
     picked.point = point;
-    showPoint(point.x, point.y);
+    showPoint(point.x, point.y, true);
   }
 
-  function showPoint(x, y) {
+  function showPoint(x, y, snapTo) {
     var canvas = canvases.macro.pick,
         context = canvas.getContext('2d'),
         hex = dimensions.hexagon,
@@ -301,15 +301,21 @@ HexagonPicker = (function () {
     context.closePath();
     context.fill();
     // Snap slider to point
-    if (d1 > d2 + macroPointRadius) {
+    if (snapTo && d1 > d2) {
       d = Math.hypot(x, y);  // distance from center of main view
       slope = Math.tan(sectorAngleAtPoint(x, y));
       factor = 1 / (1 + slope / sqrt3);
-      r4 = macroRadius;
+      r4 = macroRadius - microRadius;
       x4 = factor * r4;
       y4 = slope * x4;
       d4 = Math.hypot(x4, y4);  // fence for main view
-      console.log(d, d4);
+      if (d <= d4) {
+        zoomTo(x, y, true);
+      } else {
+        angle = Math.atan2(y, x);
+        zoomTo(d4 * Math.cos(angle), d4 * Math.sin(angle), true);
+      }
+      return;
     }
     // Draw point in micro area (zoomed view).
     canvas = canvases.micro.pick;
@@ -342,24 +348,29 @@ HexagonPicker = (function () {
   }
 
   function macroDrag(event) {
+    var position, offset, x, y;
     if (!state.macro.dragging) {
       return;
     }
-    var position = M.getMousePosition(event),
-        offset = this.offset,
-        canvas = canvases.macro.slider,
+    position = M.getMousePosition(event);
+    offset = this.offset;
+    x = position.x - offset.left - dimensions.hexagon.x0;
+    y = -position.y + offset.top + dimensions.hexagon.y0;
+    zoomTo(x, y);
+  }
+
+  function zoomTo(x, y) {
+    var canvas = canvases.macro.slider,
         hex = dimensions.hexagon,
         microRadius = hex.microRadius,
         microBorder = hex.microBorder,
         macroRadius = hex.macroRadius,
         macroBorder = hex.macroBorder,
-        x = position.x - offset.left,  // (x, y) is in the canvas
-        y = position.y - offset.top,
         angle,
         x0 = hex.x0,
         y0 = hex.y0,
-        x1 = x - x0,  // (x1, y1) is in the sector's coordinate space
-        y1 = y0 - y,
+        x1 = x,  // (x1, y1) is in the sector's coordinate space
+        y1 = y,
         d1 = Math.hypot(x1, y1),
         slope = Math.tan(sectorAngleAtPoint(x1, y1)),
         factor = 1 / (1 + slope / sqrt3),
@@ -464,7 +475,7 @@ HexagonPicker = (function () {
     angle = h * pi / 3;
     value = max;
     saturation = (value == 0 ? 0 : C / value);
-    r = saturation * radiusAtHue(H) * dimensions.hexagon.x0;
+    r = saturation * radiusAtHue(H) * dimensions.hexagon.macroRadius;
     return {
       x: r * Math.cos(angle),
       y: r * Math.sin(angle)
@@ -477,7 +488,7 @@ HexagonPicker = (function () {
         angle = (radius == 0 ? 0 : (y >= 0 ? Math.acos(x / radius) :
                                     circle - Math.acos(x / radius))),
         H = Math.floor(angle * 180 / pi),
-        R = radiusAtHue(H) * dimensions.hexagon.x0,
+        R = radiusAtHue(H) * dimensions.hexagon.macroRadius,
         saturation = Math.min(1, radius / R),
         C = saturation * value,
         h = H / 60,
