@@ -158,7 +158,8 @@ HexagonPicker = (function () {
       pickPoint = {},  // active point (physical) in macro view
       refinePoint = {},  // slider's center (physical) in micro (zoomed) view
       dimensions = {
-        hexagon: { scale: 4 }
+        hexagon: { scale: 4 },
+        slider: {}
       },
       masks = {},
       canvases = {};
@@ -187,7 +188,6 @@ HexagonPicker = (function () {
         r = hex.macroRadius,
         b = hex.macroBorder,
         B = 2.5 * hex.microPointRadius;
-    console.log(B);
     paintHexagon(canvas, x0, y0, r + (b + B) / 2, B, '#fff');
     paintHexagon(canvas, x0, y0, r + b / 2, b, '#999');
   }
@@ -588,17 +588,24 @@ HexagonPicker = (function () {
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hex = dimensions.hexagon,
+        vl = dimensions.slider,
         startTime;
+
+    // Dimensions.
     dimensions.wrapper = { width: width, height: height };
-    hex.canvasSize = Math.min(height, Math.floor(width / 2));
+    hex.canvasSize = Math.min(height, Math.floor(width / 2.2));
+    hex.canvasSize -= hex.canvasSize % 2;
+    vl.width = width - 2 * hex.canvasSize;
+    vl.height = height;
     hex.x0 = hex.y0 = hex.canvasSize / 2;
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
     hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
     hex.macroRadius = hex.x0 - hex.macroBorder;
-    console.log(hex.scale);
     hex.microRadius = hex.macroRadius / hex.scale;
     hex.macroPointRadius = hex.microBorder;
     hex.microPointRadius = hex.scale * hex.macroPointRadius;
+
+    // Overall color area (macro view).
     canvases.macro = {
       colors: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
@@ -624,6 +631,8 @@ HexagonPicker = (function () {
     M.listen(canvas, macroGrab, 'mousedown');
     M.listen(window, macroRelease, 'mouseup');
     M.listen(window, macroDrag.bind(canvas), 'mousemove');
+
+    // Zoomed color area (micro view).
     canvases.micro = {
       colors: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize }),
@@ -651,6 +660,22 @@ HexagonPicker = (function () {
     M.listen(canvas, microGrab, 'mousedown');
     M.listen(window, microRelease, 'mouseup');
     M.listen(window, microDrag.bind(canvas), 'mousemove');
+
+    // Slider for value or luminance (V/L control).
+    canvases.vl = {
+      colors: M.make('canvas', { className: 'vl', parent: wrapper,
+          width: vl.width, height: vl.height }),
+      pick: M.make('canvas', { className: 'vl', parent: wrapper,
+          width: vl.width, height: vl.height }),
+      frame: M.make('canvas', { className: 'vl', parent: wrapper,
+          width: vl.width, height: vl.height }),
+      slider: M.make('canvas', { className: 'vl', parent: wrapper,
+          width: vl.width, height: vl.height })
+    };
+    Object.keys(canvases.vl).forEach(function (name) {
+      var canvas = canvases.vl[name];
+      canvas.style.left = hex.canvasSize + 'px';
+    });
   }
 
   return {
