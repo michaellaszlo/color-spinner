@@ -152,14 +152,13 @@ HexagonPicker = (function () {
       },
       picked = {
         color: null,
-        point: null
+        point: null,
+        value: 255
       },
       zoomPoint = {},  // slider's center (physical) in macro view
-      pickPoint = {},  // active point (physical) in macro view
-      refinePoint = {},  // slider's center (physical) in micro (zoomed) view
       dimensions = {
         hexagon: { scale: 4 },
-        slider: {}
+        vl: {}
       },
       masks = {},
       canvases = {};
@@ -254,8 +253,6 @@ HexagonPicker = (function () {
       x1 = d2 * Math.cos(angle);
       y1 = d2 * Math.sin(angle);
     }
-    refinePoint.x = x0 + x1;
-    refinePoint.y = y0 - y1;
     pickX = zoomPoint.x + x1 / scale;
     pickY = zoomPoint.y - y1 / scale;
     pickColor = xyToRgb(pickX - x0, y0 - pickY);
@@ -266,7 +263,33 @@ HexagonPicker = (function () {
     var point = rgbToXy(color);
     picked.color = color;
     picked.point = point;
+    picked.value = point.value;
     showPoint(point.x, point.y, true);
+    paintDimmer(point.x, point.y);
+  }
+
+  function paintDimmer(x, y) {
+    var canvas = canvases.vl.colors,
+        context = canvas.getContext('2d'),
+        vl = dimensions.vl,
+        width = vl.width,
+        height = vl.height,
+        r, fraction, shade;
+    for (r = 0; r < height; ++r) {
+      fraction = 1 - r / (height - 1);
+      shade = Math.floor(fraction * 255);
+      context.fillStyle = 'rgb(' + shade + ', ' + shade + ', ' + shade + ')';
+      context.fillRect(Math.floor(0.15 * width), r,
+          Math.floor(0.7 * width), 1);
+    }
+    canvas = canvases.vl.pick;
+    context = canvas.getContext('2d');
+    clearCanvas(canvas);
+    r = Math.floor(height * (1 - picked.value / 255));
+    context.lineWidth = 1;
+    context.strokeStyle = '#444';
+    context.strokeRect(Math.floor(0.15 * width) - 2, r - 2,
+        Math.floor(0.7 * width) + 4, 4);
   }
 
   function showPoint(x, y, snapTo) {
@@ -478,12 +501,13 @@ HexagonPicker = (function () {
     r = saturation * radiusAtHue(H) * dimensions.hexagon.macroRadius;
     return {
       x: r * Math.cos(angle),
-      y: r * Math.sin(angle)
+      y: r * Math.sin(angle),
+      value: value
     };
   }
 
-  function xyToRgb(x, y) {  // hexagon center is 0, 0
-    var value = 1,
+  function xyToRgb(x, y, value) {  // hexagon center is 0, 0
+    var value = (value === undefined ? picked.value : value) / 255,
         radius = Math.hypot(x, y),
         angle = (radius == 0 ? 0 : (y >= 0 ? Math.acos(x / radius) :
                                     circle - Math.acos(x / radius))),
@@ -588,7 +612,7 @@ HexagonPicker = (function () {
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hex = dimensions.hexagon,
-        vl = dimensions.slider,
+        vl = dimensions.vl,
         startTime;
 
     // Dimensions.
@@ -596,7 +620,7 @@ HexagonPicker = (function () {
     hex.canvasSize = Math.min(height, Math.floor(width / 2.2));
     hex.canvasSize -= hex.canvasSize % 2;
     vl.width = width - 2 * hex.canvasSize;
-    vl.height = height;
+    vl.height = hex.canvasSize * Math.sqrt(3) / 2;
     hex.x0 = hex.y0 = hex.canvasSize / 2;
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
     hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
@@ -616,6 +640,10 @@ HexagonPicker = (function () {
       slider: M.make('canvas', { className: 'hex', parent: wrapper,
         width: hex.canvasSize, height: hex.canvasSize })
     };
+    Object.keys(canvases.macro).forEach(function (name) {
+      var canvas = canvases.macro[name];
+      canvas.style.top = Math.floor((height - hex.canvasSize) / 2) + 'px';
+    });
     // Frame and mask.
     paintHexagonFrame(canvases.macro.frame);
     masks.colors = getMask(canvases.macro.frame, hex.x0, hex.y0);
@@ -646,6 +674,7 @@ HexagonPicker = (function () {
     Object.keys(canvases.micro).forEach(function (name) {
       var canvas = canvases.micro[name];
       canvas.style.right = '0';
+      canvas.style.top = Math.floor((height - hex.canvasSize) / 2) + 'px';
     });
     paintHexagonFrame(canvases.micro.frame);
     zoomPoint.x = hex.x0;
@@ -669,12 +698,13 @@ HexagonPicker = (function () {
           width: vl.width, height: vl.height }),
       frame: M.make('canvas', { className: 'vl', parent: wrapper,
           width: vl.width, height: vl.height }),
-      slider: M.make('canvas', { className: 'vl', parent: wrapper,
+      touch: M.make('canvas', { className: 'vl', parent: wrapper,
           width: vl.width, height: vl.height })
     };
     Object.keys(canvases.vl).forEach(function (name) {
       var canvas = canvases.vl[name];
       canvas.style.left = hex.canvasSize + 'px';
+      canvas.style.top = Math.floor((height - vl.height) / 2) + 'px';
     });
   }
 
