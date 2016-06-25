@@ -148,7 +148,8 @@ HexagonPicker = (function () {
       dy = [ -1, 0, 1, 0 ],
       state = {
         macro: { dragging: false },
-        micro: {}
+        micro: {},
+        dimmer: {}
       },
       picked = {
         color: null,
@@ -158,7 +159,7 @@ HexagonPicker = (function () {
       zoomPoint = {},  // slider's center (physical) in macro view
       dimensions = {
         hexagon: { scale: 4 },
-        vl: {}
+        dimmer: {}
       },
       masks = {},
       canvases = {};
@@ -266,30 +267,63 @@ HexagonPicker = (function () {
     picked.value = point.value;
     showPoint(point.x, point.y, true);
     paintDimmer(point.x, point.y);
+    fillMacro(masks.colors, canvases.macro.colors);
+    fillZoom(masks.colors, canvases.micro.colors);
+  }
+
+  function dimmerGrab(event) {
+    state.dimmer.dragging = true;
+    state.dimmer.justGrabbed = true;
+    dimmerDrag.call(this, event);
+  }
+
+  function dimmerRelease(event) {
+    state.dimmer.dragging = false;
+  }
+
+  function dimmerDrag(event) {
+    if (!state.dimmer.dragging) {
+      return;
+    }
+    var position = M.getMousePosition(event),
+        offset = this.offset,
+        dim = dimensions.dimmer,
+        r = Math.round(255 * (position.y - offset.top) / (dim.height - 1)),
+        value = Math.max(0, Math.min(255 - r, 255));
+    if (value === picked.value) {
+      return;
+    }
+    picked.value = value;
+    setColor(xyToRgb(picked.point.x, picked.point.y));
   }
 
   function paintDimmer(x, y) {
-    var canvas = canvases.vl.colors,
+    var canvas = canvases.dimmer.colors,
         context = canvas.getContext('2d'),
-        vl = dimensions.vl,
-        width = vl.width,
-        height = vl.height,
-        r, fraction, shade;
-    for (r = 0; r < height; ++r) {
-      fraction = 1 - r / (height - 1);
-      shade = Math.floor(fraction * 255);
-      context.fillStyle = 'rgb(' + shade + ', ' + shade + ', ' + shade + ')';
-      context.fillRect(Math.floor(0.15 * width), r,
+        dim = dimensions.dimmer,
+        width = dim.width,
+        height = dim.height,
+        point = picked.point,
+        h, fraction, value, rgb;
+    for (h = 0; h < height; ++h) {
+      fraction = 1 - h / (height - 1);
+      value = Math.round(fraction * 255);
+      rgb = xyToRgb(point.x, point.y, value);
+      context.fillStyle = 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
+      context.fillRect(Math.floor(0.15 * width), h,
           Math.floor(0.7 * width), 1);
     }
-    canvas = canvases.vl.pick;
+    canvas = canvases.dimmer.pick;
     context = canvas.getContext('2d');
     clearCanvas(canvas);
-    r = Math.floor(height * (1 - picked.value / 255));
+    h = 3 + Math.floor((height - 3) * (1 - picked.value / 255));
     context.lineWidth = 1;
-    context.strokeStyle = '#444';
-    context.strokeRect(Math.floor(0.15 * width) - 2, r - 2,
-        Math.floor(0.7 * width) + 4, 4);
+    context.strokeStyle = '#000';
+    context.strokeRect(Math.floor(0.15 * width) - 1.5, h - 3.5,
+        Math.floor(0.7 * width) + 3, 6);
+    context.strokeStyle = '#fff';
+    context.strokeRect(Math.floor(0.15 * width) - 0.5, h - 2.5,
+        Math.floor(0.7 * width) + 1, 4);
   }
 
   function showPoint(x, y, snapTo) {
@@ -612,15 +646,15 @@ HexagonPicker = (function () {
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
         hex = dimensions.hexagon,
-        vl = dimensions.vl,
+        dim = dimensions.dimmer,
         startTime;
 
     // Dimensions.
     dimensions.wrapper = { width: width, height: height };
     hex.canvasSize = Math.min(height, Math.floor(width / 2.2));
     hex.canvasSize -= hex.canvasSize % 2;
-    vl.width = width - 2 * hex.canvasSize;
-    vl.height = hex.canvasSize * Math.sqrt(3) / 2;
+    dim.width = width - 2 * hex.canvasSize;
+    dim.height = Math.floor(hex.canvasSize * Math.sqrt(3) / 2);
     hex.x0 = hex.y0 = hex.canvasSize / 2;
     hex.microBorder = Math.max(2, hex.canvasSize / 120);
     hex.macroBorder = Math.max(hex.microBorder + 2, hex.canvasSize / 60);
@@ -691,21 +725,27 @@ HexagonPicker = (function () {
     M.listen(window, microDrag.bind(canvas), 'mousemove');
 
     // Slider for value or luminance (V/L control).
-    canvases.vl = {
-      colors: M.make('canvas', { className: 'vl', parent: wrapper,
-          width: vl.width, height: vl.height }),
-      pick: M.make('canvas', { className: 'vl', parent: wrapper,
-          width: vl.width, height: vl.height }),
-      frame: M.make('canvas', { className: 'vl', parent: wrapper,
-          width: vl.width, height: vl.height }),
-      touch: M.make('canvas', { className: 'vl', parent: wrapper,
-          width: vl.width, height: vl.height })
+    canvases.dimmer = {
+      colors: M.make('canvas', { className: 'dimmer', parent: wrapper,
+          width: dim.width, height: dim.height }),
+      pick: M.make('canvas', { className: 'dimmer', parent: wrapper,
+          width: dim.width, height: dim.height }),
+      frame: M.make('canvas', { className: 'dimmer', parent: wrapper,
+          width: dim.width, height: dim.height }),
+      touch: M.make('canvas', { className: 'dimmer', parent: wrapper,
+          width: dim.width, height: dim.height })
     };
-    Object.keys(canvases.vl).forEach(function (name) {
-      var canvas = canvases.vl[name];
+    Object.keys(canvases.dimmer).forEach(function (name) {
+      var canvas = canvases.dimmer[name];
       canvas.style.left = hex.canvasSize + 'px';
-      canvas.style.top = Math.floor((height - vl.height) / 2) + 'px';
+      canvas.style.top = Math.floor((height - dim.height) / 2) + 'px';
     });
+    canvas = canvases.dimmer.touch;
+    M.makeUnselectable(canvas);
+    canvas.offset = M.getOffset(canvas, document.body);
+    M.listen(canvas, dimmerGrab, 'mousedown');
+    M.listen(window, dimmerRelease, 'mouseup');
+    M.listen(window, dimmerDrag.bind(canvas), 'mousemove');
   }
 
   return {

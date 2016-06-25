@@ -27,6 +27,9 @@ body {
 #hexagonPicker canvas {
   position: absolute;
 }
+canvas.dimmer {
+  cursor: crosshair;
+}
 
 #nameConverter {
   display: inline-block;
