@@ -162,7 +162,8 @@ HexagonPicker = (function () {
         dimmer: {}
       },
       masks = {},
-      canvases = {};
+      canvases = {},
+      owner = null;
 
   function paintHexagon(canvas, x0, y0, radius, thickness, color) {
     var context = canvas.getContext('2d'),
@@ -256,7 +257,7 @@ HexagonPicker = (function () {
     }
     pickX = zoomPoint.x + x1 / scale;
     pickY = zoomPoint.y - y1 / scale;
-    pickColor = xyToRgb(pickX - x0, y0 - pickY);
+    pickColor = new Color(xyToRgb(pickX - x0, y0 - pickY));
     setColor(pickColor);
   }
 
@@ -269,6 +270,9 @@ HexagonPicker = (function () {
     paintDimmer(point.x, point.y);
     fillMacro(masks.colors, canvases.macro.colors);
     fillZoom(masks.colors, canvases.micro.colors);
+    if (owner) {
+      owner.activatedColor(HexagonPicker, color);
+    }
   }
 
   function dimmerGrab(event) {
@@ -294,7 +298,7 @@ HexagonPicker = (function () {
       return;
     }
     picked.value = value;
-    setColor(xyToRgb(picked.point.x, picked.point.y));
+    setColor(new Color(xyToRgb(picked.point.x, picked.point.y)));
   }
 
   function paintDimmer(x, y) {
@@ -641,7 +645,7 @@ HexagonPicker = (function () {
     context.putImageData(imageData, 0, 0);
   }
 
-  function load(wrapper) {
+  function load(wrapper, options) {
     var canvas,
         width = wrapper.offsetWidth,
         height = wrapper.offsetHeight,
@@ -746,6 +750,10 @@ HexagonPicker = (function () {
     M.listen(canvas, dimmerGrab, 'mousedown');
     M.listen(window, dimmerRelease, 'mouseup');
     M.listen(window, dimmerDrag.bind(canvas), 'mousemove');
+
+    if (options && 'owner' in options) {
+      owner = options.owner;
+    }
   }
 
   return {
@@ -1035,10 +1043,10 @@ ColorSpinner = (function () {
     if (caller !== HexagonPicker) {
       HexagonPicker.setColor(color);
     }
-    if (caller === SwatchManager) {
+    if (caller !== NameConverter) {
       NameConverter.setColor(color);
     }
-    if (caller === NameConverter) {
+    if (caller !== SwatchManager) {
       if (SwatchManager.isActive()) {
         SwatchManager.setColorOfActiveSwatch(color);
       } else {
