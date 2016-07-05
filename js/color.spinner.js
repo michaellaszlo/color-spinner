@@ -261,10 +261,12 @@ HexagonPicker = (function () {
     setColor(pickColor);
   }
 
-  function setColor(color) {
+  function setColor(color, keepPoint) {
     var point = rgbToXy(color);
     picked.color = color;
-    picked.point = point;
+    if (!keepPoint) {
+      picked.point = point;
+    }
     picked.value = point.value;
     showPoint(point.x, point.y, true);
     paintDimmer(point.x, point.y);
@@ -292,13 +294,13 @@ HexagonPicker = (function () {
     var position = M.getMousePosition(event),
         offset = this.offset,
         dim = dimensions.dimmer,
-        r = Math.round(255 * (position.y - offset.top) / (dim.height - 1)),
-        value = Math.max(0, Math.min(255 - r, 255));
+        h = Math.round(255 * (position.y - offset.top) / (dim.height - 1)),
+        value = Math.max(0, Math.min(255 - h, 255));
     if (value === picked.value) {
       return;
     }
     picked.value = value;
-    setColor(new Color(xyToRgb(picked.point.x, picked.point.y)));
+    setColor(new Color(xyToRgb(picked.point.x, picked.point.y)), true);
   }
 
   function paintDimmer(x, y) {
