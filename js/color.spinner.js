@@ -261,19 +261,21 @@ HexagonPicker = (function () {
     setColor(pickColor);
   }
 
-  function setColor(color, keepPoint) {
+  function setColor(color, preservePoint, preserveDimmer) {
     var point = rgbToXy(color);
     picked.color = color;
-    if (!keepPoint) {
-      picked.point = point;
-    }
-    picked.value = point.value;
-    showPoint(point.x, point.y, true);
-    paintDimmer(point.x, point.y);
     fillMacro(masks.colors, canvases.macro.colors);
     fillZoom(masks.colors, canvases.micro.colors);
     if (owner) {
       owner.activatedColor(HexagonPicker, color);
+    }
+    if (!preservePoint) {
+      picked.point = point;
+      picked.value = point.value;
+      showPoint(point.x, point.y, true);
+    }
+    if (!preserveDimmer) {
+      paintDimmer(point.x, point.y);
     }
   }
 
