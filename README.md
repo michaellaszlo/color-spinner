@@ -1,20 +1,12 @@
 # Color Spinner
 
 
-## What is this supposed to be?
+## What is this?
 
-It's a web-based color picker. The visual color selector is not
-present in the current version because I am concentrating on name
-conversion and palette management. You can check out an earlier
-version to see my implementation of the classic hexagonal color
-layout. The new visual selector will be an improved version of the
-hexagonal approach.
-
-I'm working on a swatch manager that lets you group colors and move
-them around a grid so that you can more easily compare and refine
-shades. I also have a direct input box that parses colors in
-hexadecimal format. I'll work on parsing other name formats once
-the swatch manager is in serviceable shape.
+It's a web-based color picker. I'm working on a swatch manager that lets
+you group colors and move them around a grid so that you can more easily
+compare and refine shades. I also have a direct input box that parses
+colors in hexadecimal format.
 
 
 ## What's working right now?
@@ -33,30 +25,34 @@ ffaabb
 #ffaabb
 ```
 
+![Color spinner](screenshot.png)
 
 ## What else can I do?
 
-After entering a hex code, you can edit it in the input box. You'll
-see instant updates to the active color swatch, which is in the top
-left corner of the swatch manager. If you click on the active color,
-it gets cloned to a new swatch.
+You can reload the page to see four new random colors, which might be
+interesting if you're trying to come up with a new color palette for a
+design project.
 
-The only other thing you can do is reload the page to see four new
-random colors, which might be interesting if you're trying to come
-up with a new color palette for a design project.
+After entering a hex code, you can edit it in the input box. You'll see
+instant updates to the active color swatch, which is marked with a small
+black triangle. To copy the swatch, hover over it and click on the right
+arrow. To delete the swatch, hover and click on the X.
+
+To make another swatch active, click on it. To deactivate the active
+swatch, click on the small black triangle. Beware: when there is no
+active swatch, every editing action causes a new swatch to be created.
+
+You can edit the color using the visual controls at top. Click and drag
+in the left hexagon to move the zoomed view, which is shown in the right
+hexagon. Click on a point in the right hexagon to select a color. Use
+the slider between the two hexagons to adjust the color value.
 
 
 ## What's coming next?
 
-I'm going to refine the swatch manager by adding the ability to
-hover over any swatch and choose one of the following actions:
-
-- copy this color to the active editing area
-- delete this color
-- grab and move this color
-
-After that the next priority is the visual color selector. I'm going
-to bring back the hexagonal layout and add a zooming feature to
-enable fine-grained color exploration.
-
+- fewer bugs
+- better visual controls
+- grab and move color swatches
+- make color groups
+- save colors
 
